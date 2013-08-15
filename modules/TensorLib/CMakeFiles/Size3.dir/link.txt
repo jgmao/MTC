@@ -1,0 +1,2 @@
+/usr/bin/ar cr libSize3.a  CMakeFiles/Size3.dir/src/Size3.cpp.o
+/usr/bin/ranlib libSize3.a

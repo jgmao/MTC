@@ -151,6 +151,9 @@ CMAKE_USE_RELATIVE_PATHS:BOOL=OFF
 // Studio IDE projects all commands are done without /nologo.
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
+//Dependencies for the target
+Cube_LIB_DEPENDS:STATIC=debug;/usr/local/lib/libopencv_gpuarithm.so;debug;/usr/local/lib/libopencv_gpufilters.so;debug;/usr/local/lib/libopencv_imgproc.so;debug;/usr/local/lib/libopencv_highgui.so;debug;/usr/local/lib/libopencv_core.so;optimized;/usr/local/lib/libopencv_gpuarithm.so;optimized;/usr/local/lib/libopencv_gpufilters.so;optimized;/usr/local/lib/libopencv_imgproc.so;optimized;/usr/local/lib/libopencv_highgui.so;optimized;/usr/local/lib/libopencv_core.so;
+
 //Value Computed by CMake
 MTC_BINARY_DIR:STATIC=/home/guoxin/Projects/MTC
 
@@ -176,6 +179,12 @@ OpenCV_LIB_DIR_DBG:PATH=/usr/local/lib
 
 //Path where release OpenCV libraries are located
 OpenCV_LIB_DIR_OPT:PATH=/usr/local/lib
+
+//Dependencies for the target
+Size3_LIB_DEPENDS:STATIC=debug;/usr/local/lib/libopencv_gpuarithm.so;debug;/usr/local/lib/libopencv_gpufilters.so;debug;/usr/local/lib/libopencv_imgproc.so;debug;/usr/local/lib/libopencv_highgui.so;debug;/usr/local/lib/libopencv_core.so;optimized;/usr/local/lib/libopencv_gpuarithm.so;optimized;/usr/local/lib/libopencv_gpufilters.so;optimized;/usr/local/lib/libopencv_imgproc.so;optimized;/usr/local/lib/libopencv_highgui.so;optimized;/usr/local/lib/libopencv_core.so;
+
+//Dependencies for the target
+size3_LIB_DEPENDS:STATIC=debug;/usr/local/lib/libopencv_gpuarithm.so;debug;/usr/local/lib/libopencv_gpufilters.so;debug;/usr/local/lib/libopencv_imgproc.so;debug;/usr/local/lib/libopencv_highgui.so;debug;/usr/local/lib/libopencv_core.so;optimized;/usr/local/lib/libopencv_gpuarithm.so;optimized;/usr/local/lib/libopencv_gpufilters.so;optimized;/usr/local/lib/libopencv_imgproc.so;optimized;/usr/local/lib/libopencv_highgui.so;optimized;/usr/local/lib/libopencv_core.so;
 
 
 ########################
@@ -274,7 +283,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_LOCAL_GENERATORS:INTERNAL=4
+CMAKE_NUMBER_OF_LOCAL_GENERATORS:INTERNAL=5
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

@@ -1,5 +1,5 @@
 FILE(REMOVE_RECURSE
-  "CMakeFiles/gpussim.dir/gpussim.cpp.o"
+  "CMakeFiles/gpussim.dir/src/gpussim.cpp.o"
   "../../Debug/bin/gpussim.pdb"
   "../../Debug/bin/gpussim"
 )

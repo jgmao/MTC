@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/guoxin/Projects/MTC/modules/Runner/gpussim.cpp
+/home/guoxin/Projects/MTC/modules/Runner/src/gpussim.cpp
 iostream
 -
 sstream

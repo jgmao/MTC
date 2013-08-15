@@ -1,0 +1,4 @@
+[ 50%] Built target gpussim
+[100%] Building CXX object modules/TensorLib/CMakeFiles/Size3.dir/src/Size3.cpp.o
+Linking CXX static library libSize3.a
+[100%] Built target Size3

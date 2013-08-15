@@ -153,29 +153,29 @@ gpussim/fast:
 	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/gpussim.dir/build.make modules/Runner/CMakeFiles/gpussim.dir/build
 .PHONY : gpussim/fast
 
-gpussim.o: gpussim.cpp.o
-.PHONY : gpussim.o
+src/gpussim.o: src/gpussim.cpp.o
+.PHONY : src/gpussim.o
 
 # target to build an object file
-gpussim.cpp.o:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/gpussim.dir/build.make modules/Runner/CMakeFiles/gpussim.dir/gpussim.cpp.o
-.PHONY : gpussim.cpp.o
+src/gpussim.cpp.o:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/gpussim.dir/build.make modules/Runner/CMakeFiles/gpussim.dir/src/gpussim.cpp.o
+.PHONY : src/gpussim.cpp.o
 
-gpussim.i: gpussim.cpp.i
-.PHONY : gpussim.i
+src/gpussim.i: src/gpussim.cpp.i
+.PHONY : src/gpussim.i
 
 # target to preprocess a source file
-gpussim.cpp.i:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/gpussim.dir/build.make modules/Runner/CMakeFiles/gpussim.dir/gpussim.cpp.i
-.PHONY : gpussim.cpp.i
+src/gpussim.cpp.i:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/gpussim.dir/build.make modules/Runner/CMakeFiles/gpussim.dir/src/gpussim.cpp.i
+.PHONY : src/gpussim.cpp.i
 
-gpussim.s: gpussim.cpp.s
-.PHONY : gpussim.s
+src/gpussim.s: src/gpussim.cpp.s
+.PHONY : src/gpussim.s
 
 # target to generate assembly for a file
-gpussim.cpp.s:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/gpussim.dir/build.make modules/Runner/CMakeFiles/gpussim.dir/gpussim.cpp.s
-.PHONY : gpussim.cpp.s
+src/gpussim.cpp.s:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/gpussim.dir/build.make modules/Runner/CMakeFiles/gpussim.dir/src/gpussim.cpp.s
+.PHONY : src/gpussim.cpp.s
 
 # Help Target
 help:
@@ -190,9 +190,9 @@ help:
 	@echo "... install/strip"
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
-	@echo "... gpussim.o"
-	@echo "... gpussim.i"
-	@echo "... gpussim.s"
+	@echo "... src/gpussim.o"
+	@echo "... src/gpussim.i"
+	@echo "... src/gpussim.s"
 .PHONY : help
 
 

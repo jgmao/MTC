@@ -1,6 +1,6 @@
 set(MTC_RUNNER_DIR ${MTC_MODULES_DIR}/Runner)
 include_directories(${MTC_RUNNER_DIR}/include)
-link_directories(${MTC_RUNNER_DIR}/src )
+link_directories(${MTC_RUNNER_DIR}/src)
 
 set(PROGRAMS gpussim)
 
@@ -15,7 +15,7 @@ else()
 endif()
 
 foreach(program ${PROGRAMS})
-  add_executable(${program} ${program}.cpp)
+  add_executable(${program} src/${program}.cpp)
   target_link_libraries(${program} ${OpenCV_LIBS})
   install(TARGETS ${PROGRAMS}
 	RUNTIME DESTINATION ${MTC_SOURCE_DIR}/bin

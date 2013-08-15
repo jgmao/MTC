@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/guoxin/Projects/MTC/modules/TensorLib/src/Cube.cpp
+Cube.h
+/home/guoxin/Projects/MTC/modules/TensorLib/src/Cube.h
+
+modules/TensorLib/include/Cube.h
+opencv2/opencv.hpp
+-
+Size3.h
+modules/TensorLib/include/Size3.h
+
+modules/TensorLib/include/Size3.h
+opencv2/opencv.hpp
+-
+stdio.h
+-
+iostream
+-
+
