@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/guoxin/Projects/MTC/modules/Runner/gpussim.cpp
+iostream
+-
+sstream
+-
+opencv2/core.hpp
+-
+opencv2/core/utility.hpp
+-
+opencv2/imgproc.hpp
+-
+opencv2/highgui.hpp
+-
+opencv2/gpuarithm.hpp
+-
+opencv2/gpufilters.hpp
+-
+
