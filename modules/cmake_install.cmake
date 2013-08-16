@@ -36,6 +36,7 @@ IF(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
   INCLUDE("/home/guoxin/Projects/MTC/modules/Runner/cmake_install.cmake")
   INCLUDE("/home/guoxin/Projects/MTC/modules/TensorLib/cmake_install.cmake")
+  INCLUDE("/home/guoxin/Projects/MTC/modules/Utility/cmake_install.cmake")
 
 ENDIF(NOT CMAKE_INSTALL_LOCAL_ONLY)
 

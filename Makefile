@@ -57,47 +57,6 @@ edit_cache:
 edit_cache/fast: edit_cache
 .PHONY : edit_cache/fast
 
-# Special rule for the target install
-install: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
-	/usr/bin/cmake -P cmake_install.cmake
-.PHONY : install
-
-# Special rule for the target install
-install/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
-	/usr/bin/cmake -P cmake_install.cmake
-.PHONY : install/fast
-
-# Special rule for the target install/local
-install/local: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local
-
-# Special rule for the target install/local
-install/local/fast: install/local
-.PHONY : install/local/fast
-
-# Special rule for the target install/strip
-install/strip: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip
-
-# Special rule for the target install/strip
-install/strip/fast: install/strip
-.PHONY : install/strip/fast
-
-# Special rule for the target list_install_components
-list_install_components:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
-.PHONY : list_install_components
-
-# Special rule for the target list_install_components
-list_install_components/fast: list_install_components
-.PHONY : list_install_components/fast
-
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
@@ -140,17 +99,17 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named gpussim
+# Target rules for targets named testTensor
 
 # Build rule for target.
-gpussim: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 gpussim
-.PHONY : gpussim
+testTensor: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 testTensor
+.PHONY : testTensor
 
 # fast build rule for target.
-gpussim/fast:
-	$(MAKE) -f modules/Runner/CMakeFiles/gpussim.dir/build.make modules/Runner/CMakeFiles/gpussim.dir/build
-.PHONY : gpussim/fast
+testTensor/fast:
+	$(MAKE) -f modules/Runner/CMakeFiles/testTensor.dir/build.make modules/Runner/CMakeFiles/testTensor.dir/build
+.PHONY : testTensor/fast
 
 #=============================================================================
 # Target rules for targets named Cube
@@ -178,6 +137,32 @@ Size3/fast:
 	$(MAKE) -f modules/TensorLib/CMakeFiles/Size3.dir/build.make modules/TensorLib/CMakeFiles/Size3.dir/build
 .PHONY : Size3/fast
 
+#=============================================================================
+# Target rules for targets named Tensor
+
+# Build rule for target.
+Tensor: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 Tensor
+.PHONY : Tensor
+
+# fast build rule for target.
+Tensor/fast:
+	$(MAKE) -f modules/TensorLib/CMakeFiles/Tensor.dir/build.make modules/TensorLib/CMakeFiles/Tensor.dir/build
+.PHONY : Tensor/fast
+
+#=============================================================================
+# Target rules for targets named util
+
+# Build rule for target.
+util: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 util
+.PHONY : util
+
+# fast build rule for target.
+util/fast:
+	$(MAKE) -f modules/Utility/CMakeFiles/util.dir/build.make modules/Utility/CMakeFiles/util.dir/build
+.PHONY : util/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -185,14 +170,12 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... edit_cache"
-	@echo "... install"
-	@echo "... install/local"
-	@echo "... install/strip"
-	@echo "... list_install_components"
 	@echo "... rebuild_cache"
-	@echo "... gpussim"
+	@echo "... testTensor"
 	@echo "... Cube"
 	@echo "... Size3"
+	@echo "... Tensor"
+	@echo "... util"
 .PHONY : help
 
 

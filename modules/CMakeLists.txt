@@ -5,3 +5,4 @@ message("${MTC_MODULES_DIR}")
 #add modules
 add_subdirectory(Runner)
 add_subdirectory(TensorLib)
+add_subdirectory(Utility)

@@ -1,5 +1,5 @@
 #include "Size3.h"
-
+namespace tensor{
 
 template <typename Tp> Size2_< Tp >::Size2_():cv::Size_<Tp>() 
 {
@@ -108,7 +108,7 @@ template <typename Tp> Size3_<Tp>::Size3_():Size2_<Tp>()
 
 template <typename Tp> Size3_<Tp>::Size3_(Tp height, Tp width, Tp depth):Size2_<Tp>(height, width)
 {
-	this->depth =this->depth;
+	this->depth = depth;
 }
 
 template <typename Tp> inline Size3_<Tp>::Size3_(const Size3_<Tp>&sz)
@@ -230,3 +230,4 @@ template class Size2_<float>;
 template class Size3_<float>;
 template class Size3_<double>;
 template class Size2_<double>;
+}

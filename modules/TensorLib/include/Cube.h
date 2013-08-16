@@ -60,6 +60,7 @@
 #endif
 using namespace std;
 
+namespace tensor{
 template <typename Tp> class Cube_ : public Point3_<Tp>, public Size3_<Tp>
 {
 public:
@@ -78,5 +79,5 @@ public:
 typedef Cube_<int> Cube;
 
 ///////////////////////////////////////
-
+}
 #endif

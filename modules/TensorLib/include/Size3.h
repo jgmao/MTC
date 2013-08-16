@@ -62,7 +62,7 @@ using namespace cv;
 #else
 #define EXPORTLIB
 #endif
-
+namespace tensor{
 template <typename Tp> class EXPORTLIB Size2_ : public Size_<Tp>
 {
 public:
@@ -143,5 +143,6 @@ template<typename Tp> template<typename Tp2> inline Size3_<Tp>::operator Size3_<
 }
 typedef	Size3_<int> Size3;
 typedef Size2_<int> Size2;
-
+}
 #endif
+

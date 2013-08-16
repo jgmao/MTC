@@ -1,5 +1,5 @@
 #include "Cube.h"
-
+namespace tensor{
 template <typename Tp>
 Cube_<Tp>::Cube_(void):Point3_<Tp>(),Size3_<Tp>()
 {
@@ -64,3 +64,4 @@ template <typename Tp> inline
 }
 
 template class Cube_<int>;
+}

@@ -57,47 +57,6 @@ edit_cache:
 edit_cache/fast: edit_cache
 .PHONY : edit_cache/fast
 
-# Special rule for the target install
-install: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
-	/usr/bin/cmake -P cmake_install.cmake
-.PHONY : install
-
-# Special rule for the target install
-install/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
-	/usr/bin/cmake -P cmake_install.cmake
-.PHONY : install/fast
-
-# Special rule for the target install/local
-install/local: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local
-
-# Special rule for the target install/local
-install/local/fast: install/local
-.PHONY : install/local/fast
-
-# Special rule for the target install/strip
-install/strip: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip
-
-# Special rule for the target install/strip
-install/strip/fast: install/strip
-.PHONY : install/strip/fast
-
-# Special rule for the target list_install_components
-list_install_components:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
-.PHONY : list_install_components
-
-# Special rule for the target list_install_components
-list_install_components/fast: list_install_components
-.PHONY : list_install_components/fast
-
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
@@ -140,42 +99,42 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-modules/Runner/CMakeFiles/gpussim.dir/rule:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/Runner/CMakeFiles/gpussim.dir/rule
-.PHONY : modules/Runner/CMakeFiles/gpussim.dir/rule
+modules/Runner/CMakeFiles/testTensor.dir/rule:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/Runner/CMakeFiles/testTensor.dir/rule
+.PHONY : modules/Runner/CMakeFiles/testTensor.dir/rule
 
 # Convenience name for target.
-gpussim: modules/Runner/CMakeFiles/gpussim.dir/rule
-.PHONY : gpussim
+testTensor: modules/Runner/CMakeFiles/testTensor.dir/rule
+.PHONY : testTensor
 
 # fast build rule for target.
-gpussim/fast:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/gpussim.dir/build.make modules/Runner/CMakeFiles/gpussim.dir/build
-.PHONY : gpussim/fast
+testTensor/fast:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/testTensor.dir/build.make modules/Runner/CMakeFiles/testTensor.dir/build
+.PHONY : testTensor/fast
 
-src/gpussim.o: src/gpussim.cpp.o
-.PHONY : src/gpussim.o
+src/testTensor.o: src/testTensor.cpp.o
+.PHONY : src/testTensor.o
 
 # target to build an object file
-src/gpussim.cpp.o:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/gpussim.dir/build.make modules/Runner/CMakeFiles/gpussim.dir/src/gpussim.cpp.o
-.PHONY : src/gpussim.cpp.o
+src/testTensor.cpp.o:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/testTensor.dir/build.make modules/Runner/CMakeFiles/testTensor.dir/src/testTensor.cpp.o
+.PHONY : src/testTensor.cpp.o
 
-src/gpussim.i: src/gpussim.cpp.i
-.PHONY : src/gpussim.i
+src/testTensor.i: src/testTensor.cpp.i
+.PHONY : src/testTensor.i
 
 # target to preprocess a source file
-src/gpussim.cpp.i:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/gpussim.dir/build.make modules/Runner/CMakeFiles/gpussim.dir/src/gpussim.cpp.i
-.PHONY : src/gpussim.cpp.i
+src/testTensor.cpp.i:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/testTensor.dir/build.make modules/Runner/CMakeFiles/testTensor.dir/src/testTensor.cpp.i
+.PHONY : src/testTensor.cpp.i
 
-src/gpussim.s: src/gpussim.cpp.s
-.PHONY : src/gpussim.s
+src/testTensor.s: src/testTensor.cpp.s
+.PHONY : src/testTensor.s
 
 # target to generate assembly for a file
-src/gpussim.cpp.s:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/gpussim.dir/build.make modules/Runner/CMakeFiles/gpussim.dir/src/gpussim.cpp.s
-.PHONY : src/gpussim.cpp.s
+src/testTensor.cpp.s:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/testTensor.dir/build.make modules/Runner/CMakeFiles/testTensor.dir/src/testTensor.cpp.s
+.PHONY : src/testTensor.cpp.s
 
 # Help Target
 help:
@@ -184,15 +143,11 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... edit_cache"
-	@echo "... gpussim"
-	@echo "... install"
-	@echo "... install/local"
-	@echo "... install/strip"
-	@echo "... list_install_components"
 	@echo "... rebuild_cache"
-	@echo "... src/gpussim.o"
-	@echo "... src/gpussim.i"
-	@echo "... src/gpussim.s"
+	@echo "... testTensor"
+	@echo "... src/testTensor.o"
+	@echo "... src/testTensor.i"
+	@echo "... src/testTensor.s"
 .PHONY : help
 
 

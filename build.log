@@ -1,4 +1,17 @@
-[ 50%] Built target gpussim
-[100%] Building CXX object modules/TensorLib/CMakeFiles/Size3.dir/src/Size3.cpp.o
-Linking CXX static library libSize3.a
-[100%] Built target Size3
+found /usr/local/share/OpenCV
+VER 2.9.0
+debug;/usr/local/lib/libopencv_gpuarithm.so;debug;/usr/local/lib/libopencv_gpufilters.so;debug;/usr/local/lib/libopencv_imgproc.so;debug;/usr/local/lib/libopencv_highgui.so;debug;/usr/local/lib/libopencv_core.so;optimized;/usr/local/lib/libopencv_gpuarithm.so;optimized;/usr/local/lib/libopencv_gpufilters.so;optimized;/usr/local/lib/libopencv_imgproc.so;optimized;/usr/local/lib/libopencv_highgui.so;optimized;/usr/local/lib/libopencv_core.so
+
+/home/guoxin/Projects/MTC/modules
+tensor dir is: /home/guoxin/Projects/MTC/modules/TensorLib
+/home/guoxin/Projects/MTC/Debug/lib
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/guoxin/Projects/MTC
+[ 20%] Built target util
+[ 40%] Built target Size3
+[ 60%] Built target Cube
+[ 80%] Built target Tensor
+Scanning dependencies of target testTensor
+Linking CXX executable ../../Debug/bin/testTensor
+[100%] Built target testTensor

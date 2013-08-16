@@ -1,0 +1,30 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/guoxin/Projects/MTC/modules/Utility/src/MyLib.cpp
+MyLib.h
+/home/guoxin/Projects/MTC/modules/Utility/src/MyLib.h
+
+modules/Utility/include/MyLib.h
+vector
+-
+opencv2/opencv.hpp
+-
+list
+-
+string
+-
+map
+-
+cstdarg
+-
+iostream
+-
+fstream
+-
+

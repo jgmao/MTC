@@ -4,8 +4,8 @@ project (MTC)
 
 find_package(OpenCV REQUIRED core highgui imgproc gpufilters gpuarithm )
 #include("/usr/local/include")
-set(CMAKE_CXX_FLAGS_DEBUG "-std=c++11 -O0 -g3 -Wall  -fmessage-length=0 ")
-set(CMAKE_CXX_FLAGS_RELEASE   "-std=c++11 -Ofast -Wall  -fmessage-length=0")
+set(CMAKE_CXX_FLAGS_DEBUG "-std=c++11 -O0 -g3 -Wall  ")
+set(CMAKE_CXX_FLAGS_RELEASE   "-std=c++11 -Ofast -Wall ")
 
 if( NOT CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Debug CACHE STRING
