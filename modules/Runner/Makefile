@@ -99,6 +99,20 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
+modules/Runner/CMakeFiles/gpussim.dir/rule:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/Runner/CMakeFiles/gpussim.dir/rule
+.PHONY : modules/Runner/CMakeFiles/gpussim.dir/rule
+
+# Convenience name for target.
+gpussim: modules/Runner/CMakeFiles/gpussim.dir/rule
+.PHONY : gpussim
+
+# fast build rule for target.
+gpussim/fast:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/gpussim.dir/build.make modules/Runner/CMakeFiles/gpussim.dir/build
+.PHONY : gpussim/fast
+
+# Convenience name for target.
 modules/Runner/CMakeFiles/testTensor.dir/rule:
 	cd /home/guoxin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/Runner/CMakeFiles/testTensor.dir/rule
 .PHONY : modules/Runner/CMakeFiles/testTensor.dir/rule
@@ -111,6 +125,30 @@ testTensor: modules/Runner/CMakeFiles/testTensor.dir/rule
 testTensor/fast:
 	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/testTensor.dir/build.make modules/Runner/CMakeFiles/testTensor.dir/build
 .PHONY : testTensor/fast
+
+src/gpussim.o: src/gpussim.cpp.o
+.PHONY : src/gpussim.o
+
+# target to build an object file
+src/gpussim.cpp.o:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/gpussim.dir/build.make modules/Runner/CMakeFiles/gpussim.dir/src/gpussim.cpp.o
+.PHONY : src/gpussim.cpp.o
+
+src/gpussim.i: src/gpussim.cpp.i
+.PHONY : src/gpussim.i
+
+# target to preprocess a source file
+src/gpussim.cpp.i:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/gpussim.dir/build.make modules/Runner/CMakeFiles/gpussim.dir/src/gpussim.cpp.i
+.PHONY : src/gpussim.cpp.i
+
+src/gpussim.s: src/gpussim.cpp.s
+.PHONY : src/gpussim.s
+
+# target to generate assembly for a file
+src/gpussim.cpp.s:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/gpussim.dir/build.make modules/Runner/CMakeFiles/gpussim.dir/src/gpussim.cpp.s
+.PHONY : src/gpussim.cpp.s
 
 src/testTensor.o: src/testTensor.cpp.o
 .PHONY : src/testTensor.o
@@ -143,8 +181,12 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... edit_cache"
+	@echo "... gpussim"
 	@echo "... rebuild_cache"
 	@echo "... testTensor"
+	@echo "... src/gpussim.o"
+	@echo "... src/gpussim.i"
+	@echo "... src/gpussim.s"
 	@echo "... src/testTensor.o"
 	@echo "... src/testTensor.i"
 	@echo "... src/testTensor.s"

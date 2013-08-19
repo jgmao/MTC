@@ -67,6 +67,10 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
+#include <opencv2/gpuarithm.hpp>
+#include <opencv2/gpufilters.hpp>
+#include <opencv2/gpuimgproc.hpp>
+
 //#include <cv.h>
 //#include "highgui.h"
 #include "Size3.h"
@@ -98,7 +102,9 @@ template<class T, size_t cn> class Tensor: public Mat
 {
   //Metric mc;
 public:
-  //20130815 static Mat stsim2_lse_weight;
+  BufferGPU *gbuf; 	
+  gpu::Stream *stream;
+ //20130815 static Mat stsim2_lse_weight;
 public:
   //static Metric* mc;
 	typedef Vec<T,cn> value_type;

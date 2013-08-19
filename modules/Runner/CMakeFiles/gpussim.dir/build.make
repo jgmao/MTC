@@ -80,6 +80,18 @@ gpussim_OBJECTS = \
 gpussim_EXTERNAL_OBJECTS =
 
 Debug/bin/gpussim: modules/Runner/CMakeFiles/gpussim.dir/src/gpussim.cpp.o
+Debug/bin/gpussim: /usr/local/lib/libopencv_gpuimgproc.so
+Debug/bin/gpussim: /usr/local/lib/libopencv_gpuarithm.so
+Debug/bin/gpussim: /usr/local/lib/libopencv_gpufilters.so
+Debug/bin/gpussim: /usr/local/lib/libopencv_imgproc.so
+Debug/bin/gpussim: /usr/local/lib/libopencv_highgui.so
+Debug/bin/gpussim: /usr/local/lib/libopencv_core.so
+Debug/bin/gpussim: modules/TensorLib/libTensor.a
+Debug/bin/gpussim: Debug/lib/libutil.so
+Debug/bin/gpussim: modules/TensorLib/libSize3.a
+Debug/bin/gpussim: modules/TensorLib/libCube.a
+Debug/bin/gpussim: Debug/lib/libutil.so
+Debug/bin/gpussim: /usr/local/lib/libopencv_gpuimgproc.so
 Debug/bin/gpussim: /usr/local/lib/libopencv_gpuarithm.so
 Debug/bin/gpussim: /usr/local/lib/libopencv_gpufilters.so
 Debug/bin/gpussim: /usr/local/lib/libopencv_imgproc.so

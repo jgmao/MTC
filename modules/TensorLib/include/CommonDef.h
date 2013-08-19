@@ -50,9 +50,29 @@
 #ifndef COMMON_DEF_H
 #define COMMON_DEF_H
 #include <opencv2/opencv.hpp>
+#include <opencv2/gpu/gpu.hpp>
+#include <vector>
 namespace tensor{
 //Marcos
+
+#ifndef USE_GPU
+//#define USE_GPU
+#endif
+
+#ifndef BUFFERGPU
+#define BUFFERGPU
+extern class BufferGPU// genearal structure
+{
+public:
+  cv::gpu::GpuMat gI1,gI2; //input
+  cv::gpu::GpuMat t1,t2; //intermediate
+  std::vector<cv::gpu::GpuMat> v;
+  void release(){gI1.release();gI2.release();t1.release();t2.release();}
+}gbuf;
+
+#endif
 // 20130816 only define the Marcors and constants used in TensorLib
+
 enum class FilterBoundary :int {FILTER_BOUND_EXTEND,FILTER_BOUND_SAME, FILTER_BOUND_VALID};
 }
 #endif

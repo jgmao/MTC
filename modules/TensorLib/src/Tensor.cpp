@@ -6,6 +6,7 @@
 namespace tensor{
 //20130815 template<class T, size_t cn> Mat Tensor<T,cn>::stsim2_lse_weight = Mat(); 
 /////////////2.1 constructor, copy  assignment and type conversion ////////////////////////
+//BufferGPU gbuf;
 template<class T, size_t cn> Tensor<T,cn>::Tensor(void):Mat()
 {
 	this->tsOffset = Point3i();
@@ -1367,18 +1368,47 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::DFT(void) const
 	CV_Assert(cn ==2 || cn== 6); 
 	for (int i=0; i< size().depth; i++)
 	{
+		#ifdef USE_GPU
+		  this->gbuf->gI1.upload(GetFrame(i));
+		  this->gbuf->gI1.convertTo(this->gbuf->t1, CV_32FC2, *this->stream);
+             	  gpu::dft(this->gbuf->t1, this->gbuf->t2, this->tsSize,0,*this->stream);
+		  this->gbuf->t2.convertTo(this->gbuf->gI2, CV_64FC2,*this->stream);//make this adaptive
+		  this->gbuf->gI2.download(rst[i]); 
+		#else
 		cv::dft(GetFrame(i),rst[i]);
+		#endif
+
 	}
+	//this->gbuf->release();	
 	return rst;
 }
 
 template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::IDFT(void) const
+
 {
 	Tensor<T,cn> rst(size());
 	CV_Assert(cn ==2 || cn== 6); 
 	for (int i=0; i< size().depth; i++)
 	{
-		cv::dft(GetFrame(i),rst[i],CV_DXT_INVERSE|DFT_SCALE);
+
+		#ifdef USE_GPU
+		this->gbuf->gI1.upload(GetFrame(i));
+                this->gbuf->gI1.convertTo(this->gbuf->t1, CV_32FC2, *this->stream);
+		gpu::dft(this->gbuf->t1, this->gbuf->t2, this->tsSize, DFT_INVERSE, *this->stream);
+		this->gbuf->t2.convertTo(this->gbuf->gI2, CV_64FC2,*this->stream);
+                gpu::split(this->gbuf->gI2, this->gbuf->v, *this->stream); 
+                gpu::divide(this->gbuf->v[0], double(rst[i].size().height*rst[i].size().width), this->gbuf->v[0],1, -1, *this->stream);
+                gpu::divide(this->gbuf->v[1], double(rst[i].size().height*rst[i].size().width), this->gbuf->v[1],1, -1, *this->stream); 
+                gpu::merge(this->gbuf->v, this->gbuf->gI2, *this->stream);
+		this->gbuf->gI2.download(rst[i]);
+		//vector<Mat> temp;
+                //cv::split(rst[i],temp);
+                //Tensor<double,1>(temp[0]/temp[0].size().height/temp[0].size().width).Display(); 
+                //mylib::DisplayMat(temp[0]);
+                //cv::divide(this->tsSize.area(), rst[i], rst[i], -1);
+		#else	
+		cv::dft(GetFrame(i),rst[i],DFT_INVERSE|DFT_SCALE);
+		#endif
 	}
 
 	return rst;
@@ -1430,4 +1460,17 @@ template class Tensor<float,3>;
 template class Tensor<double,1>;
 template class Tensor<double,2>;
 template class Tensor<double,3>;
+/*
+#ifdef USE_GPU
+template<> typename Tensor<uchar,1>::BufferGPU Tensor<uchar,1>::gbuf;//declare static buffer
+template<> typename Tensor<uchar,2>::BufferGPU Tensor<uchar,2>::gbuf;//declare static buffer
+template<> typename Tensor<uchar,3>::BufferGPU Tensor<uchar,3>::gbuf;//declare static buffer
+template<> typename Tensor<float,1>::BufferGPU Tensor<float,1>::gbuf;//declare static buffer
+template<> typename Tensor<float,2>::BufferGPU Tensor<float,2>::gbuf;//declare static buffer
+template<> typename Tensor<float,3>::BufferGPU Tensor<float,3>::gbuf;//declare static buffer
+template<> typename Tensor<double,1>::BufferGPU Tensor<double,1>::gbuf;//declare static buffer
+template<> typename Tensor<double,2>::BufferGPU Tensor<double,2>::gbuf;//declare static buffer
+template<> typename Tensor<double,3>::BufferGPU Tensor<double,3>::gbuf;//declare static buffer
+#endif
+*/
 }

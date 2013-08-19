@@ -80,6 +80,7 @@ util_OBJECTS = \
 util_EXTERNAL_OBJECTS =
 
 Debug/lib/libutil.so: modules/Utility/CMakeFiles/util.dir/src/MyLib.cpp.o
+Debug/lib/libutil.so: /usr/local/lib/libopencv_gpuimgproc.so
 Debug/lib/libutil.so: /usr/local/lib/libopencv_gpuarithm.so
 Debug/lib/libutil.so: /usr/local/lib/libopencv_gpufilters.so
 Debug/lib/libutil.so: /usr/local/lib/libopencv_imgproc.so

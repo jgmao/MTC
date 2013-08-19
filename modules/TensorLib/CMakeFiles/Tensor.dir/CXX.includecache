@@ -13,6 +13,10 @@ Tensor.h
 modules/TensorLib/include/CommonDef.h
 opencv2/opencv.hpp
 -
+opencv2/gpu/gpu.hpp
+-
+vector
+-
 
 modules/TensorLib/include/Cube.h
 opencv2/opencv.hpp
@@ -36,6 +40,12 @@ opencv2/opencv.hpp
 opencv2/imgproc.hpp
 -
 opencv2/highgui.hpp
+-
+opencv2/gpuarithm.hpp
+-
+opencv2/gpufilters.hpp
+-
+opencv2/gpuimgproc.hpp
 -
 Size3.h
 modules/TensorLib/include/Size3.h

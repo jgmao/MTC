@@ -80,6 +80,7 @@ testTensor_OBJECTS = \
 testTensor_EXTERNAL_OBJECTS =
 
 Debug/bin/testTensor: modules/Runner/CMakeFiles/testTensor.dir/src/testTensor.cpp.o
+Debug/bin/testTensor: /usr/local/lib/libopencv_gpuimgproc.so
 Debug/bin/testTensor: /usr/local/lib/libopencv_gpuarithm.so
 Debug/bin/testTensor: /usr/local/lib/libopencv_gpufilters.so
 Debug/bin/testTensor: /usr/local/lib/libopencv_imgproc.so
@@ -90,6 +91,7 @@ Debug/bin/testTensor: Debug/lib/libutil.so
 Debug/bin/testTensor: modules/TensorLib/libSize3.a
 Debug/bin/testTensor: modules/TensorLib/libCube.a
 Debug/bin/testTensor: Debug/lib/libutil.so
+Debug/bin/testTensor: /usr/local/lib/libopencv_gpuimgproc.so
 Debug/bin/testTensor: /usr/local/lib/libopencv_gpuarithm.so
 Debug/bin/testTensor: /usr/local/lib/libopencv_gpufilters.so
 Debug/bin/testTensor: /usr/local/lib/libopencv_imgproc.so

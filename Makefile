@@ -99,6 +99,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named gpussim
+
+# Build rule for target.
+gpussim: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 gpussim
+.PHONY : gpussim
+
+# fast build rule for target.
+gpussim/fast:
+	$(MAKE) -f modules/Runner/CMakeFiles/gpussim.dir/build.make modules/Runner/CMakeFiles/gpussim.dir/build
+.PHONY : gpussim/fast
+
+#=============================================================================
 # Target rules for targets named testTensor
 
 # Build rule for target.
@@ -171,6 +184,7 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... gpussim"
 	@echo "... testTensor"
 	@echo "... Cube"
 	@echo "... Size3"

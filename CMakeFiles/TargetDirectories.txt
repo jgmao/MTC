@@ -1,5 +1,6 @@
 /home/guoxin/Projects/MTC/modules/TensorLib/CMakeFiles/Cube.dir
 /home/guoxin/Projects/MTC/modules/TensorLib/CMakeFiles/Size3.dir
 /home/guoxin/Projects/MTC/modules/TensorLib/CMakeFiles/Tensor.dir
+/home/guoxin/Projects/MTC/modules/Runner/CMakeFiles/gpussim.dir
 /home/guoxin/Projects/MTC/modules/Runner/CMakeFiles/testTensor.dir
 /home/guoxin/Projects/MTC/modules/Utility/CMakeFiles/util.dir
