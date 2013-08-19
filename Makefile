@@ -99,32 +99,6 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named gpussim
-
-# Build rule for target.
-gpussim: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 gpussim
-.PHONY : gpussim
-
-# fast build rule for target.
-gpussim/fast:
-	$(MAKE) -f modules/Runner/CMakeFiles/gpussim.dir/build.make modules/Runner/CMakeFiles/gpussim.dir/build
-.PHONY : gpussim/fast
-
-#=============================================================================
-# Target rules for targets named testTensor
-
-# Build rule for target.
-testTensor: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 testTensor
-.PHONY : testTensor
-
-# fast build rule for target.
-testTensor/fast:
-	$(MAKE) -f modules/Runner/CMakeFiles/testTensor.dir/build.make modules/Runner/CMakeFiles/testTensor.dir/build
-.PHONY : testTensor/fast
-
-#=============================================================================
 # Target rules for targets named Cube
 
 # Build rule for target.
@@ -176,6 +150,45 @@ util/fast:
 	$(MAKE) -f modules/Utility/CMakeFiles/util.dir/build.make modules/Utility/CMakeFiles/util.dir/build
 .PHONY : util/fast
 
+#=============================================================================
+# Target rules for targets named Steerable
+
+# Build rule for target.
+Steerable: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 Steerable
+.PHONY : Steerable
+
+# fast build rule for target.
+Steerable/fast:
+	$(MAKE) -f modules/Metric/CMakeFiles/Steerable.dir/build.make modules/Metric/CMakeFiles/Steerable.dir/build
+.PHONY : Steerable/fast
+
+#=============================================================================
+# Target rules for targets named gpussim
+
+# Build rule for target.
+gpussim: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 gpussim
+.PHONY : gpussim
+
+# fast build rule for target.
+gpussim/fast:
+	$(MAKE) -f modules/Runner/CMakeFiles/gpussim.dir/build.make modules/Runner/CMakeFiles/gpussim.dir/build
+.PHONY : gpussim/fast
+
+#=============================================================================
+# Target rules for targets named testTensor
+
+# Build rule for target.
+testTensor: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 testTensor
+.PHONY : testTensor
+
+# fast build rule for target.
+testTensor/fast:
+	$(MAKE) -f modules/Runner/CMakeFiles/testTensor.dir/build.make modules/Runner/CMakeFiles/testTensor.dir/build
+.PHONY : testTensor/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -184,12 +197,13 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... gpussim"
-	@echo "... testTensor"
 	@echo "... Cube"
 	@echo "... Size3"
 	@echo "... Tensor"
 	@echo "... util"
+	@echo "... Steerable"
+	@echo "... gpussim"
+	@echo "... testTensor"
 .PHONY : help
 
 

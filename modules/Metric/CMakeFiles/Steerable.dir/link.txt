@@ -1,0 +1,2 @@
+/usr/bin/ar cr libSteerable.a  CMakeFiles/Steerable.dir/src/Steerable.cpp.o
+/usr/bin/ranlib libSteerable.a
