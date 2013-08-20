@@ -18,6 +18,20 @@ opencv2/gpu/gpu.hpp
 vector
 -
 
+modules/TensorLib/include/Cube.h
+opencv2/opencv.hpp
+-
+Size3.h
+modules/TensorLib/include/Size3.h
+
+modules/TensorLib/include/Size3.h
+opencv2/opencv.hpp
+-
+stdio.h
+-
+iostream
+-
+
 modules/TensorLib/include/TensorLite.h
 CommonDef.h
 modules/TensorLib/include/CommonDef.h
@@ -33,12 +47,16 @@ opencv2/gpufilters.hpp
 -
 opencv2/gpuimgproc.hpp
 -
+Size3.h
+modules/TensorLib/include/Size3.h
 iostream
 -
 fstream
 -
 MyLib.h
 modules/TensorLib/include/MyLib.h
+Cube.h
+modules/TensorLib/include/Cube.h
 iomanip
 -
 limits

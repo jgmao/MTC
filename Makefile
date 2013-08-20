@@ -99,6 +99,32 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named Cube
+
+# Build rule for target.
+Cube: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 Cube
+.PHONY : Cube
+
+# fast build rule for target.
+Cube/fast:
+	$(MAKE) -f modules/TensorLib/CMakeFiles/Cube.dir/build.make modules/TensorLib/CMakeFiles/Cube.dir/build
+.PHONY : Cube/fast
+
+#=============================================================================
+# Target rules for targets named Size3
+
+# Build rule for target.
+Size3: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 Size3
+.PHONY : Size3
+
+# fast build rule for target.
+Size3/fast:
+	$(MAKE) -f modules/TensorLib/CMakeFiles/Size3.dir/build.make modules/TensorLib/CMakeFiles/Size3.dir/build
+.PHONY : Size3/fast
+
+#=============================================================================
 # Target rules for targets named TensorLite
 
 # Build rule for target.
@@ -138,6 +164,32 @@ Steerable/fast:
 .PHONY : Steerable/fast
 
 #=============================================================================
+# Target rules for targets named algorithms
+
+# Build rule for target.
+algorithms: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 algorithms
+.PHONY : algorithms
+
+# fast build rule for target.
+algorithms/fast:
+	$(MAKE) -f modules/Metric/CMakeFiles/algorithms.dir/build.make modules/Metric/CMakeFiles/algorithms.dir/build
+.PHONY : algorithms/fast
+
+#=============================================================================
+# Target rules for targets named Tester
+
+# Build rule for target.
+Tester: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 Tester
+.PHONY : Tester
+
+# fast build rule for target.
+Tester/fast:
+	$(MAKE) -f modules/Runner/CMakeFiles/Tester.dir/build.make modules/Runner/CMakeFiles/Tester.dir/build
+.PHONY : Tester/fast
+
+#=============================================================================
 # Target rules for targets named gpussim
 
 # Build rule for target.
@@ -149,6 +201,19 @@ gpussim: cmake_check_build_system
 gpussim/fast:
 	$(MAKE) -f modules/Runner/CMakeFiles/gpussim.dir/build.make modules/Runner/CMakeFiles/gpussim.dir/build
 .PHONY : gpussim/fast
+
+#=============================================================================
+# Target rules for targets named main
+
+# Build rule for target.
+main: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 main
+.PHONY : main
+
+# fast build rule for target.
+main/fast:
+	$(MAKE) -f modules/Runner/CMakeFiles/main.dir/build.make modules/Runner/CMakeFiles/main.dir/build
+.PHONY : main/fast
 
 #=============================================================================
 # Target rules for targets named testTensor
@@ -171,10 +236,15 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... Cube"
+	@echo "... Size3"
 	@echo "... TensorLite"
 	@echo "... util"
 	@echo "... Steerable"
+	@echo "... algorithms"
+	@echo "... Tester"
 	@echo "... gpussim"
+	@echo "... main"
 	@echo "... testTensor"
 .PHONY : help
 

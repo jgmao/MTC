@@ -3,10 +3,11 @@
 
 modules/Runner/CMakeFiles/main.dir/src/main.cpp.o: modules/Runner/src/main.cpp
 modules/Runner/CMakeFiles/main.dir/src/main.cpp.o: modules/Metric/include/Steerable.h
+modules/Runner/CMakeFiles/main.dir/src/main.cpp.o: modules/Metric/include/algorithms.h
 modules/Runner/CMakeFiles/main.dir/src/main.cpp.o: modules/Runner/include/Tester.h
 modules/Runner/CMakeFiles/main.dir/src/main.cpp.o: modules/TensorLib/include/CommonDef.h
 modules/Runner/CMakeFiles/main.dir/src/main.cpp.o: modules/TensorLib/include/Cube.h
 modules/Runner/CMakeFiles/main.dir/src/main.cpp.o: modules/TensorLib/include/Size3.h
-modules/Runner/CMakeFiles/main.dir/src/main.cpp.o: modules/TensorLib/include/Tensor.h
+modules/Runner/CMakeFiles/main.dir/src/main.cpp.o: modules/TensorLib/include/TensorLite.h
 modules/Runner/CMakeFiles/main.dir/src/main.cpp.o: modules/Utility/include/MyLib.h
 

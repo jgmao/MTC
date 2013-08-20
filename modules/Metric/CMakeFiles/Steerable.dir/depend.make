@@ -6,6 +6,6 @@ modules/Metric/CMakeFiles/Steerable.dir/src/Steerable.cpp.o: modules/Metric/incl
 modules/Metric/CMakeFiles/Steerable.dir/src/Steerable.cpp.o: modules/TensorLib/include/CommonDef.h
 modules/Metric/CMakeFiles/Steerable.dir/src/Steerable.cpp.o: modules/TensorLib/include/Cube.h
 modules/Metric/CMakeFiles/Steerable.dir/src/Steerable.cpp.o: modules/TensorLib/include/Size3.h
-modules/Metric/CMakeFiles/Steerable.dir/src/Steerable.cpp.o: modules/TensorLib/include/Tensor.h
+modules/Metric/CMakeFiles/Steerable.dir/src/Steerable.cpp.o: modules/TensorLib/include/TensorLite.h
 modules/Metric/CMakeFiles/Steerable.dir/src/Steerable.cpp.o: modules/Utility/include/MyLib.h
 

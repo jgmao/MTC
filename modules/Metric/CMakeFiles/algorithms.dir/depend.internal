@@ -8,5 +8,5 @@ modules/Metric/CMakeFiles/algorithms.dir/src/algorithms.cpp.o
  modules/TensorLib/include/CommonDef.h
  modules/TensorLib/include/Cube.h
  modules/TensorLib/include/Size3.h
- modules/TensorLib/include/Tensor.h
+ modules/TensorLib/include/TensorLite.h
  modules/Utility/include/MyLib.h

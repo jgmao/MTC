@@ -13,10 +13,8 @@ Steerable.h
 /home/guoxin/Projects/MTC/modules/Runner/src/Steerable.h
 
 modules/Metric/include/Steerable.h
-Size3.h
-modules/Metric/include/Size3.h
-Tensor.h
-modules/Metric/include/Tensor.h
+TensorLite.h
+modules/Metric/include/TensorLite.h
 MyLib.h
 modules/Metric/include/MyLib.h
 vector
@@ -24,11 +22,19 @@ vector
 cmath
 -
 
+modules/Metric/include/algorithms.h
+Steerable.h
+-
+TensorLite.h
+-
+
 modules/Runner/include/Tester.h
 MyLib.h
 modules/Runner/include/MyLib.h
-Tensor.h
-modules/Runner/include/Tensor.h
+TensorLite.h
+modules/Runner/include/TensorLite.h
+algorithms.h
+modules/Runner/include/algorithms.h
 opencv2/opencv.hpp
 -
 
@@ -54,7 +60,7 @@ stdio.h
 iostream
 -
 
-modules/TensorLib/include/Tensor.h
+modules/TensorLib/include/TensorLite.h
 CommonDef.h
 modules/TensorLib/include/CommonDef.h
 opencv2/opencv.hpp

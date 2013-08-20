@@ -800,3 +800,56 @@ void Tester::TestPoisson(void)
 //	EXPECT_EQ(this->v12,temp2(2,2,0));
 //}
 */
+void Tester::TestTensor(void)
+{
+
+  Tensor<double,1> ts("/home/guoxin/Projects/MTC/data/texture1.png");
+        cout<<ts.size()<<endl;
+  ts.Display();
+        ts.Print();
+  Tensor<double,2> cts = ts.ToComplex();
+  double time = (double)getTickCount();
+  Tensor<double,2> f;
+  for (int i=0; i<1000; i++)
+  {
+    f = cts.DFT();
+     cout<<i<<endl;
+  }
+  f = f.IDFT();
+
+  time = 1000*((double)getTickCount() - time)/getTickFrequency();
+  cout<<"time = " <<time<<"ms"<<endl;
+  Mat temp = f.GetFrame(0);
+  vector<Mat> tv;
+  cv::split(temp,tv);
+  Tensor<double,1>(tv[0]).Display();
+  Cube c(0,0,0,10,10,1);
+  cout<<c.area()<<endl;
+  Steerable sp;
+  sp.buildSCFpyr(f,3,4,1,false);
+  vector<Tensor<double,2> >& pyr = sp.getSpaceDomainPyr();
+  cv::split(pyr[12],tv);
+  Tensor<double,1>(tv[0]).Display();
+   Tensor<double,1> ts2("/home/guoxin/Projects/MTC/data/texture2.png");
+        ts2.Print();
+  cout<<ComputeMSE(ts,ts2)<<endl;
+
+}
+
+void Tester::TestAlgorithms(void)
+{
+  Tensor<double,1> ts1("/home/guoxin/Projects/MTC/data/texture1.png");
+  Tensor<double,1> ts2("/home/guoxin/Projects/MTC/data/texture2.png");
+        ts1.Print();
+  cout<<"MSE:"<<ComputeMSE(ts1,ts2)<<endl;
+  cout<<"Compare two:\n";
+        auto temp = CompareElement(ts1,ts2,CMP_LE);
+        temp.Print();
+        temp.Display();
+        cout<<"thresholding:\n";
+        temp = CompareElement(ts1,Scalar(128),CMP_LE);
+        temp.Print();
+        temp.Display();
+        cout<<"AIM:"<<ComputeAIM(ts1,ts2,50)<<endl;
+
+}

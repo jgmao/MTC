@@ -112,6 +112,20 @@ Steerable/fast:
 	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Metric/CMakeFiles/Steerable.dir/build.make modules/Metric/CMakeFiles/Steerable.dir/build
 .PHONY : Steerable/fast
 
+# Convenience name for target.
+modules/Metric/CMakeFiles/algorithms.dir/rule:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/Metric/CMakeFiles/algorithms.dir/rule
+.PHONY : modules/Metric/CMakeFiles/algorithms.dir/rule
+
+# Convenience name for target.
+algorithms: modules/Metric/CMakeFiles/algorithms.dir/rule
+.PHONY : algorithms
+
+# fast build rule for target.
+algorithms/fast:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Metric/CMakeFiles/algorithms.dir/build.make modules/Metric/CMakeFiles/algorithms.dir/build
+.PHONY : algorithms/fast
+
 src/Steerable.o: src/Steerable.cpp.o
 .PHONY : src/Steerable.o
 
@@ -136,6 +150,30 @@ src/Steerable.cpp.s:
 	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Metric/CMakeFiles/Steerable.dir/build.make modules/Metric/CMakeFiles/Steerable.dir/src/Steerable.cpp.s
 .PHONY : src/Steerable.cpp.s
 
+src/algorithms.o: src/algorithms.cpp.o
+.PHONY : src/algorithms.o
+
+# target to build an object file
+src/algorithms.cpp.o:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Metric/CMakeFiles/algorithms.dir/build.make modules/Metric/CMakeFiles/algorithms.dir/src/algorithms.cpp.o
+.PHONY : src/algorithms.cpp.o
+
+src/algorithms.i: src/algorithms.cpp.i
+.PHONY : src/algorithms.i
+
+# target to preprocess a source file
+src/algorithms.cpp.i:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Metric/CMakeFiles/algorithms.dir/build.make modules/Metric/CMakeFiles/algorithms.dir/src/algorithms.cpp.i
+.PHONY : src/algorithms.cpp.i
+
+src/algorithms.s: src/algorithms.cpp.s
+.PHONY : src/algorithms.s
+
+# target to generate assembly for a file
+src/algorithms.cpp.s:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Metric/CMakeFiles/algorithms.dir/build.make modules/Metric/CMakeFiles/algorithms.dir/src/algorithms.cpp.s
+.PHONY : src/algorithms.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -143,11 +181,15 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... Steerable"
+	@echo "... algorithms"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... src/Steerable.o"
 	@echo "... src/Steerable.i"
 	@echo "... src/Steerable.s"
+	@echo "... src/algorithms.o"
+	@echo "... src/algorithms.i"
+	@echo "... src/algorithms.s"
 .PHONY : help
 
 

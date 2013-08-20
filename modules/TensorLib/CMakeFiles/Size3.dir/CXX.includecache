@@ -6,15 +6,3 @@
 
 #IncludeRegexTransform: 
 
-/home/guoxin/Projects/MTC/modules/TensorLib/src/Size3.cpp
-Size3.h
-/home/guoxin/Projects/MTC/modules/TensorLib/src/Size3.h
-
-modules/TensorLib/include/Size3.h
-opencv2/opencv.hpp
--
-stdio.h
--
-iostream
--
-

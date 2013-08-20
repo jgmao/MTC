@@ -3,6 +3,8 @@
 
 modules/TensorLib/CMakeFiles/TensorLite.dir/src/TensorLite.cpp.o: modules/TensorLib/src/TensorLite.cpp
 modules/TensorLib/CMakeFiles/TensorLite.dir/src/TensorLite.cpp.o: modules/TensorLib/include/CommonDef.h
+modules/TensorLib/CMakeFiles/TensorLite.dir/src/TensorLite.cpp.o: modules/TensorLib/include/Cube.h
+modules/TensorLib/CMakeFiles/TensorLite.dir/src/TensorLite.cpp.o: modules/TensorLib/include/Size3.h
 modules/TensorLib/CMakeFiles/TensorLite.dir/src/TensorLite.cpp.o: modules/TensorLib/include/TensorLite.h
 modules/TensorLib/CMakeFiles/TensorLite.dir/src/TensorLite.cpp.o: modules/Utility/include/MyLib.h
 

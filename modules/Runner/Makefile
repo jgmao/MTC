@@ -99,6 +99,20 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
+modules/Runner/CMakeFiles/Tester.dir/rule:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/Runner/CMakeFiles/Tester.dir/rule
+.PHONY : modules/Runner/CMakeFiles/Tester.dir/rule
+
+# Convenience name for target.
+Tester: modules/Runner/CMakeFiles/Tester.dir/rule
+.PHONY : Tester
+
+# fast build rule for target.
+Tester/fast:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/Tester.dir/build.make modules/Runner/CMakeFiles/Tester.dir/build
+.PHONY : Tester/fast
+
+# Convenience name for target.
 modules/Runner/CMakeFiles/gpussim.dir/rule:
 	cd /home/guoxin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/Runner/CMakeFiles/gpussim.dir/rule
 .PHONY : modules/Runner/CMakeFiles/gpussim.dir/rule
@@ -113,6 +127,20 @@ gpussim/fast:
 .PHONY : gpussim/fast
 
 # Convenience name for target.
+modules/Runner/CMakeFiles/main.dir/rule:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/Runner/CMakeFiles/main.dir/rule
+.PHONY : modules/Runner/CMakeFiles/main.dir/rule
+
+# Convenience name for target.
+main: modules/Runner/CMakeFiles/main.dir/rule
+.PHONY : main
+
+# fast build rule for target.
+main/fast:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/main.dir/build.make modules/Runner/CMakeFiles/main.dir/build
+.PHONY : main/fast
+
+# Convenience name for target.
 modules/Runner/CMakeFiles/testTensor.dir/rule:
 	cd /home/guoxin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/Runner/CMakeFiles/testTensor.dir/rule
 .PHONY : modules/Runner/CMakeFiles/testTensor.dir/rule
@@ -125,6 +153,30 @@ testTensor: modules/Runner/CMakeFiles/testTensor.dir/rule
 testTensor/fast:
 	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/testTensor.dir/build.make modules/Runner/CMakeFiles/testTensor.dir/build
 .PHONY : testTensor/fast
+
+src/Tester.o: src/Tester.cpp.o
+.PHONY : src/Tester.o
+
+# target to build an object file
+src/Tester.cpp.o:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/Tester.dir/build.make modules/Runner/CMakeFiles/Tester.dir/src/Tester.cpp.o
+.PHONY : src/Tester.cpp.o
+
+src/Tester.i: src/Tester.cpp.i
+.PHONY : src/Tester.i
+
+# target to preprocess a source file
+src/Tester.cpp.i:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/Tester.dir/build.make modules/Runner/CMakeFiles/Tester.dir/src/Tester.cpp.i
+.PHONY : src/Tester.cpp.i
+
+src/Tester.s: src/Tester.cpp.s
+.PHONY : src/Tester.s
+
+# target to generate assembly for a file
+src/Tester.cpp.s:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/Tester.dir/build.make modules/Runner/CMakeFiles/Tester.dir/src/Tester.cpp.s
+.PHONY : src/Tester.cpp.s
 
 src/gpussim.o: src/gpussim.cpp.o
 .PHONY : src/gpussim.o
@@ -149,6 +201,30 @@ src/gpussim.s: src/gpussim.cpp.s
 src/gpussim.cpp.s:
 	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/gpussim.dir/build.make modules/Runner/CMakeFiles/gpussim.dir/src/gpussim.cpp.s
 .PHONY : src/gpussim.cpp.s
+
+src/main.o: src/main.cpp.o
+.PHONY : src/main.o
+
+# target to build an object file
+src/main.cpp.o:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/main.dir/build.make modules/Runner/CMakeFiles/main.dir/src/main.cpp.o
+.PHONY : src/main.cpp.o
+
+src/main.i: src/main.cpp.i
+.PHONY : src/main.i
+
+# target to preprocess a source file
+src/main.cpp.i:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/main.dir/build.make modules/Runner/CMakeFiles/main.dir/src/main.cpp.i
+.PHONY : src/main.cpp.i
+
+src/main.s: src/main.cpp.s
+.PHONY : src/main.s
+
+# target to generate assembly for a file
+src/main.cpp.s:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Runner/CMakeFiles/main.dir/build.make modules/Runner/CMakeFiles/main.dir/src/main.cpp.s
+.PHONY : src/main.cpp.s
 
 src/testTensor.o: src/testTensor.cpp.o
 .PHONY : src/testTensor.o
@@ -180,13 +256,21 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
+	@echo "... Tester"
 	@echo "... edit_cache"
 	@echo "... gpussim"
+	@echo "... main"
 	@echo "... rebuild_cache"
 	@echo "... testTensor"
+	@echo "... src/Tester.o"
+	@echo "... src/Tester.i"
+	@echo "... src/Tester.s"
 	@echo "... src/gpussim.o"
 	@echo "... src/gpussim.i"
 	@echo "... src/gpussim.s"
+	@echo "... src/main.o"
+	@echo "... src/main.i"
+	@echo "... src/main.s"
 	@echo "... src/testTensor.o"
 	@echo "... src/testTensor.i"
 	@echo "... src/testTensor.s"

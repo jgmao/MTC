@@ -11,10 +11,8 @@ Steerable.h
 /home/guoxin/Projects/MTC/modules/Metric/src/Steerable.h
 
 modules/Metric/include/Steerable.h
-Size3.h
-modules/Metric/include/Size3.h
-Tensor.h
-modules/Metric/include/Tensor.h
+TensorLite.h
+modules/Metric/include/TensorLite.h
 MyLib.h
 modules/Metric/include/MyLib.h
 vector
@@ -44,7 +42,7 @@ stdio.h
 iostream
 -
 
-modules/TensorLib/include/Tensor.h
+modules/TensorLib/include/TensorLite.h
 CommonDef.h
 modules/TensorLib/include/CommonDef.h
 opencv2/opencv.hpp

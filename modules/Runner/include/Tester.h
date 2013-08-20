@@ -8,8 +8,12 @@
 //#include "HuffTree.h"
 //#include <gtest\gtest.h>
 #include "TensorLite.h"
+#include "algorithms.h"
 #include <opencv2/opencv.hpp>
 using namespace std;
+using namespace tensor;
+using namespace metric;
+
 class Tester
 {
 public:
@@ -39,6 +43,8 @@ public:
   //void TestVarLenFunction(void);
   //void TestMatching(void);
   //void TestDistortion(string fname);
+        void TestTensor();
+        void TestAlgorithms();
 };/*
 
 template <class T> class TestTensor : public testing::Test

@@ -276,12 +276,12 @@ template<class T, size_t cn> void Tensor<T,cn>::Load(string cFileName)
 			vcm.push_back(azMat);
 			cv::merge(vcm,this->mxFrame);
 		}
-		int sz[] = {1,this->mxFrame.rows,this->mxFrame.cols};
+		int sz[] = {this->mxFrame.rows,this->mxFrame.cols};
 		cout<<this->mxFrame.size()<<endl;
-    		this->mxFrame.convertTo(this->mxFrame,DataType<T>::depth);//new added
+    this->mxFrame.convertTo(this->mxFrame,DataType<T>::depth);//new added
     		//cout<<mxFrame.channels()<<","<<mxFrame.type()<<endl;
-		this->create(3,sz,this->mxFrame.type());
-		this->tsSize = Size3(sz[1],sz[2],sz[0]);
+                this->create(2, sz,this->mxFrame.type());
+                this->tsSize = Size3(sz[0],sz[1],1);
 		this->SetFrame(0,this->mxFrame.clone());
 	  //never treat as a video in TensorLite
 		//cap>>this->mxFrame;
