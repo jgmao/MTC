@@ -1,7 +1,7 @@
 set(MTC_TENSOR_DIR ${MTC_MODULES_DIR}/TensorLib)
 include_directories(${MTC_TENSOR_DIR}/include ${MTC_MODULES_DIR}/Utility/include)
 #link_directories(${MTC_TENSOR_DIR}/src)
-set(PROGRAMS TensorLite )
+set(PROGRAMS Size3 Cube TensorLite )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Debug/lib)
@@ -20,7 +20,7 @@ endif()
 message("${ARCHIVE_OUTPUT_DIRECTORY}")
 foreach(program ${PROGRAMS})
   add_library(${program} src/${program}.cpp)
-  target_link_libraries(${program} ${OpenCV_LIBS} util)
+  target_link_libraries(${program} ${OpenCV_LIBS})
   #install(TARGETS ${PROGRAMS}
 #	RUNTIME DESTINATION ${MTC_SOURCE_DIR}/bin
 #	LIBRARY DESTINATION ${MTC_SOURCE_DIR}/lib

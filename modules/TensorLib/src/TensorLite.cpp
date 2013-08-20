@@ -1,4 +1,4 @@
-#include "Tensor.h"
+#include "TensorLite.h"
 //20130815 decoule Tensor to high level operations
 //#include "Steerable.h"
 //#include "LRI.h"
@@ -6,7 +6,7 @@
 namespace tensor{
 //20130815 template<class T, size_t cn> Mat Tensor<T,cn>::stsim2_lse_weight = Mat(); 
 /////////////2.1 constructor, copy  assignment and type conversion ////////////////////////
-//BufferGPU gbuf;
+BufferGPU gbuf;
 template<class T, size_t cn> Tensor<T,cn>::Tensor(void):Mat()
 {
 	this->tsOffset = Point3i();
@@ -20,33 +20,26 @@ template<class T, size_t cn> Tensor<T,cn>::Tensor(void):Mat()
 
 template<class T, size_t cn> Tensor<T,cn>::Tensor(int height, int width, int depth, typename Tensor<T,cn>::c_ref_type val): Mat()
 {
-	const int sz[] = {depth, height, width}; //important , order changed
-	*this = Mat(3, sz,  CV_MAKETYPE(DataType<T>::depth,cn), Scalar(val));
+	*this = Mat(height,width,CV_MAKETYPE(DataType<T>::depth,cn));
 	this->tsSize = Size3(height,width,depth);
 	this->cFileName = "unknown";
 	this->tsOffset = Point3i();
 	this->mxFrame = Mat(height,width,CV_MAKETYPE(DataType<T>::depth,cn));
-	//subWinSize = Size3();
-	//subWinStep = Size3();
 	this->debugtrigger=false;
 }
 
 template<class T, size_t cn> Tensor<T,cn>::Tensor(const Size3& size, const Vec<T,cn>& val): Mat()
 {
-	const int sz[] = {size.depth, size.height,size.width};
-	*this = Mat(3, sz, CV_MAKETYPE(DataType<T>::depth,cn),Scalar(val));
+	*this = Mat(size, CV_MAKETYPE(DataType<T>::depth,cn),Scalar(val));
 	this->tsSize = size;
 	this->cFileName = "unknown";
 	this->tsOffset = Point3i();
 	this->mxFrame = Mat(size.height,size.width,CV_MAKETYPE(DataType<T>::depth,cn));
-	//subWinSize = Size3();
-	//subWinStep = Size3();
 	this->debugtrigger=false;
 }
 template<class T, size_t cn> Tensor<T,cn>::Tensor(const Size3& size):Mat()
 {
- 	const int sz[] = {size.depth, size.height,size.width};
-	*this = Mat(3, sz, CV_MAKETYPE(DataType<T>::depth,cn));
+	*this = Mat(size, CV_MAKETYPE(DataType<T>::depth,cn));
 	this->tsSize = size;
 	this->cFileName = "unknown";
 	this->tsOffset = Point3i();
@@ -67,28 +60,15 @@ template<class T, size_t cn> Tensor<T,cn>::Tensor(const Tensor<T,cn>& ts): Mat(t
 	this->cFileName = ts.cFileName;
 	this->tsOffset = ts.tsOffset;
 	this->mxFrame = ts.mxFrame;
-	//SetSubWinSize(ts.subWinSize);
-	//SetSubWinStep(ts.subWinStep); 
-	//lightTag = ts.lightTag;
-	//lightCan = ts.lightCan;
 	this->debugtrigger=ts.debugtrigger;
 }
 
 template<class T, size_t cn> Tensor<T,cn>::Tensor(const Mat& mt): Mat(mt)
 {
 	//include the type conversion function
-	if (mt.dims == 2)
-	{
-		this->tsSize = Size3(mt.rows,mt.cols,1);
-		int sz[] = {1,mt.rows,mt.cols};
-		this->create(3,sz,mt.type());
-		this->SetFrame(0,mt);
-		
-	}
-	else
-	{
-		this->tsSize = Size3(mt.size[1],mt.size[2],mt.size[0]);
-	}
+	CV_Assert(mt.dims==2);
+  this->tsSize = Size3(mt.rows,mt.cols,1);
+        this->SetFrame(0,mt);
 	this->cFileName = "unknown";
 	this->tsOffset = Point3i();
 	if (mt.type() != CV_MAKETYPE(DataType<T>::depth,cn))
@@ -97,9 +77,6 @@ template<class T, size_t cn> Tensor<T,cn>::Tensor(const Mat& mt): Mat(mt)
 		this->convertTo(rst,DataType<T>::depth);
 		*this = rst;
 	}
-	//subWinSize = Size3();
-	//subWinStep = Size3();
-	//mxFrame = Mat(mt.size().height,mt.size().width,CV_MAKETYPE(DataType<T>::depth,cn));
 	this->debugtrigger=false;
 }
 
@@ -116,14 +93,14 @@ template<class T, size_t cn> Tensor<T,cn>::~Tensor(void)
 
 template<class T, size_t cn> Tensor<T,2> Tensor<T,cn>::ToComplex(void) const
 {
-	CV_DbgAssert( 2 == 2*cn || 2 ==cn);
+	CV_Assert( 2 == 2*cn || 2 ==cn);
 	if(cn == 2)
 		return *this;
 	Tensor<T,2> rst(size());
 	rst.SetFileName(this->cFileName);
 	for (int i=0; i< size().depth; i++)
 	{
-		rst.SetFrame(i,mylib::toComplex(GetFrame(i)));
+		rst.SetFrame(i,mylib::toComplex(this->operator[](i)));
 	}
 	rst.debugtrigger = this->debugtrigger;
 	return rst;
@@ -131,13 +108,10 @@ template<class T, size_t cn> Tensor<T,2> Tensor<T,cn>::ToComplex(void) const
 
 template<class T, size_t cn> Tensor<T,cn>& Tensor<T,cn>::operator= (const Tensor<T,cn>& ts)
 {
-//	CV_DbgAssert(ts.type() == CV_MAKETYPE(this->depth(), this->channels()));
 	this->Mat::operator=(ts);
 	this->tsSize = ts.tsSize;
 	this->cFileName = ts.cFileName;
 	this->tsOffset = ts.tsOffset;
-	//this->subWinSize = ts.subWinSize;
-	//this->subWinStep = ts.subWinStep;
 	this->debugtrigger=ts.debugtrigger;
 	return *this;
 }
@@ -147,7 +121,7 @@ template<class T, size_t cn> Tensor<T,cn>& Tensor<T,cn>::operator= (const Tensor
 template<class T, size_t cn> void Tensor<T,cn>::Display(int flag) const
 {
 	string tempName;
-	CV_DbgAssert(cn == this->channels());
+	CV_Assert(cn == this->channels());
 	Tensor<uchar,cn> tempTs;
 	if (this->depth() != DataType<uchar>::depth)
 		tempTs = Tensor<uchar,cn>(*this); //directly type conversion
@@ -183,7 +157,7 @@ template<class T, size_t cn> void Tensor<T,cn>::Display(int flag) const
 template<class T, size_t cn> void Tensor<T,cn>::Display(int sec, int flag) const
 {
 	string tempName;
-	CV_DbgAssert(cn == this->channels());
+	CV_Assert(cn == this->channels());
 
 	Tensor<uchar,cn> tempTs;
 	if (this->depth() != DataType<uchar>::depth)
@@ -216,12 +190,12 @@ template<class T, size_t cn> void Tensor<T,cn>::Display(int sec, int flag) const
 	}
 
 }
-//20130815 move this to utility module inside Tensor (not mylib)
-/*
+//!20130815 move this to utility module inside Tensor (not mylib)
+/*!
 template<typename T, size_t cn> void Tensor<T,cn>::DisplayAll(std::vector<Tensor<T,cn>>& vts, int row, int col, bool save, string savename) const
 {
   Size3 padsz(0,0,0);
-  CV_DbgAssert(vts.size()<=row*col);
+  CV_Assert(vts.size()<=row*col);
   for (Tensor<T,cn>& ts :vts)
   {
     if (padsz.height<ts.size().height)
@@ -273,10 +247,10 @@ template<class T, size_t cn> void Tensor<T,cn>::Load(string cFileName)
 		else
 			this->mxFrame = cv::imread(cFileName,-1);
 		CV_Assert(!this->data && this->mxFrame.channels() == cn ); 
-		const int sz[] = {1,this->mxFrame.rows,this->mxFrame.cols};
+		const int sz[] = {this->mxFrame.rows,this->mxFrame.cols};
 		this->mxFrame.convertTo(this->mxFrame,DataType<T>::depth);//new added
-		this->create(3,sz,this->mxFrame.type());
-		this->tsSize = Size3(sz[1],sz[2],1);
+		this->create(2,sz,this->mxFrame.type());
+		this->tsSize = Size3(sz[0],sz[1],1);
 		SetFrame(0,this->mxFrame.clone());
 		cout<<"size: "; 
 		this->tsSize.Print();
@@ -309,6 +283,7 @@ template<class T, size_t cn> void Tensor<T,cn>::Load(string cFileName)
 		this->create(3,sz,this->mxFrame.type());
 		this->tsSize = Size3(sz[1],sz[2],sz[0]);
 		this->SetFrame(0,this->mxFrame.clone());
+	  //never treat as a video in TensorLite
 		//cap>>this->mxFrame;
 		//while(mxFrame.data)
 		//{	
@@ -336,11 +311,11 @@ template<class T, size_t cn> Size3 Tensor<T,cn>::size(void) const
 	return this->tsSize;
 }
 
-
+//! data accesor will return the reference to the pixel
 template<class T, size_t cn> typename Tensor<T,cn>::ref_type Tensor<T,cn>::operator() (int x, int y, int z)
 {
-	CV_DbgAssert( CV_MAKETYPE(DataType<T>::depth,cn) == this->type());
-	return this->at<value_type>(z,x,y);
+	CV_Assert( CV_MAKETYPE(DataType<T>::depth,cn) == this->type());
+	return this->at<value_type>(x,y);
 
 }
 
@@ -348,9 +323,9 @@ template<class T, size_t cn> typename Tensor<T,cn>::c_ref_type Tensor<T,cn>::ope
 {
 	//int t = this->type();
 	//int t2 = CV_MAKETYPE(DataType<T>::depth,cn) ;
-	CV_DbgAssert( CV_MAKETYPE(DataType<T>::depth,cn) == this->type());
+	CV_Assert( CV_MAKETYPE(DataType<T>::depth,cn) == this->type());
 
-	return this->at<value_type>(z,x,y);
+	return this->at<value_type>(x,y);
 
 }
 
@@ -363,13 +338,18 @@ template<class T, size_t cn> typename Tensor<T,cn>::c_ref_type Tensor<T,cn>::ope
 	return this->operator()(pos.x,pos.y,pos.z);
 }
 
+//! 20130820 I don't know if GetFrame should return a reference or a clone
+/*! just set it as a Clone now, and GetFrameRef will give a reference
+	  operator[] will return a reference too
+*/
 template< class T, size_t cn> Mat Tensor<T,cn>::GetFrame(int i)
 {
+
 	if (dims <=2 )
-		return *this;
+		return this->clone();//note this is a clone
 	else
 	{
-		CV_DbgAssert(  this->dims == 3 && (unsigned)i < (unsigned)tsSize.depth);
+		CV_Assert(  this->dims == 3 && (unsigned)i < (unsigned)tsSize.depth);
     
 		//mxFrame = this->row(i);
     		this->mxFrame =  Mat(*this, Range(i, i+1), Range::all());
@@ -381,13 +361,13 @@ template< class T, size_t cn> Mat Tensor<T,cn>::GetFrame(int i)
 	}
 }
 
-template< class T, size_t cn> Mat& Tensor<T,cn>::GetFrameRef(int i) 
+template< class T, size_t cn> Mat Tensor<T,cn>::GetFrameRef(int i)
 {
 	if (dims <=2 )
 		return *this;
 	else
 	{
-		CV_DbgAssert(  this->dims == 3 && (unsigned)i < (unsigned)tsSize.depth);
+		CV_Assert(  this->dims == 3 && (unsigned)i < (unsigned)tsSize.depth);
 		//mxFrame = this->row(i);
      //Mat* arrays[] = {this};
     		Mat* arrays[] = {(Mat*)this};
@@ -400,13 +380,34 @@ template< class T, size_t cn> Mat& Tensor<T,cn>::GetFrameRef(int i)
 	}
 }
 
+template< class T, size_t cn> const Mat Tensor<T,cn>::GetFrameRef(int i) const
+{
+	if (dims <=2 )
+		return *this;
+	else
+	{
+
+		CV_Assert(  this->dims == 3 && (unsigned)i < (unsigned)tsSize.depth);
+		//mxFrame = this->row(i);
+     //Mat* arrays[] = {this};
+                Mat* arrays[] = {(Mat*)this};
+                Mat planes[1];
+                NAryMatIterator it((const Mat**)arrays, planes,1);
+                Mat rst = it.planes[i].reshape(cn,this->size().height);
+
+    //if (mxFrame.size().height<0)
+    //mylib::DisplayMat(mxFrame);
+                return rst;
+        }
+}
+
 template< class T, size_t cn> void Tensor<T,cn>::GetFrameRef(int i, Mat& rst) const 
 {
 	if (dims <=2 )
 		rst= *this;
 	else
 	{
-		CV_DbgAssert(  this->dims == 3 && (unsigned)i < (unsigned)tsSize.depth);
+		CV_Assert(  this->dims == 3 && (unsigned)i < (unsigned)tsSize.depth);
 		//mxFrame = this->row(i);
      //Mat* arrays[] = {this};
     		Mat* arrays[] = {(Mat*)this};
@@ -419,10 +420,10 @@ template< class T, size_t cn> void Tensor<T,cn>::GetFrameRef(int i, Mat& rst) co
 template< class T, size_t cn> const Mat Tensor<T,cn>::GetFrame(int i) const
 {
 	if (dims <=2 )
-		return *this;
+		return this->clone();
 	else
 	{
-		CV_DbgAssert(  this->dims == 3 && (unsigned)i < (unsigned)tsSize.depth);
+		CV_Assert(  this->dims == 3 && (unsigned)i < (unsigned)tsSize.depth);
     		Mat tempMat = Mat(*this, Range(i, i+1), Range::all());
 	  //Mat tempMat = this->row(i);
 		Mat rst = Mat(2, tempMat.size.p+1,tempMat.type(),tempMat.data,tempMat.step.p+1);
@@ -432,12 +433,12 @@ template< class T, size_t cn> const Mat Tensor<T,cn>::GetFrame(int i) const
 
 template< class T, size_t cn> Mat Tensor<T,cn>::operator[](int i)
 {
-	return this->GetFrame(i);
+	return this->GetFrameRef(i);
 }
 
 template< class T, size_t cn> const Mat Tensor<T,cn>::operator[](int i) const
 {
-	return this->GetFrame(i);
+	return this->GetFrameRef(i);
 }
 
 template< class T, size_t cn> Point3i Tensor<T,cn>::offset() const
@@ -448,30 +449,25 @@ template< class T, size_t cn> Point3i Tensor<T,cn>::offset() const
 template< class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::Clone(void) const
 {
   	std::lock_guard<std::mutex> lock(this->tsmutex);
-	//tsmutex.lock();
   	Tensor<T,cn> rst(this->Mat::clone());
-	rst.SetFileName(this->cFileName);
-	rst.SetOffset(this->tsOffset);
-	//rst.SetSubWinSize(subWinSize);
-	//rst.SetSubWinStep(subWinStep); 
-	//rst.lightTag = lightTag;
-	//rst.lightCan = lightCan; 
+                rst.SetFileName(this->cFileName);
+                rst.SetOffset(this->tsOffset);
 
 	return rst;
 }
-
+//! SetFrame is a copyTo opertaion, if you don't need a copy, don't use this.
 template< class T, size_t cn> void Tensor<T,cn>::SetFrame(int i, const Mat& frm)
 {
 	//use to modify(or assignment by copy) one frame
 	if (dims <=2 )
-		*this = frm;
+		frm.copyTo(*this);
 	else
 	{
-		CV_DbgAssert(  this->dims == 3 && (unsigned)i < (unsigned)tsSize.depth);
+		CV_Assert(  this->dims == 3 && (unsigned)i < (unsigned)tsSize.depth);
 		this->mxFrame = GetFrame(i); //get a reference to the frame
 		frm.copyTo(this->mxFrame);
 		//make sure frm is nonempty
-        //CV_DbgAssert(frm.total()!=0&&frm.isContinuous() && mxFrame.isContinuous());
+	//CV_Assert(frm.total()!=0&&frm.isContinuous() && mxFrame.isContinuous());
         //size_t planeSize = frm.elemSize() * frm.rows * frm.cols;
 		//memcpy(mxFrame.data,frm.data,planeSize);
 	}
@@ -538,59 +534,70 @@ template <class T, size_t cn> void Tensor<T,cn>::SetOffset(const Point3i& pos)
 	this->tsOffset = pos;
 }
 
-//template <class T, size_t cn> Tensor<T,cn>& Tensor<T,cn>::GetBlockRef(const Cube& roi)
-//{
-//		CV_DbgAssert(  this->dims == 3 && (unsigned)i < (unsigned)tsSize.depth);
-//		//mxFrame = this->row(i);
-//     //Mat* arrays[] = {this};
-//    Mat* arrays[] = {(Mat*)this};
-//    Mat planes[1];
-//    NAryMatIterator it((const Mat**)arrays, planes,1);
-//    mxFrame = it.planes[i].reshape(cn,this->size().height);
-//    //mylib::DisplayMat(mxFrame);
-//    return mxFrame(Rect(roi.y,roi.x,roi.width,roi.height));
-//}
+template <class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::GetBlockRef(const Cube& roi)
+{
+	AssertRange(roi.offset(),roi.size());
+	Rect r = roi.toRect();
+	Tensor<T,cn> rst = this->Mat::operator()(r);
+  return rst;
+}
+
+template <class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::GetBlockRef(const Cube& roi) const
+{
+	AssertRange(roi.offset(),roi.size());
+	Rect r = roi.toRect();
+	Tensor<T,cn> rst = this->Mat::operator()(r);
+  return rst;
+}
+
+
+
+//! 20130820 I need to test this
+//! get block get a copy of subblock
+//! in openCV Rect::x is the ----> axis
+//! and Rect::y is | axis
+//!                v
+//! the structure is Rect::Rect(--> , | , width, height)
+//!                                   v
+//! so in TensorLib, the convert from Cube to Rect is
+//! Rect(Cube::y, Cube::x, Cube::width, Cube::height)
+//! I made a converter Cube::toRect() to do it.
 template <class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::GetBlock(const Cube& roi)
 {
-	Range r[] = {Range(roi.z,roi.z+roi.depth),Range(roi.x,roi.x+roi.height),Range(roi.y,roi.y+roi.width)};	
-	Tensor<T,cn> rst = this->Mat::operator()(r);
+	Rect r = roi.toRect();
+	Tensor<T,cn> rst(roi.size());
+	rst.SetFrame(0,this->Mat::operator()(r));
 	rst.SetFileName(this->cFileName);
 	rst.SetOffset(roi.offset());
-	//rst.SetSubWinSize(this->subWinSize);
-	//rst.SetSubWinStep(this->subWinStep);
 	return rst;
 }
+
 template <class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::GetBlock(const Cube& roi) const
 {
-	Range r[] = {Range(roi.z,roi.z+roi.depth),Range(roi.x,roi.x+roi.height),Range(roi.y,roi.y+roi.width)};	
-	Tensor<T,cn> rst = this->Mat::operator()(r);
+	Rect r = roi.toRect();
+	Tensor<T,cn> rst(roi.size());
+	rst.SetFrame(0,this->Mat::operator()(r));
 	rst.SetFileName(this->cFileName);
 	rst.SetOffset(roi.offset()+this->offset());
-	//rst.SetSubWinSize(this->subWinSize);
-	//rst.SetSubWinStep(this->subWinStep);
 	return rst;
 }
 
 template<class T, size_t cn> void Tensor<T,cn>::Ref(const Cube& roi, Tensor<T,cn>& dst) const
 {
-	Range r[] = {Range(roi.z,roi.z+roi.depth),Range(roi.x,roi.x+roi.height),Range(roi.y,roi.y+roi.width)};	
+  Rect r = roi.toRect();
 	dst.Mat::operator=(this->Mat::operator()(r));
-  	dst.tsSize = roi.size();
-  	dst.tsOffset = roi.offset();
+	dst.tsSize = roi.size();
+	dst.tsOffset = roi.offset();
 	dst.SetFileName(this->cFileName);
 	dst.SetOffset(roi.offset()+this->offset());
-	//dst.SetSubWinSize(this->subWinSize);
-	//dst.SetSubWinStep(this->subWinStep);
 }
 
 template <class T, size_t cn> Tensor<T,cn>& Tensor<T,cn>::SetBlock(const Point3i& pos, const Tensor<T,cn>& ts)
 {
-	CV_DbgAssert(ts.type() == type());
+	CV_Assert(ts.type() == type());
 	AssertRange(pos,ts.size());
-	
 	Cube roi(pos,ts.size());
-	cv::Mat tempMat = GetBlock(roi);
-
+	cv::Mat tempMat = GetBlockRef(roi);
 	ts.copyTo(tempMat);
 	return *this;
 }
@@ -600,7 +607,7 @@ template <class T, size_t cn> Tensor<T,cn>& Tensor<T,cn>::SetBlock(const Tensor<
 }
 template<class T, size_t cn> void Tensor<T,cn>::AssertRange(const Point3i& pos, const Size3& sz) const
 {
-	CV_DbgAssert( pos.x + sz.height <= this-> tsSize.height &&
+	CV_Assert( pos.x + sz.height <= this-> tsSize.height &&
 				  pos.y + sz.width  <= this-> tsSize.width &&
 				  pos.z + sz.depth  <= this-> tsSize.depth);
 }
@@ -628,18 +635,18 @@ template<class T, size_t cn> void Tensor<T,cn>::SaveBlock(const string& cFileNam
 	{
 		if (isGray)
 		{
-			Mat grayone = this-> GetFrame(0);
+			Mat grayone = this-> GetFrameRef(0);
 			cv::cvtColor(grayone,grayone,COLOR_RGB2GRAY);
 			cv::imwrite(cFileName,grayone);
 		}
 		else
-			cv::imwrite(cFileName,this-> GetFrame(0));
+			cv::imwrite(cFileName,this-> GetFrameRef(0));
 	}
 }
 
 template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::Crop(const Point3i& pos, const Size3& sz) const
 {
-  return this-> GetBlock(Cube(pos,sz)).Clone();
+  return this-> GetBlockRef(Cube(pos,sz)).Clone();
 }
 /* 20130815
 template<class T, size_t cn> void Tensor<T,cn>::SetSubWinSize(const Size3& sz)
@@ -708,25 +715,13 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::Row(int i)
 	return rst;
 }
 
-
+//! This and GetBlock is different to GetFrame, since it returns a Tensor not Mat
+//! so when I talk about return a reference, it means the Mat data is reference, but
+//! the value of tsSize, offset are all copy
+//! operator(Cube) return a reference
 template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::operator()(const Cube& roi)
 {	
-	//return GetBlock(roi);
-	AssertRange(roi.offset(),roi.size());
-	Tensor<T,cn> dst(roi.size());
-	for (int i=0; i< roi.depth; i++)
-	{
-		//if ( i < dst.size().depth )
-		dst.SetFrame(i,this->GetFrame(i+roi.z)(Rect(roi.y,roi.x,roi.width,roi.height)));
-		//else
-		//	dst.vdStream.push_back((*this)[i](Rect(roi.y,roi.x,roi.width,roi.height)));
-	}
-	dst.tsOffset = roi.offset()+this->offset();
-	dst.tsSize = roi.size();
-	dst.cFileName = this->cFileName;	
-	//dst.SetSubWinSize(this->subWinSize);
-	//dst.SetSubWinStep(this->subWinStep);
-	return dst; 
+	return GetBlockRef(roi);
 }
 
 ////////2.4 arithmatic operations //////////////////////////////////////////
@@ -759,10 +754,11 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::operator*(const Tensor<T
 	for (int z =0; z < size().depth; z++)
 	{
 		if (cn==2 || cn == 6)
-			cv::mulSpectrums(rst.GetFrame(z),ts.GetFrame(z),rst.GetFrame(z),DFT_ROWS,false); // use CCS strucrue for complex mul
+			cv::mulSpectrums(rst[z],ts[z],rst[z],DFT_ROWS,false); // use CCS strucrue for complex mul
 		else
     		{
-			rst.SetFrame(z,GetFrame(z).mul(ts.GetFrame(z)));
+
+                        rst.SetFrame(z,GetFrameRef(z).mul(ts[z]));
     		}
 	}
 	return rst;
@@ -784,7 +780,7 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::operator/(const Tensor<T
 			temp[1] = temp[0];
 			merge(temp,tempMat);
 			//mylib::DisplayMat(tempMat);
-			cv::mulSpectrums(rst.GetFrame(i),ts.GetFrame(i),rst.GetFrame(i),DFT_ROWS,true);
+			cv::mulSpectrums(rst.GetFrameRef(i),ts.GetFrameRef(i),rst.GetFrameRef(i),DFT_ROWS,true);
 			//mylib::DisplayMat(rst.GetFrame(i));
 			//Vec<T,cn> a= rst(0,0,0);
 			//Vec<T,cn> b = tempMat.at<Vec<T,cn>> (0,0);
@@ -843,8 +839,8 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::Abs(void) const
 	{
 		for (int i=0; i< size().depth; i++)
 		{
-			cv::mulSpectrums(this->GetFrame(i),this->GetFrame(i),rst.GetFrame(i),DFT_ROWS,true);
-			cv::pow(rst.GetFrame(i),0.5,rst.GetFrame(i));
+			cv::mulSpectrums(this->GetFrameRef(i),this->GetFrameRef(i),rst.GetFrameRef(i),DFT_ROWS,true);
+			cv::pow(rst.GetFrameRef(i),0.5,rst.GetFrameRef(i));
 		}
 	}
 	else
@@ -869,7 +865,7 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::AbsDiff(c_ref_type s) co
 	else
 	{
 		for (int i=0; i< size().depth; i++)
-			cv::absdiff(this->GetFrame(i),v,rst.GetFrame(i));
+			cv::absdiff(this->GetFrameRef(i),v,rst.GetFrameRef(i));
 	}
 	return rst;
 }
@@ -889,7 +885,7 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::AbsDiff(const Tensor& ts
 	else
 	{
 		for (int i=0; i< size().depth; i++)
-			cv::absdiff(this->GetFrame(i),ts.GetFrame(i),rst.GetFrame(i));
+			cv::absdiff(this->GetFrameRef(i),ts.GetFrameRef(i),rst.GetFrameRef(i));
 	}
 	return rst;
 }
@@ -948,7 +944,7 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::Pow(double p) const
 			if( ipower < 0 )
 			{
 				for(int i=0; i< tsSize.depth; i++)
-					divide( 1., this->GetFrame(i), rst.GetFrame(i));
+					divide( 1., this->GetFrameRef(i), rst.GetFrameRef(i));
 				if( ipower == -1 )
 					return rst;
 				ipower = -ipower;
@@ -1140,7 +1136,7 @@ template <class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::Transpose(void) const
 	}
 	//	(Size3(this->size().width,this->size().height,this->size().depth));
 	for (int i=0; i< size().depth; i++)
-		cv::transpose(GetFrame(i),rst[i]);
+		cv::transpose(GetFrameRef(i),rst[i]);
 	return rst;
 }
 
@@ -1228,7 +1224,7 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::Laplacian(void) const
 {
 	Tensor<T,cn> rst(tsSize);
 	for (int z=0; z<tsSize.depth; z++)
-		cv::Laplacian(this->GetFrame(z),rst.GetFrame(z),this->depth(),1,1,0,BORDER_REFLECT_101);
+		cv::Laplacian(this->GetFrameRef(z),rst.GetFrameRef(z),this->depth(),1,1,0,BORDER_REFLECT_101);
 	return rst;
 }
 
@@ -1243,7 +1239,7 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::Filter2D(const Mat& ker,
 
 		for (int z=0; z< tsSize.depth; z++)
 		{
-			cv::filter2D(this->GetFrame(z),rst.GetFrame(z),-1,ker);
+			cv::filter2D(this->GetFrameRef(z),rst.GetFrameRef(z),-1,ker);
 		}
 		if (boundary == (int)FilterBoundary::FILTER_BOUND_EXTEND)
 		{
@@ -1286,7 +1282,7 @@ template<class T, size_t cn> Vec<T,cn> Tensor<T,cn>::Min() const
 	double temp=0;
 	for (int z = 0; z<this->size().depth; z++)
 	{
-		cv::minMaxLoc(this->GetFrame(z),&temp);
+		cv::minMaxLoc(this->GetFrameRef(z),&temp);
 		if (temp < p)
 			p= temp;
 	}
@@ -1357,7 +1353,7 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::FreqComplexFilter(cv::Ma
 	Tensor<T,cn> rst(size());
 	CV_Assert(this->channels() == kernel.channels() && this->channels()== 2); 
 	for (int i=0; i< size().depth; i++)
-		rst.SetFrame(i,mylib::FreqComplexFilter(GetFrame(i),kernel,conj));
+		rst.SetFrame(i,mylib::FreqComplexFilter(GetFrameRef(i),kernel,conj));
 	return rst;
 }
 
@@ -1369,17 +1365,17 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::DFT(void) const
 	for (int i=0; i< size().depth; i++)
 	{
 		#ifdef USE_GPU
-		  this->gbuf->gI1.upload(GetFrame(i));
-		  this->gbuf->gI1.convertTo(this->gbuf->t1, CV_32FC2, *this->stream);
-             	  gpu::dft(this->gbuf->t1, this->gbuf->t2, this->tsSize,0,*this->stream);
-		  this->gbuf->t2.convertTo(this->gbuf->gI2, CV_64FC2,*this->stream);//make this adaptive
-		  this->gbuf->gI2.download(rst[i]); 
+		  gbuf.gI1.upload(GetFrameRef(i));
+		  gbuf.gI1.convertTo(gbuf.t1, CV_32FC2, gbuf.stream);
+		  gpu::dft(gbuf.t1, gbuf.t2, this->tsSize,0,gbuf.stream);
+		  gbuf.t2.convertTo(gbuf.gI2, CV_64FC2,gbuf.stream);//make this adaptive
+		  gbuf.gI2.download(rst[i]);
 		#else
-		cv::dft(GetFrame(i),rst[i]);
+		cv::dft(GetFrameRef(i),rst[i]);
 		#endif
 
 	}
-	//this->gbuf->release();	
+	//gbuf.release();
 	return rst;
 }
 
@@ -1392,15 +1388,15 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::IDFT(void) const
 	{
 
 		#ifdef USE_GPU
-		this->gbuf->gI1.upload(GetFrame(i));
-                this->gbuf->gI1.convertTo(this->gbuf->t1, CV_32FC2, *this->stream);
-		gpu::dft(this->gbuf->t1, this->gbuf->t2, this->tsSize, DFT_INVERSE, *this->stream);
-		this->gbuf->t2.convertTo(this->gbuf->gI2, CV_64FC2,*this->stream);
-                gpu::split(this->gbuf->gI2, this->gbuf->v, *this->stream); 
-                gpu::divide(this->gbuf->v[0], double(rst[i].size().height*rst[i].size().width), this->gbuf->v[0],1, -1, *this->stream);
-                gpu::divide(this->gbuf->v[1], double(rst[i].size().height*rst[i].size().width), this->gbuf->v[1],1, -1, *this->stream); 
-                gpu::merge(this->gbuf->v, this->gbuf->gI2, *this->stream);
-		this->gbuf->gI2.download(rst[i]);
+		gbuf.gI1.upload(GetFrameRef(i));
+		gbuf.gI1.convertTo(gbuf.t1, CV_32FC2, gbuf.stream);
+		gpu::dft(gbuf.t1, gbuf.t2, this->tsSize, DFT_INVERSE, gbuf.stream);
+		gbuf.t2.convertTo(gbuf.gI2, CV_64FC2,gbuf.stream);
+		gpu::split(gbuf.gI2, gbuf.v, gbuf.stream);
+		gpu::divide(gbuf.v[0], double(rst[i].size().height*rst[i].size().width), gbuf.v[0],1, -1, gbuf.stream);
+		gpu::divide(gbuf.v[1], double(rst[i].size().height*rst[i].size().width), gbuf.v[1],1, -1, gbuf.stream);
+		gpu::merge(gbuf.v, gbuf.gI2, gbuf.stream);
+		gbuf.gI2.download(rst[i]);
 		//vector<Mat> temp;
                 //cv::split(rst[i],temp);
                 //Tensor<double,1>(temp[0]/temp[0].size().height/temp[0].size().width).Display(); 

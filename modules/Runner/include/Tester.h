@@ -7,7 +7,7 @@
 //#include "CubePlus.h"
 //#include "HuffTree.h"
 //#include <gtest\gtest.h>
-#include "Tensor.h" 
+#include "TensorLite.h"
 #include <opencv2/opencv.hpp>
 using namespace std;
 class Tester

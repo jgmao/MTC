@@ -108,7 +108,7 @@ void Steerable::buildSCFpyrLevs(Steerable::data_ref loDft, vector<Steerable::dat
 		next_twidth = twidth+1;
 
 	if (subsample)//normalize /4 on Dec 30 2012
-		loDft = loDft.Crop(cv::Point(loDft.size().height/4, loDft.size().width/4),loDft.size()/Size(2,2))/4;
+		loDft = loDft.Crop(cv::Point3i(loDft.size().height/4, loDft.size().width/4,0),loDft.size()/Size3(2,2,1))/4;
 	
 	cv::Mat lo1mask = raisedCosine(loDft.size().height,0.5,1,next_twidth);
   //mylib::DisplayMat(lo1mask,"lowmask");

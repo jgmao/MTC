@@ -4,7 +4,6 @@
 #include <iostream>
 #include <sstream>
 #include <bitset>
-#include <Tensor.h>
 //#include "PoissonSolver.h"
 #include <sys/types.h>
 //#include <process.h>
@@ -400,19 +399,25 @@ void Tester::TestBoundary(void)
 void Tester::TestFilter2D(void)
 {
 	typedef double T;
-	Tensor<T,1> im("baboon.pgm");
+	Tensor<T,1> im("/home/guoxin/Projects/MTC/data/baboon.pgm");
+	im.Display();
 	Tensor<T,1> part = im.Crop(Point3i(32,32,0),Size3(32,32,1));
 	Steerable sp;
 	sp.buildSCFpyr(part.ToComplex(),3,4,1,false);
 	vector<Tensor<T,2>>& pyr = sp.getSpaceDomainPyr();
 	cv::Mat gauss = mylib::GenGaussKer(8,8.0/6.0,CV_64F);
 	Tensor<T,2> dst(part.size());
-	pyr[0].Print();
+	cout<<pyr[0].size()<<", "<<pyr[0].channels()<<endl;
+	auto temp = pyr[0];
+	temp.Print();
 	mylib::DisplayMat(gauss);
 	//cv::flip(gauss,gauss,-1);
 	cv::filter2D(pyr[0][0],dst[0],-1,gauss);
 	dst= dst.Crop(Point3i(4,4,0),Size3(25,25,1));
 	dst.Print();
+
+	im.Filter2D(gauss).Display();
+
 }
 /*
 void Tester::TestKmeans(void)

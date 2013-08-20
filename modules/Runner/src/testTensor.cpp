@@ -8,10 +8,6 @@ int main(void)
   Tensor<double,1> ts("/home/guoxin/Projects/MTC/data/texture1.png");
   //ts.Display();
   Tensor<double,2> cts = ts.ToComplex();
-  gpu::Stream stream;
-  BufferGPU gbuf;
-  cts.stream = &stream;
-  cts.gbuf = &gbuf;
   double time = (double)getTickCount();
   Tensor<double,2> f;
   for (int i=0; i<1000; i++)
@@ -19,8 +15,6 @@ int main(void)
     f = cts.DFT();
     cout<<i<<endl;
   }
-  f.stream = &stream;
-  f.gbuf = &gbuf;
   f = f.IDFT();
 
   time = 1000*((double)getTickCount() - time)/getTickFrequency();
@@ -37,7 +31,7 @@ int main(void)
   cv::split(pyr[12],tv);
   Tensor<double,1>(tv[0]).Display(); 
   Tensor<double,1> ts2("/home/guoxin/Projects/MTC/data/texture2.png");
-  cout<<ComputeMSE<double,1>(ts,ts2)<<endl;
+  cout<<ComputeMSE(ts,ts2)<<endl;
   return 0;
 }
 
