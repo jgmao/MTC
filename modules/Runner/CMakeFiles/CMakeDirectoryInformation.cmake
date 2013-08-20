@@ -13,6 +13,7 @@ SET(CMAKE_C_INCLUDE_PATH
   "modules/Runner/include"
   "modules/TensorLib/include"
   "modules/Utility/include"
+  "modules/Metric/include"
   )
 SET(CMAKE_CXX_INCLUDE_PATH ${CMAKE_C_INCLUDE_PATH})
 SET(CMAKE_Fortran_INCLUDE_PATH ${CMAKE_C_INCLUDE_PATH})

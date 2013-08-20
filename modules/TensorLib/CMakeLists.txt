@@ -1,7 +1,7 @@
 set(MTC_TENSOR_DIR ${MTC_MODULES_DIR}/TensorLib)
 include_directories(${MTC_TENSOR_DIR}/include ${MTC_MODULES_DIR}/Utility/include)
 #link_directories(${MTC_TENSOR_DIR}/src)
-set(PROGRAMS Size3 Cube Tensor )
+set(PROGRAMS TensorLite )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Debug/lib)

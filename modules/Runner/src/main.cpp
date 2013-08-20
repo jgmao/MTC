@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
 	//////filenames.push_back(".//Mar6//J_0.9300_10.4_32_4_1_baboon.tif");
 	//mylib::CombineImage(filenames,string("H:\\MyStudy\\Research Reports\\Mar11\\combine_seam.tif"));
 	//test.TestBoundary();
-	test.TestFilter2D();
+	//test.TestFilter2D();
 	//test.TestKmeans();
 	//test.TestHuffTree();
 	//test.TestJPEG();

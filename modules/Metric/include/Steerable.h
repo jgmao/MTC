@@ -50,8 +50,8 @@
 #ifndef STEERABLE_H
 #define STEERABLE_H
 
-#include "Size3.h"
-#include "Tensor.h"
+//#include "Size3.h"
+#include "TensorLite.h"
 #include "MyLib.h"
 #include <vector>
 #include <cmath>
@@ -83,8 +83,8 @@ protected:
 	int order;
 	int twidth;
 	int nbands;
-	Size3 dims;
-	cv::Point3i ctr;
+	Size dims;
+	cv::Point ctr;
 	data_type yramp,xramp,angle,log_rad;
 	real_data_type im;
 	data_type xrcos,yrcos,yicos;

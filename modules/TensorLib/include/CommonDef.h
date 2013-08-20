@@ -67,7 +67,7 @@ public:
   cv::gpu::GpuMat gI1,gI2; //input
   cv::gpu::GpuMat t1,t2; //intermediate
   std::vector<cv::gpu::GpuMat> v;
-  void release(){gI1.release();gI2.release();t1.release();t2.release();}
+  cv::gpu::Stream stream;
 }gbuf;
 
 #endif

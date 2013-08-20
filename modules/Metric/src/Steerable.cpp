@@ -8,7 +8,7 @@ Steerable::Steerable(void)
 	order=0;
 	twidth=0;
 	nbands=0;
-	ctr=Point3i();
+	ctr=Point();
 }
 
 
@@ -26,7 +26,6 @@ Steerable::Steerable(Steerable::c_real_ref im)
 	dims = im.size();
 	ctr.x = (int)ceil((double(dims.height)+0.5)/2.0); //= ceil((dims+0.5)/2);
 	ctr.y = (int)ceil((double(dims.width)+0.5)/2.0);
-	ctr.z = 0;
 
 }
 
@@ -44,10 +43,6 @@ vector<Steerable::data_type>& Steerable::buildSCFpyr(Steerable::c_data_ref im, i
 	else if (im.size().height != im.size().width)
 	{
 		exit(-2);
-	}
-	else if (im.size().depth != 1)
-	{
-		exit(-3);
 	}
 
 	this->order = nDir -1;
@@ -113,7 +108,7 @@ void Steerable::buildSCFpyrLevs(Steerable::data_ref loDft, vector<Steerable::dat
 		next_twidth = twidth+1;
 
 	if (subsample)//normalize /4 on Dec 30 2012
-		loDft = loDft.Crop(cv::Point3i(loDft.size().height/4, loDft.size().width/4,0),loDft.size()/Size3(2,2,1))/4;
+		loDft = loDft.Crop(cv::Point(loDft.size().height/4, loDft.size().width/4),loDft.size()/Size(2,2))/4;
 	
 	cv::Mat lo1mask = raisedCosine(loDft.size().height,0.5,1,next_twidth);
   //mylib::DisplayMat(lo1mask,"lowmask");

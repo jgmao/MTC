@@ -99,118 +99,42 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-modules/TensorLib/CMakeFiles/Cube.dir/rule:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/TensorLib/CMakeFiles/Cube.dir/rule
-.PHONY : modules/TensorLib/CMakeFiles/Cube.dir/rule
+modules/TensorLib/CMakeFiles/TensorLite.dir/rule:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/TensorLib/CMakeFiles/TensorLite.dir/rule
+.PHONY : modules/TensorLib/CMakeFiles/TensorLite.dir/rule
 
 # Convenience name for target.
-Cube: modules/TensorLib/CMakeFiles/Cube.dir/rule
-.PHONY : Cube
+TensorLite: modules/TensorLib/CMakeFiles/TensorLite.dir/rule
+.PHONY : TensorLite
 
 # fast build rule for target.
-Cube/fast:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/TensorLib/CMakeFiles/Cube.dir/build.make modules/TensorLib/CMakeFiles/Cube.dir/build
-.PHONY : Cube/fast
+TensorLite/fast:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/TensorLib/CMakeFiles/TensorLite.dir/build.make modules/TensorLib/CMakeFiles/TensorLite.dir/build
+.PHONY : TensorLite/fast
 
-# Convenience name for target.
-modules/TensorLib/CMakeFiles/Size3.dir/rule:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/TensorLib/CMakeFiles/Size3.dir/rule
-.PHONY : modules/TensorLib/CMakeFiles/Size3.dir/rule
-
-# Convenience name for target.
-Size3: modules/TensorLib/CMakeFiles/Size3.dir/rule
-.PHONY : Size3
-
-# fast build rule for target.
-Size3/fast:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/TensorLib/CMakeFiles/Size3.dir/build.make modules/TensorLib/CMakeFiles/Size3.dir/build
-.PHONY : Size3/fast
-
-# Convenience name for target.
-modules/TensorLib/CMakeFiles/Tensor.dir/rule:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/TensorLib/CMakeFiles/Tensor.dir/rule
-.PHONY : modules/TensorLib/CMakeFiles/Tensor.dir/rule
-
-# Convenience name for target.
-Tensor: modules/TensorLib/CMakeFiles/Tensor.dir/rule
-.PHONY : Tensor
-
-# fast build rule for target.
-Tensor/fast:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/TensorLib/CMakeFiles/Tensor.dir/build.make modules/TensorLib/CMakeFiles/Tensor.dir/build
-.PHONY : Tensor/fast
-
-src/Cube.o: src/Cube.cpp.o
-.PHONY : src/Cube.o
+src/TensorLite.o: src/TensorLite.cpp.o
+.PHONY : src/TensorLite.o
 
 # target to build an object file
-src/Cube.cpp.o:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/TensorLib/CMakeFiles/Cube.dir/build.make modules/TensorLib/CMakeFiles/Cube.dir/src/Cube.cpp.o
-.PHONY : src/Cube.cpp.o
+src/TensorLite.cpp.o:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/TensorLib/CMakeFiles/TensorLite.dir/build.make modules/TensorLib/CMakeFiles/TensorLite.dir/src/TensorLite.cpp.o
+.PHONY : src/TensorLite.cpp.o
 
-src/Cube.i: src/Cube.cpp.i
-.PHONY : src/Cube.i
-
-# target to preprocess a source file
-src/Cube.cpp.i:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/TensorLib/CMakeFiles/Cube.dir/build.make modules/TensorLib/CMakeFiles/Cube.dir/src/Cube.cpp.i
-.PHONY : src/Cube.cpp.i
-
-src/Cube.s: src/Cube.cpp.s
-.PHONY : src/Cube.s
-
-# target to generate assembly for a file
-src/Cube.cpp.s:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/TensorLib/CMakeFiles/Cube.dir/build.make modules/TensorLib/CMakeFiles/Cube.dir/src/Cube.cpp.s
-.PHONY : src/Cube.cpp.s
-
-src/Size3.o: src/Size3.cpp.o
-.PHONY : src/Size3.o
-
-# target to build an object file
-src/Size3.cpp.o:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/TensorLib/CMakeFiles/Size3.dir/build.make modules/TensorLib/CMakeFiles/Size3.dir/src/Size3.cpp.o
-.PHONY : src/Size3.cpp.o
-
-src/Size3.i: src/Size3.cpp.i
-.PHONY : src/Size3.i
+src/TensorLite.i: src/TensorLite.cpp.i
+.PHONY : src/TensorLite.i
 
 # target to preprocess a source file
-src/Size3.cpp.i:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/TensorLib/CMakeFiles/Size3.dir/build.make modules/TensorLib/CMakeFiles/Size3.dir/src/Size3.cpp.i
-.PHONY : src/Size3.cpp.i
+src/TensorLite.cpp.i:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/TensorLib/CMakeFiles/TensorLite.dir/build.make modules/TensorLib/CMakeFiles/TensorLite.dir/src/TensorLite.cpp.i
+.PHONY : src/TensorLite.cpp.i
 
-src/Size3.s: src/Size3.cpp.s
-.PHONY : src/Size3.s
-
-# target to generate assembly for a file
-src/Size3.cpp.s:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/TensorLib/CMakeFiles/Size3.dir/build.make modules/TensorLib/CMakeFiles/Size3.dir/src/Size3.cpp.s
-.PHONY : src/Size3.cpp.s
-
-src/Tensor.o: src/Tensor.cpp.o
-.PHONY : src/Tensor.o
-
-# target to build an object file
-src/Tensor.cpp.o:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/TensorLib/CMakeFiles/Tensor.dir/build.make modules/TensorLib/CMakeFiles/Tensor.dir/src/Tensor.cpp.o
-.PHONY : src/Tensor.cpp.o
-
-src/Tensor.i: src/Tensor.cpp.i
-.PHONY : src/Tensor.i
-
-# target to preprocess a source file
-src/Tensor.cpp.i:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/TensorLib/CMakeFiles/Tensor.dir/build.make modules/TensorLib/CMakeFiles/Tensor.dir/src/Tensor.cpp.i
-.PHONY : src/Tensor.cpp.i
-
-src/Tensor.s: src/Tensor.cpp.s
-.PHONY : src/Tensor.s
+src/TensorLite.s: src/TensorLite.cpp.s
+.PHONY : src/TensorLite.s
 
 # target to generate assembly for a file
-src/Tensor.cpp.s:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/TensorLib/CMakeFiles/Tensor.dir/build.make modules/TensorLib/CMakeFiles/Tensor.dir/src/Tensor.cpp.s
-.PHONY : src/Tensor.cpp.s
+src/TensorLite.cpp.s:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/TensorLib/CMakeFiles/TensorLite.dir/build.make modules/TensorLib/CMakeFiles/TensorLite.dir/src/TensorLite.cpp.s
+.PHONY : src/TensorLite.cpp.s
 
 # Help Target
 help:
@@ -218,20 +142,12 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... Cube"
-	@echo "... Size3"
-	@echo "... Tensor"
+	@echo "... TensorLite"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... src/Cube.o"
-	@echo "... src/Cube.i"
-	@echo "... src/Cube.s"
-	@echo "... src/Size3.o"
-	@echo "... src/Size3.i"
-	@echo "... src/Size3.s"
-	@echo "... src/Tensor.o"
-	@echo "... src/Tensor.i"
-	@echo "... src/Tensor.s"
+	@echo "... src/TensorLite.o"
+	@echo "... src/TensorLite.i"
+	@echo "... src/TensorLite.s"
 .PHONY : help
 
 

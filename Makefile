@@ -99,43 +99,17 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named Cube
+# Target rules for targets named TensorLite
 
 # Build rule for target.
-Cube: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 Cube
-.PHONY : Cube
+TensorLite: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 TensorLite
+.PHONY : TensorLite
 
 # fast build rule for target.
-Cube/fast:
-	$(MAKE) -f modules/TensorLib/CMakeFiles/Cube.dir/build.make modules/TensorLib/CMakeFiles/Cube.dir/build
-.PHONY : Cube/fast
-
-#=============================================================================
-# Target rules for targets named Size3
-
-# Build rule for target.
-Size3: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 Size3
-.PHONY : Size3
-
-# fast build rule for target.
-Size3/fast:
-	$(MAKE) -f modules/TensorLib/CMakeFiles/Size3.dir/build.make modules/TensorLib/CMakeFiles/Size3.dir/build
-.PHONY : Size3/fast
-
-#=============================================================================
-# Target rules for targets named Tensor
-
-# Build rule for target.
-Tensor: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 Tensor
-.PHONY : Tensor
-
-# fast build rule for target.
-Tensor/fast:
-	$(MAKE) -f modules/TensorLib/CMakeFiles/Tensor.dir/build.make modules/TensorLib/CMakeFiles/Tensor.dir/build
-.PHONY : Tensor/fast
+TensorLite/fast:
+	$(MAKE) -f modules/TensorLib/CMakeFiles/TensorLite.dir/build.make modules/TensorLib/CMakeFiles/TensorLite.dir/build
+.PHONY : TensorLite/fast
 
 #=============================================================================
 # Target rules for targets named util
@@ -197,9 +171,7 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... Cube"
-	@echo "... Size3"
-	@echo "... Tensor"
+	@echo "... TensorLite"
 	@echo "... util"
 	@echo "... Steerable"
 	@echo "... gpussim"

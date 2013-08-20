@@ -21,7 +21,7 @@ endif()
 message("${ARCHIVE_OUTPUT_DIRECTORY}")
 foreach(program ${PROGRAMS})
   add_library(${program} src/${program}.cpp)
-  target_link_libraries(${program} ${OpenCV_LIBS} Tensor)
+  target_link_libraries(${program} ${OpenCV_LIBS} TensorLite)
   #install(TARGETS ${PROGRAMS}
 #	RUNTIME DESTINATION ${MTC_SOURCE_DIR}/bin
 #	LIBRARY DESTINATION ${MTC_SOURCE_DIR}/lib

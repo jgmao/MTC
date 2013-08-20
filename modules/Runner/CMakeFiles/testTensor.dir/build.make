@@ -86,10 +86,9 @@ Debug/bin/testTensor: /usr/local/lib/libopencv_gpufilters.so
 Debug/bin/testTensor: /usr/local/lib/libopencv_imgproc.so
 Debug/bin/testTensor: /usr/local/lib/libopencv_highgui.so
 Debug/bin/testTensor: /usr/local/lib/libopencv_core.so
-Debug/bin/testTensor: modules/TensorLib/libTensor.a
-Debug/bin/testTensor: Debug/lib/libutil.so
-Debug/bin/testTensor: modules/TensorLib/libSize3.a
-Debug/bin/testTensor: modules/TensorLib/libCube.a
+Debug/bin/testTensor: modules/TensorLib/libTensorLite.a
+Debug/bin/testTensor: modules/Metric/libSteerable.a
+Debug/bin/testTensor: modules/TensorLib/libTensorLite.a
 Debug/bin/testTensor: Debug/lib/libutil.so
 Debug/bin/testTensor: /usr/local/lib/libopencv_gpuimgproc.so
 Debug/bin/testTensor: /usr/local/lib/libopencv_gpuarithm.so
