@@ -6,7 +6,7 @@ include_directories(${MTC_TENSOR_DIR}/include ${MTC_MODULES_DIR}/Utility/include
 
 #link_directories(${MTC_TENSOR_DIR}/src)
 set(common_link_dir  ${MTC_TENSOR_DIR} ${MTC_METRIC_DIR}/src ${MTC_UTIL_DIR})
-set(PROGRAMS Steerable algorithms)
+set(PROGRAMS Steerable LRI algorithms)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Debug/lib)

@@ -202,19 +202,7 @@ void Tester::TestTPC(void)
 	//
 }
 
-void Tester::TestSSIM(string file1, string file2)
-{
-	typedef double T;
-	const int cn=1;
-	Tensor<T,cn> A(file1);
-	A.Print();
-	Tensor<T,cn> B(file2);
-	B.Print();
-	A.SetSubWinSize(Size3(16,16,1));
-	A.SetSubWinStep(Size3(1,1,1));
-	double ss = A.Compare(B,COMPARE_CRITERIA_SSIM,3,4,true);
-	cout<<ss<<endl;
-}
+
 void Tester::TestVarLenFunction(void)
 {
   Tensor<double,1> A(32,32,1,255);
@@ -394,7 +382,19 @@ void Tester::TestBoundary(void)
 	im.Display();
 }
 */
-
+void Tester::TestSSIM(string file1, string file2)
+{
+	typedef double T;
+	const int cn=1;
+	Tensor<T,cn> A(file1);
+	A.Print();
+	Tensor<T,cn> B(file2);
+	B.Print();
+	//A.SetSubWinSize(Size3(16,16,1));
+	//A.SetSubWinStep(Size3(1,1,1));
+	double ss = Compare(A,B,CompareCriteria::COMPARE_CRITERIA_SSIM,Size3(16,16,1),Size3(16,16,1),3,4,(int)FilterBoundary::FILTER_BOUND_HALF,(int)FeaturePoolType::FEATURE_POOL_MIN,(int)MetricModifier::STSIM2_BASELINE,false,true);
+	cout<<ss<<endl;
+}
 
 void Tester::TestFilter2D(void)
 {
@@ -809,7 +809,7 @@ void Tester::TestTensor(void)
         ts.Print();
   Tensor<double,2> cts = ts.ToComplex();
   double time = (double)getTickCount();
-  Tensor<double,2> f;
+   Tensor<double,2> f;
   for (int i=0; i<1000; i++)
   {
     f = cts.DFT();
@@ -832,7 +832,7 @@ void Tester::TestTensor(void)
   Tensor<double,1>(tv[0]).Display();
    Tensor<double,1> ts2("/home/guoxin/Projects/MTC/data/texture2.png");
         ts2.Print();
-  cout<<ComputeMSE(ts,ts2)<<endl;
+   cout<<ComputeMSE(ts,ts2)<<endl;
 
 }
 
@@ -843,7 +843,7 @@ void Tester::TestAlgorithms(void)
         ts1.Print();
   cout<<"MSE:"<<ComputeMSE(ts1,ts2)<<endl;
   cout<<"Compare two:\n";
-        auto temp = CompareElement(ts1,ts2,CMP_LE);
+         auto temp = CompareElement(ts1,ts2,CMP_LE);
         temp.Print();
         temp.Display();
         cout<<"thresholding:\n";

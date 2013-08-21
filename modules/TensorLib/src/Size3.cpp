@@ -133,17 +133,17 @@ template <typename Tp> inline Size3_<Tp>& Size3_<Tp>::operator= (const Size3_<Tp
 	return *this;
 }
 
-template <typename Tp> Size3_<Tp>::Size3_(const Size_<Tp>& cvsz)
-{
-	this->height = cvsz.height;
-	this->width = cvsz.width;
-	this->depth = 1;
-}
+//template <typename Tp> Size3_<Tp>::Size3_(const Size_<Tp>& cvsz)
+//{
+//	this->height = cvsz.height;
+//	this->width = cvsz.width;
+//	this->depth = 1;
+//}
 
-template <typename Tp> Size3_<Tp>::Size3_(const Size2_<Tp>& sz2): Size2_<Tp>(sz2)
-{
-	this->depth = 1;
-}
+//template <typename Tp> Size3_<Tp>::Size3_(const Size2_<Tp>& sz2): Size2_<Tp>(sz2)
+//{
+//	this->depth = 1;
+//}
 
 
 template<typename Tp> Tp Size3_<Tp>::volumn() const

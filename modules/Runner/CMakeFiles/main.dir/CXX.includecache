@@ -12,6 +12,18 @@ Tester.h
 Steerable.h
 /home/guoxin/Projects/MTC/modules/Runner/src/Steerable.h
 
+modules/Metric/include/LRI.h
+opencv2/opencv.hpp
+-
+iostream
+-
+fstream
+-
+cmath
+-
+
+modules/Metric/include/MetricData.h
+
 modules/Metric/include/Steerable.h
 TensorLite.h
 modules/Metric/include/TensorLite.h
@@ -26,6 +38,10 @@ modules/Metric/include/algorithms.h
 Steerable.h
 -
 TensorLite.h
+-
+LRI.h
+-
+MetricData.h
 -
 
 modules/Runner/include/Tester.h

@@ -20,10 +20,10 @@ Cube_<Tp>::Cube_(const Point3_<Tp>& pos, const Size3_<Tp>& sz):Point3_<Tp>(pos),
 {
 
 }
-template <typename Tp>
-Cube_<Tp>::Cube_(const Point_<Tp>& pos, const Size_<Tp>&sz):Point3_<Tp>(pos),Size3_<Tp>(sz)
-{
-}
+//template <typename Tp>
+//Cube_<Tp>::Cube_(const Point_<Tp>& pos, const Size_<Tp>&sz):Point3_<Tp>(pos),Size3_<Tp>(sz)
+//{
+//}
 
 template <typename Tp>
 Cube_<Tp>::Cube_(const Rect_<Tp>& r): Point3_<Tp>(r.y,r.x,0), Size3_<Tp>(r.height,r.width,1)
@@ -48,7 +48,7 @@ Cube_<Tp>::Cube_(const Cube_<Tp>& c): Point3_<Tp>(c.x,c.y,c.z),Size3_<Tp>(c.heig
 template <typename Tp>
 Rect_<Tp> Cube_<Tp>::toRect(void) const
 {
-	Rect_<Tp> rst(this->y, this->x, this->width, this->width);
+	Rect_<Tp> rst(this->y, this->x, this->width, this->height);
 	return rst;
 }
 

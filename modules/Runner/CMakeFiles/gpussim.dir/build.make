@@ -91,11 +91,14 @@ Debug/bin/gpussim: modules/TensorLib/libSize3.a
 Debug/bin/gpussim: modules/Runner/libTester.a
 Debug/bin/gpussim: modules/TensorLib/libTensorLite.a
 Debug/bin/gpussim: modules/Metric/libSteerable.a
+Debug/bin/gpussim: modules/Metric/libLRI.a
 Debug/bin/gpussim: modules/Metric/libalgorithms.a
 Debug/bin/gpussim: Debug/lib/libutil.so
+Debug/bin/gpussim: modules/Metric/libLRI.a
 Debug/bin/gpussim: modules/TensorLib/libCube.a
 Debug/bin/gpussim: modules/TensorLib/libSize3.a
 Debug/bin/gpussim: modules/TensorLib/libTensorLite.a
+Debug/bin/gpussim: Debug/lib/libutil.so
 Debug/bin/gpussim: /usr/local/lib/libopencv_gpuimgproc.so
 Debug/bin/gpussim: /usr/local/lib/libopencv_gpuarithm.so
 Debug/bin/gpussim: /usr/local/lib/libopencv_gpufilters.so

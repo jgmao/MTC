@@ -72,8 +72,73 @@ public:
 
 #endif
 // 20130816 only define the Marcors and constants used in TensorLib
+#ifndef FILTER_BOUNDARY
+#define FILTER_BOUNDARY
+enum class FilterBoundary :int {FILTER_BOUND_EXTEND,FILTER_BOUND_SAME, FILTER_BOUND_VALID, FILTER_BOUND_FULL, FILTER_BOUND_HALF};
+#endif
 
-enum class FilterBoundary :int {FILTER_BOUND_EXTEND,FILTER_BOUND_SAME, FILTER_BOUND_VALID};
+#ifndef COMPARE_CRITERIA
+#define COMPARE_CRITERIA
+
+enum class CompareCriteria :int {COMPARE_CRITERIA_MSE,
+			    COMPARE_CRITERIA_SSIM_DCT,
+			    COMPARE_CRITERIA_SSIM ,
+			    COMPARE_CRITERIA_INTERP ,
+			    COMPARE_CRITERIA_SUBJECTIVE ,
+			    COMPARE_CRITERIA_SAD ,
+			    COMPARE_CRITERIA_MAHALANOBIS ,
+			    COMPARE_CRITERIA_LRI ,
+			    COMPARE_CRITERIA_SVM,
+			    COMPARE_CRITERIA_OTHER};
+#endif
+
+#ifndef PRINTABLE
+#define PRINTABLE
+
+
+  union Printable_t {
+         int     i;
+         float   f;
+         double  d;
+         char    c;
+         char   *s;
+         bool    b;
+         cv::Mat *m;
+         Printable_t(int a_):i(a_){};
+  };
+
+#endif
+
+#ifndef QUALITY_TEST
+#define QUALITY_TEST
+enum class MetricModifier :int {STSIM2_BASELINE,
+                                SSIM2_DCT,
+                                PQI_METRIC,
+                                STSIM2_ADT_NAIVE,
+                                STSIM2_NEW_L1, STSIM2_NEW_L2, STSIM2_NEW_L3, STSIM2_NEW_L4,
+                                MSE_BASELINE,
+                                SAD_BASELINE,
+                                MAHALANOBIS_DIST,
+                                LRI_METRIC,
+                                SE_MSE,
+                                STSIM2_SE_MSE,
+                                STSIM2_TUNE,
+                                SVM_METRIC,
+                                STSIM3_LSE,
+                                Q_UNDEF};
+
+#ifndef STSIM2_TYPE
+#define STSIM2_TYPE
+
+enum class FeaturePoolType :int {FEATURE_POOL_AVE,FEATURE_POOL_MIN,FEATURE_POOL_ALL};
+
+#endif
+
+
+
+
+#endif
+
 }
 #endif
 

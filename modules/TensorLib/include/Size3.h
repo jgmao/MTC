@@ -106,9 +106,9 @@ public:
 	Size3_<Tp>(const Point3_<Tp>& pt);
 	Size3_<Tp>& operator = (const Size3_<Tp>& sz);
 	//can trivally convert from Size_2
-	Size3_<Tp>(const Size2_<Tp>& sz2);
+	//Size3_<Tp>(const Size2_<Tp>& sz2);
 	//convert from cv::Size
-	Size3_<Tp>(const Size_<Tp> & cvsz);
+	//Size3_<Tp>(const Size_<Tp> & cvsz);
 	//conversion from another data type
 	template<typename Tp2> operator Size3_<Tp2>() const;
 	//calc volumn

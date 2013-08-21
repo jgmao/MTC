@@ -81,3 +81,6 @@ modules/TensorLib/include/TensorLite.old.h
 modules/TensorLib/include/TensorLite.h
 modules/TensorLib/src/TensorLite.cpp
 modules/Metric/CMakeLists.txt
+modules/Metric/include/LRI.h
+modules/Metric/src/LRI.cpp
+modules/Metric/include/MetricData.h

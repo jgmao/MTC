@@ -37,9 +37,10 @@ int main(int argc, char* argv[])
 	//////filenames.push_back(".//Mar6//J_0.9300_10.4_32_4_1_baboon.tif");
 	//mylib::CombineImage(filenames,string("H:\\MyStudy\\Research Reports\\Mar11\\combine_seam.tif"));
 	//test.TestBoundary();
-	test.TestTensor();
-	test.TestFilter2D();
-	test.TestAlgorithms();
+	//test.TestTensor();
+	//test.TestFilter2D();
+	//test.TestAlgorithms();
+	test.TestSSIM("/home/guoxin/Projects/MTC/data/texture1.png","/home/guoxin/Projects/MTC/data/texture2.png");
 	//test.TestKmeans();
 	//test.TestHuffTree();
 	//test.TestJPEG();

@@ -16,4 +16,5 @@ SET(CMAKE_TARGET_LINKED_INFO_FILES
   "/home/guoxin/Projects/MTC/modules/Metric/CMakeFiles/Steerable.dir/DependInfo.cmake"
   "/home/guoxin/Projects/MTC/modules/Metric/CMakeFiles/algorithms.dir/DependInfo.cmake"
   "/home/guoxin/Projects/MTC/modules/Utility/CMakeFiles/util.dir/DependInfo.cmake"
+  "/home/guoxin/Projects/MTC/modules/Metric/CMakeFiles/LRI.dir/DependInfo.cmake"
   )

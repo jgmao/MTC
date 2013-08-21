@@ -99,6 +99,20 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
+modules/Metric/CMakeFiles/LRI.dir/rule:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/Metric/CMakeFiles/LRI.dir/rule
+.PHONY : modules/Metric/CMakeFiles/LRI.dir/rule
+
+# Convenience name for target.
+LRI: modules/Metric/CMakeFiles/LRI.dir/rule
+.PHONY : LRI
+
+# fast build rule for target.
+LRI/fast:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Metric/CMakeFiles/LRI.dir/build.make modules/Metric/CMakeFiles/LRI.dir/build
+.PHONY : LRI/fast
+
+# Convenience name for target.
 modules/Metric/CMakeFiles/Steerable.dir/rule:
 	cd /home/guoxin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/Metric/CMakeFiles/Steerable.dir/rule
 .PHONY : modules/Metric/CMakeFiles/Steerable.dir/rule
@@ -125,6 +139,30 @@ algorithms: modules/Metric/CMakeFiles/algorithms.dir/rule
 algorithms/fast:
 	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Metric/CMakeFiles/algorithms.dir/build.make modules/Metric/CMakeFiles/algorithms.dir/build
 .PHONY : algorithms/fast
+
+src/LRI.o: src/LRI.cpp.o
+.PHONY : src/LRI.o
+
+# target to build an object file
+src/LRI.cpp.o:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Metric/CMakeFiles/LRI.dir/build.make modules/Metric/CMakeFiles/LRI.dir/src/LRI.cpp.o
+.PHONY : src/LRI.cpp.o
+
+src/LRI.i: src/LRI.cpp.i
+.PHONY : src/LRI.i
+
+# target to preprocess a source file
+src/LRI.cpp.i:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Metric/CMakeFiles/LRI.dir/build.make modules/Metric/CMakeFiles/LRI.dir/src/LRI.cpp.i
+.PHONY : src/LRI.cpp.i
+
+src/LRI.s: src/LRI.cpp.s
+.PHONY : src/LRI.s
+
+# target to generate assembly for a file
+src/LRI.cpp.s:
+	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Metric/CMakeFiles/LRI.dir/build.make modules/Metric/CMakeFiles/LRI.dir/src/LRI.cpp.s
+.PHONY : src/LRI.cpp.s
 
 src/Steerable.o: src/Steerable.cpp.o
 .PHONY : src/Steerable.o
@@ -180,10 +218,14 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
+	@echo "... LRI"
 	@echo "... Steerable"
 	@echo "... algorithms"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... src/LRI.o"
+	@echo "... src/LRI.i"
+	@echo "... src/LRI.s"
 	@echo "... src/Steerable.o"
 	@echo "... src/Steerable.i"
 	@echo "... src/Steerable.s"

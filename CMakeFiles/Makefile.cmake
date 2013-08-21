@@ -57,6 +57,7 @@ SET(CMAKE_DEPEND_INFO_FILES
   "modules/TensorLib/CMakeFiles/Size3.dir/DependInfo.cmake"
   "modules/TensorLib/CMakeFiles/TensorLite.dir/DependInfo.cmake"
   "modules/Utility/CMakeFiles/util.dir/DependInfo.cmake"
+  "modules/Metric/CMakeFiles/LRI.dir/DependInfo.cmake"
   "modules/Metric/CMakeFiles/Steerable.dir/DependInfo.cmake"
   "modules/Metric/CMakeFiles/algorithms.dir/DependInfo.cmake"
   "modules/Runner/CMakeFiles/Tester.dir/DependInfo.cmake"

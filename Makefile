@@ -151,6 +151,19 @@ util/fast:
 .PHONY : util/fast
 
 #=============================================================================
+# Target rules for targets named LRI
+
+# Build rule for target.
+LRI: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 LRI
+.PHONY : LRI
+
+# fast build rule for target.
+LRI/fast:
+	$(MAKE) -f modules/Metric/CMakeFiles/LRI.dir/build.make modules/Metric/CMakeFiles/LRI.dir/build
+.PHONY : LRI/fast
+
+#=============================================================================
 # Target rules for targets named Steerable
 
 # Build rule for target.
@@ -240,6 +253,7 @@ help:
 	@echo "... Size3"
 	@echo "... TensorLite"
 	@echo "... util"
+	@echo "... LRI"
 	@echo "... Steerable"
 	@echo "... algorithms"
 	@echo "... Tester"

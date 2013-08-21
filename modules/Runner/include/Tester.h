@@ -27,7 +27,7 @@ public:
 	//void TestInitGrid(void);
 	//void TestBoundMatch(void);
 	//void TestTPC(void);
-	//void TestSSIM(string file1, string file2);
+	void TestSSIM(string file1, string file2);
 	//void TestJPEG(void);
 	//void TestLighting(void);
 	//void TestBoundary(void);

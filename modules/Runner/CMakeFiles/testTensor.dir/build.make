@@ -91,11 +91,14 @@ Debug/bin/testTensor: modules/TensorLib/libSize3.a
 Debug/bin/testTensor: modules/Runner/libTester.a
 Debug/bin/testTensor: modules/TensorLib/libTensorLite.a
 Debug/bin/testTensor: modules/Metric/libSteerable.a
+Debug/bin/testTensor: modules/Metric/libLRI.a
 Debug/bin/testTensor: modules/Metric/libalgorithms.a
 Debug/bin/testTensor: Debug/lib/libutil.so
+Debug/bin/testTensor: modules/Metric/libLRI.a
 Debug/bin/testTensor: modules/TensorLib/libCube.a
 Debug/bin/testTensor: modules/TensorLib/libSize3.a
 Debug/bin/testTensor: modules/TensorLib/libTensorLite.a
+Debug/bin/testTensor: Debug/lib/libutil.so
 Debug/bin/testTensor: /usr/local/lib/libopencv_gpuimgproc.so
 Debug/bin/testTensor: /usr/local/lib/libopencv_gpuarithm.so
 Debug/bin/testTensor: /usr/local/lib/libopencv_gpufilters.so

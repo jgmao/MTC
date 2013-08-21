@@ -546,6 +546,7 @@ template <class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::GetBlockRef(const Cube&
 {
 	AssertRange(roi.offset(),roi.size());
 	Rect r = roi.toRect();
+
 	Tensor<T,cn> rst = this->Mat::operator()(r);
   return rst;
 }
@@ -728,12 +729,12 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::operator()(const Cube& r
 
 template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::operator+(typename Tensor<T,cn>::c_ref_type s) const
 {
-	return (*this) + Tensor<T,cn>(size().height,size().width,size().depth,s);
+	return (*this) + Tensor<T,cn>(this->size(),s);
 }
 
 template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::operator-(typename Tensor<T,cn>::c_ref_type s) const
 {
-	return (*this) - Tensor<T,cn>(size().height,size().width,size().depth,s);
+	return (*this) - Tensor<T,cn>(this->size(),s);
 }
 
 template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::operator*(typename Tensor<T,cn>::c_ref_type s) const
@@ -750,7 +751,7 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::operator*(const Tensor<T
 {
 
 	Tensor<T,cn> rst = Clone();
-
+	//rst.Print("clone");
 	for (int z =0; z < size().depth; z++)
 	{
 		if (cn==2 || cn == 6)
@@ -773,7 +774,7 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::operator/(const Tensor<T
 		{
 			Mat tempMat;
 			//mylib::DisplayMat(rst.GetFrame(i));
-			cv::mulSpectrums(ts.GetFrame(i),ts.GetFrame(i),tempMat,DFT_ROWS,true);
+			cv::mulSpectrums(ts.GetFrameRef(i),ts.GetFrameRef(i),tempMat,DFT_ROWS,true);
 			//mylib::DisplayMat(tempMat);
 			vector<Mat> temp;
 			cv::split(tempMat, temp);
@@ -784,14 +785,15 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::operator/(const Tensor<T
 			//mylib::DisplayMat(rst.GetFrame(i));
 			//Vec<T,cn> a= rst(0,0,0);
 			//Vec<T,cn> b = tempMat.at<Vec<T,cn>> (0,0);
-			rst.GetFrame(i) /= tempMat;
+			rst.GetFrameRef(i) /= tempMat;
 			//mylib::DisplayMat(rst.GetFrame(i));
 		}
 	}
 	else
 	{
 		for (int i = 0; i< tsSize.depth; i++)
-			rst.GetFrame(i) /= ts.GetFrame(i);
+			rst.GetFrameRef(i) /= ts.GetFrameRef(i);
+
 	}
 	return rst;
 }
@@ -810,20 +812,20 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::operator-(const Tensor<T
 
 template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::operator+(T s) const
 {
-	return (*this)+All(s);
+	return (*this)+Tensor<T,cn>(this->size(),s);
 }
 template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::operator-(T s) const
 {
-	return (*this)-All(s);
+	return (*this)-Tensor<T,cn>(this->size(),s);
 }
 template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::operator*(T s) const
 {
-	return (*this)*All(s);
+	return (*this)*Tensor<T,cn>(this->size(),s);
 }
 
 template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::operator/(T s) const
 {
-	return (*this)/All(s);
+	return (*this)/Tensor<T,cn>(this->size(),s);
 }
 
 template<class T, size_t cn> typename Tensor<T,cn>::value_type Tensor<T,cn>::All(T val) const
@@ -846,7 +848,7 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::Abs(void) const
 	else
 	{
 		for (int i=0; i< size().depth; i++)
-			rst.SetFrame(i,cv::abs(this->GetFrame(i)));
+			rst.SetFrame(i,cv::abs(this->GetFrameRef(i)));
 	}
 	return rst;
 }
@@ -1262,7 +1264,9 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::SubSample(const Size3& s
 	Size3_<double> temp1 = tsSize;
 	Size3_<double> temp2 = subrate;
 	Size3 rstSize = (temp1/temp2).Ceil();
-	
+	//temp1.Print();
+	//temp2.Print();
+	//rstSize.Print();
 	if (rstSize.height==0 || rstSize.width==0 || rstSize.depth==0)
 		CV_Error(CV_StsBadSize, "sample rate too high");
 	Tensor<T,cn> rst(rstSize);
@@ -1403,7 +1407,7 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::IDFT(void) const
                 //mylib::DisplayMat(temp[0]);
                 //cv::divide(this->tsSize.area(), rst[i], rst[i], -1);
 		#else	
-		cv::dft(GetFrame(i),rst[i],DFT_INVERSE|DFT_SCALE);
+		cv::dft(GetFrameRef(i),rst[i],DFT_INVERSE|DFT_SCALE);
 		#endif
 	}
 
@@ -1430,7 +1434,7 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::DFTShift(void) const
 	Tensor<T,cn> rst(size());
 	for (int i=0; i< size().depth; i++)
 	{
-		rst.SetFrame(i,DFTShift(GetFrame(i)));
+		rst.SetFrame(i,DFTShift(GetFrameRef(i)));
 	}
 	return rst;
 }
@@ -1442,7 +1446,7 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::Normalize(void) const
 	Tensor<T,cn> rst(size());
 	for (int i=0; i< size().depth; i++)
 	{
-		cv::normalize(GetFrame(i),rst[i],0,255,NORM_MINMAX);
+		cv::normalize(GetFrameRef(i),rst[i],0,255,NORM_MINMAX);
 	}
 	return rst;
 }

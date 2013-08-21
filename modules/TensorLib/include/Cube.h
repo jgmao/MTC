@@ -67,7 +67,7 @@ public:
 	EXPORTLIB Cube_(void);
 	EXPORTLIB Cube_(Tp x, Tp y, Tp z, Tp height, Tp width, Tp depth);
 	EXPORTLIB Cube_(const Point3_<Tp>& pos, const Size3_<Tp>& sz);
-	EXPORTLIB Cube_(const Point_<Tp>& pos, const Size_<Tp>&sz);
+//	EXPORTLIB Cube_(const Point_<Tp>& pos, const Size_<Tp>&sz);
 	EXPORTLIB Cube_(const Rect_<Tp>& r);
 	EXPORTLIB Cube_(const Cube_<Tp>& c);
 	EXPORTLIB Cube_& operator = (const Cube_<Tp>& c);
