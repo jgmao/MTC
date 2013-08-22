@@ -43,3 +43,22 @@ Thumbs.db
 
 #temps #
 *temp*
+*bin*
+*lib*
+*.a
+*.so
+*.dylib
+debug
+Debug
+release
+Release
+CMakeFiles
+Makefile
+*.config
+*.creator
+*.files
+*.includes
+*.cmake
+*.bak.*
+*.old.*
+
