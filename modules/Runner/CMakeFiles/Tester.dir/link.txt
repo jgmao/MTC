@@ -1,2 +1,0 @@
-/usr/bin/ar cr libTester.a  CMakeFiles/Tester.dir/src/Tester.cpp.o
-/usr/bin/ranlib libTester.a
