@@ -5,7 +5,7 @@
 using namespace cv;
 using namespace std;
 #ifdef WIN32
-#define EXPORTLIB EXPORTLIB
+#define EXPORTLIB __declspec(dllexport)
 #else
 #define EXPORTLIB
 #endif

@@ -40,7 +40,8 @@ int main(int argc, char* argv[])
 	//test.TestTensor();
 	//test.TestFilter2D();
 	//test.TestAlgorithms();
-	test.TestSSIM("/home/guoxin/Projects/MTC/data/texture1.png","/home/guoxin/Projects/MTC/data/texture2.png");
+	//test.TestSSIM("/home/guoxin/Projects/MTC/data/texture1.png","/home/guoxin/Projects/MTC/data/texture2.png");
+	test.TestGranulate();
 	//test.TestKmeans();
 	//test.TestHuffTree();
 	//test.TestJPEG();

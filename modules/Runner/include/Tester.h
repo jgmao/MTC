@@ -9,6 +9,7 @@
 //#include <gtest\gtest.h>
 #include "TensorLite.h"
 #include "algorithms.h"
+#include <Granulate.h>
 #include <opencv2/opencv.hpp>
 using namespace std;
 using namespace tensor;
@@ -43,8 +44,9 @@ public:
   //void TestVarLenFunction(void);
   //void TestMatching(void);
   //void TestDistortion(string fname);
-        void TestTensor();
-        void TestAlgorithms();
+  void TestTensor();
+  void TestAlgorithms();
+  void TestGranulate();
 };/*
 
 template <class T> class TestTensor : public testing::Test

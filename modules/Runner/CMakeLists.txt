@@ -23,11 +23,11 @@ else()
 endif()
  
 add_library(Tester src/Tester.cpp)
-target_link_libraries(Tester ${OpenCV_LIBS} TensorLite Size3 Cube Steerable algorithms util LRI)
+target_link_libraries(Tester ${OpenCV_LIBS} TensorLite Size3 Cube Steerable algorithms util LRI Granulate)
 
 foreach(program ${PROGRAMS})
   add_executable(${program} src/${program}.cpp)
-  target_link_libraries(${program} ${OpenCV_LIBS} Cube Size3 Tester TensorLite Steerable LRI algorithms util LRI)
+  target_link_libraries(${program} ${OpenCV_LIBS} Cube Size3 Tester TensorLite Steerable LRI algorithms util LRI Granulate)
  # install(TARGETS ${PROGRAMS}
 #	RUNTIME DESTINATION ${MTC_SOURCE_DIR}/bin
 #	LIBRARY DESTINATION ${MTC_SOURCE_DIR}/lib

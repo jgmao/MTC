@@ -853,3 +853,10 @@ void Tester::TestAlgorithms(void)
         cout<<"AIM:"<<ComputeAIM(ts1,ts2,50)<<endl;
 
 }
+
+void Tester::TestGranulate()
+{
+  Granulate g;
+  g.readFiles("/home/guoxin/Projects/MTC/data/totest/","tiff");
+  g.generateGrid();
+}

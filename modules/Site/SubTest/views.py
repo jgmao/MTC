@@ -236,6 +236,9 @@ def initTestData(database,bsize,pair):
     orgs = tempdata
     dbdata[kword]=tempdata
 
+
+
+
 #def startinter(request):
 #    global orgs;
 #    global orgi64;

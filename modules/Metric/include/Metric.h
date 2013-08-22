@@ -13,6 +13,11 @@ using namespace std;
 using namespace boost::math;
 static const double pi = 3.14159265358979323846;
 
+#ifdef WIN32
+#define EXPORTLIB __declspec(dllexport)
+#else
+#define EXPORTLIB
+#endif
 class Metric
 {
 public:
