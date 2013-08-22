@@ -61,4 +61,6 @@ Makefile
 *.cmake
 *.bak.*
 *.old.*
+*_log*
+*_Ts*
 
