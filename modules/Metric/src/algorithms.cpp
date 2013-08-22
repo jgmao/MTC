@@ -89,7 +89,7 @@ namespace metric
   }
 
 
-  vector<Tensor<double,2> > ComputeStatistics(const Mat& ts, const Size3& subWinSize, const Size3& subWinStep, bool subsample, int nLevel, int nDir,FilterBoundary boundary_cut, bool compute00, bool changeWin )
+  vector<Tensor<double,2> > ComputeStatistics(const Mat& ts, const Size3& subWinSize, const Size3& subWinStep, bool subsample, bool changeWin,int nLevel, int nDir,FilterBoundary boundary_cut, bool compute00 )
   {
     typedef vector<Tensor<double,2> > vT;
     Steerable sp;
@@ -216,7 +216,7 @@ namespace metric
   }
 
 
-  Tensor<double,1> ComputeRho(const Mat& im11, const Mat& im12, const Size3& subWinSize, const Size3& subWinStep)
+  Tensor<double,2> ComputeRho(const Mat& im11, const Mat& im12, const Size3& subWinSize, const Size3& subWinStep)
   {
 
     if (im11.size()!= im12.size())
@@ -266,8 +266,8 @@ namespace metric
     int coeffNum=0;
     vector<int> coeff_in_band;
     vector<vector<Tensor<double,2>>> stats = vector<vector<Tensor<double,2>>>(2);
-    stats[0] = ComputeStatistics(tsA, subWinSize,subWinStep,downsample,nLevel,nDir,boundary_cut);
-    stats[1] = ComputeStatistics(tsB, subWinSize,subWinStep,downsample,nLevel,nDir,boundary_cut);
+    stats[0] = ComputeStatistics(tsA, subWinSize,subWinStep,downsample,false,nLevel,nDir,boundary_cut);
+    stats[1] = ComputeStatistics(tsB, subWinSize,subWinStep,downsample,false,nLevel,nDir,boundary_cut);
     for (auto t : stats[0])
       {
         coeffNum += t.size().area();
@@ -432,7 +432,7 @@ namespace metric
     int index = 0;
     Size3 initSize = pyrA[0].size();
     Size3 sz = pyrA[0].size();
-    double weight = sz.height*sz.width;
+    //double weight;// = sz.height*sz.width;
     cv::Mat temp;
     Size3 subWinStepLv = subWinStep;//include PLC boundary
     Size3 subWinSizeLv = subWinSize;//include PLC boundary
@@ -473,7 +473,7 @@ namespace metric
             sz.height = max(initSize.height>>lvl,1);
             sz.width = max(initSize.width>>lvl,1);
             //mylib::DisplayMat(gaussKernel);
-            weight = subWinSizeLv.volumn();
+            //weight = subWinSizeLv.volumn();
           }
         //cv::Mat flatKel=cv::Mat(subWinSizeLv,pyrA[index][0].type()-((pyrA[index][0].channels()-1)<<CV_CN_SHIFT),Scalar(1.0/weight));
         cv::Mat gaussKernel = mylib::GenGaussKer(subWinSizeLv.height,double(subWinSizeLv.height)/6.0,CV_64F);

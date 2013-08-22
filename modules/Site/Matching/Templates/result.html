@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}
+Matching 
+{% endblock %}
+
+{% block content %}
+{% load extra_tags %}
+<div class="pagination">
+<span class="step-links">
+        {% if file.has_previous %}
+            <a href="?page={{ file.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ file.number }} of {{ file.paginator.num_pages }}.
+        </span>
+
+        {% if file.has_next %}
+            <a href="?page={{ file.next_page_number }}">next</a>
+        {% endif %}
+    </span>
+</div>
+{% for image in file %}
+<img src="{{STATIC_URL}}{{image}}" >
+{% endfor %}
+<div>
+
+</div>
+{% endblock %}

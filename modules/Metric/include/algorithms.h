@@ -37,10 +37,10 @@ namespace metric{
                              const Size3& subWinSize = Size3(8,8,1),
                              const Size3& subWinStep = Size3(1,1,1),
                              bool subsample = false,
+                             bool changeWin=false,
                              int nLevel = 3, int nDir=4,
                              FilterBoundary boundary_cut=FilterBoundary::FILTER_BOUND_FULL,
-                             bool compute00=false,
-                             bool changeWin=false
+                             bool compute00=false
                              ) ;
   // this need SVM Metric implementation EXPORTLIB double ComputeSVMMetric(const Mat& tsA, const Mat& tsB, const Size3& subWinSize, const Size3& subWinStep);
 /*! legacy
@@ -58,6 +58,6 @@ namespace metric{
 
   EXPORTLIB cv::Mat EstimateVarForMahalanobis(const Mat& ts, Size3 wsize, Size3 stepsize);
   EXPORTLIB double ComputeMahalanobis(const Mat& tsA, const Mat& tsB, Size3 subWinSize, Size3 subWinStep, const Mat& iMcovar, FilterBoundary boundary_cut = FilterBoundary::FILTER_BOUND_HALF);
-  EXPORTLIB Tensor<double,1> ComputeRho(const Mat& im11, const Mat& im12, const Size3& subWinSize, const Size3& subWinStep);
+  EXPORTLIB Tensor<double,2> ComputeRho(const Mat& im11, const Mat& im12, const Size3& subWinSize, const Size3& subWinStep);
   EXPORTLIB Tensor<double,1> ComputeCrossTerm(const Mat& im11, const Mat& im12, const Mat& im21, const Mat& im22, const Size3& subWinSize, const Size3& subWinStep);
 }

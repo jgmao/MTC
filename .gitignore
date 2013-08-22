@@ -63,4 +63,4 @@ Makefile
 *.old.*
 *_log*
 *_Ts*
-
+*.pyc

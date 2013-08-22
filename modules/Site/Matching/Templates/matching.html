@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block title %}
+Matching 
+{% endblock %}
+
+{% block content %}
+{% load extra_tags %}
+{% block myscripts %}
+<script type="text/javascript">
+function jumpto(loc){
+    window.location.hash='#'+loc;}
+</script>
+{% endblock %}
+<h1> Matching Results for MTC </h1>
+<h2> Seaching Particular block here: </h2>
+<form action="/matching/" method="post">{% csrf_token %}
+X:{{form.x}} Y:{{form.y}} Size{{form.size}}
+<input type="submit" value="Submit" />
+<br />
+<input type="button" value="Next" />
+<input type="button" value="Prev" />
+</form>
+<a name="TOP">
+I jump to {{jump}}
+<div class="pagination">
+<span class="step-links">
+        {% if files.has_previous %}
+            <a href="?page={{ files.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ files.number }} of {{ files.paginator.num_pages }}.
+        </span>
+
+        {% if files.has_next %}
+            <a href="?page={{ files.next_page_number }}">next</a>
+        {% endif %}
+    </span>
+</div>
+<table border="1">
+{% for matches in files %}
+<tr> <th>No. {{forloop.counter0}} <a name="{{forloop.counter0}}"> {% get_map_val_from_list positions forloop.counter0 "org" %} </th> </tr> 
+<tr> 
+  <th>
+<!-- original image and position -->
+    <img src="{{STATIC_URL}}{{matches.org}}"> 
+  </th>
+<!-- candidate position -->
+    {% for idx,p in positions|valueof:forloop.counter0 %}
+        {% if idx != 'org' %}
+            <td>
+               {{p}} 
+            </td>
+        {% endif %}
+    {% endfor %}
+</tr>
+<tr>
+    <th> light PSNR </th>>
+    {% for idx,lt in light|valueof:forloop.counter0 %}
+        {% if idx != 'org' %}
+            <td>
+                {{lt}}
+            </td>
+        {% endif %}
+    {% endfor %}
+</tr>
+<!-- show candidate after plc -->
+<tr>
+    <th> Cand PLC </th>
+    {% for idx,p in plcs|valueof:forloop.counter0 %}
+        {% if idx != 'org' %}
+        <td>
+        <img src="{{STATIC_URL}}{{p}}">
+        </td>
+        {% endif %}
+    {% endfor %}
+</tr>
+<!-- show candidate without plc -->
+<tr> 
+    <th> Cand </th>
+    {% for idx,image in matches.items %}
+    {% if idx != 'org' %}
+    <td>
+    <img src="{{STATIC_URL}}{{image}}" >
+    </td>
+    {% endif %}
+    {% endfor %}
+</tr>
+
+<tr>
+    <th> Q Score </th>
+    {% for idx,s in scores|valueof:forloop.counter0 %}
+        {% if idx != 'org' %}
+        <td>
+        {{s}}
+        </td>
+        {% endif %}
+    {% endfor %} 
+</tr>
+
+{% endfor %}
+</table>
+
+<div class="pagination">
+<span class="step-links">
+        {% if files.has_previous %}
+            <a href="?page={{ files.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ files.number }} of {{ files.paginator.num_pages }}.
+        </span>
+
+        {% if files.has_next %}
+            <a href="?page={{ files.next_page_number }}">next</a>
+        {% endif %}
+    </span>
+</div>
+
+
+<body onload="jumpto({{jump}})">
+
+{% endblock %}

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 set(OpenCV_DIR "/usr/local/share/OpenCV")
 project (MTC)
 
@@ -17,6 +17,7 @@ endif()
 
 
 add_subdirectory(modules)
-add_subdirectory(data)
+#add_subdirectory(data)
+
 
 
