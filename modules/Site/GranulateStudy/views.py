@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.conf import settings
 from GranulateStudy.models import Gran
 from GranulateStudy.forms import GranTestForm
+from django.template import RequestContext
 import re
 import glob
 import os
@@ -33,13 +34,14 @@ def initTestData(request):
 
 def show_image(request):
   global orgs
-  if request.session['count']==request.session['total']:
+  if request.session['count']>request.session['total']:
     request.session['org_idx'] = randint(0,len(orgs)-1)
-    request.session['count']=0
+    request.session['count']=1
     request.session['bsize']=3 #always start from 32x32
     return render(request, 'GranulateStudy/test_finish.html')
   if request.method == 'POST':
     cur_select = 'NA'
+    print 'in POST'
     if 'button_YES' in request.POST: #if select YES it is a texture
       request.session['bsize'] -=1 #decrease size
       cur_select='YES'
@@ -54,26 +56,33 @@ def show_image(request):
     nextflag = True
     #determine status
     #if previous select yes and now select know.
-    if (request.session['pre_select'] is 'YES' and cur_select is 'NO'):
+    print cur_select
+    pre_select = request.session['pre_select']
+    print pre_select
+    if (pre_select == 'YES' and cur_select == 'NO'):
         thistest.gran = request.session['bsize']+1
+        print 'case YN'
         thistest.save()
-    elif (request.session['pre_select'] is 'NO' and cur_select is 'YES'):
+    elif (pre_select== 'NO' and cur_select == 'YES'):
         thistest.gran = request.session['bsize']-1
+        print 'case NY'
         thistest.save()
     else:
         request.session['pre_select']=cur_select
+        print 'case NN, YY, NAN'
         nextflag = False
-
+    print nextflag
     if nextflag is True:
        request.session['org_idx']=randint(0,len(orgs)-1)
        request.session['bsize'] = 3
        request.session['count'] += 1
-
+       request.session['pre_select']='NA'
+    form = GranTestForm()
   else:
     form = GranTestForm()
     #get the image path
 
-  prefix = texture_dir+'/gran/'
+  prefix = '/gran/'
   curname = orgs[request.session['org_idx']]
   temppos = curname.rfind('_org.png')
   curname = curname[0:temppos]
@@ -82,4 +91,4 @@ def show_image(request):
   #outfiles = [prefix+orgs[request.session['org_idx']],prefix+orgs[request.session['org_idx']]+Gran.SIZE[request.session['bsize'][1]]
   print outfiles
 
-  return render(request, 'GranulateStudy/show_images.html',{'form':form,'images':outfiles})
+  return render(request, 'GranulateStudy/show_images.html',{'form':form,'images':outfiles,'bsize':cursize}, context_instance=RequestContext(request))

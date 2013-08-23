@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}
+Granulate Test
+{% endblock %}
+
+{% block content %}
+<h>afafafafasfasdf</h>
+<div id="contentin">
+<center>
+<table>
+{% for image in images %}
+<td>
+<img src={{STATIC_URL}}{{image}}>
+</td>
+{% endfor %}
+
+</table>
+<form action="/grantest/" method="post">{% csrf_token %}
+<p> For this image, is window size {{ bsize }} can be seen as a texture? </p>
+<table>
+<tr>
+<input type= "submit" name = "button_YES" value = "YES" />
+<input type= "submit" name = "button_NO" value = "NO" />
+</tr>
+</table>
+<p> {{request.session.count}} of {{request.session.total}} </p>
+</center>
+</form>
+
+<div id="progressbar"></div>
+</div>
+{% endblock %}
+{% block myscripts %}
+<script>
+$(function() {
+    $( "#progressbar" ).progressbar({
+      value: 100*{{request.session.count}}/{{request.session.total}}
+    });
+  });
+</script>
+<style type="text/css">
+html,
+body {
+    width: 100%;
+    height: 100%;
+}
+html {
+    display: table;
+}
+body {
+    display: table-cell;
+    vertical-align: middle;
+}
+</style>
+{% endblock %}
