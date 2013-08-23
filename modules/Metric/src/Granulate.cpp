@@ -4,8 +4,8 @@
 #include <sys/stat.h>
 namespace metric {
 
-  const vector<Size3> Granulate::blkSizes({Size3(4,4,1),Size3(8,8,1),Size3(16,16,1),Size3(32,32,1),Size3(64,64,1)});
-  const vector<int> Granulate::sz_idx({4,8,16,32,64});
+  const vector<Size3> Granulate::blkSizes({Size3(4,4,1),Size3(8,8,1),Size3(16,16,1),Size3(32,32,1),Size3(64,64,1),Size3(128,128,1)});
+  const vector<int> Granulate::sz_idx({4,8,16,32,64,128});
 
   bool Granulate::readFiles(string path, string searchExt)
   {
@@ -79,6 +79,14 @@ namespace metric {
         Tensor<uchar,1> img(f);
         //Tensor<uchar,1> imgc=img.Clone();
         //img.Display();
+        cout<<f<<endl;
+        int pos1 = f.find_last_of('.');
+        int pos2 = f.find_last_of("/");
+        //cout<<pos1<<","<<pos2<<endl;
+        //cout<<f.substr(pos2,pos1)<<endl;
+        // cout<<outdir+"/"+f.substr(pos2+1,pos1-pos2-1)+outstring<<endl;
+        //write original
+        img.SaveBlock(outdir+"/"+f.substr(pos2+1,pos1-pos2-1)+"_org.png");
         for (int i=(int)sz_idx.size()-1; i>=0;i--)
         {
 
@@ -96,13 +104,7 @@ namespace metric {
                     img(x,y,0)=255;
               }
           //   img.Display();
-             cout<<f<<endl;
-            int pos1 = f.find_last_of('.');
             string outstring="_g"+std::to_string(sz_idx[i])+".png";
-            int pos2 = f.find_last_of("/");
-            cout<<pos1<<","<<pos2<<endl;
-            cout<<f.substr(pos2,pos1)<<endl;
-            cout<<outdir+"/"+f.substr(pos2+1,pos1-pos2-1)+outstring<<endl;
             img.SaveBlock(outdir+"/"+f.substr(pos2+1,pos1-pos2-1)+outstring);
             //img=imgc.Clone();
         }

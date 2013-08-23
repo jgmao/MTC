@@ -4,13 +4,15 @@
 #include "Steerable.h"
 //#include "TPC.h"
 
-
+using namespace cv;
+using namespace std;
 int main(int argc, char* argv[])
 {
 	//string s="ATS\n012\1\\";
 	//int i =strlen("ATS\n012\1\\");
 	Tester test;
-
+  cout<<CV_MAJOR_VERSION<<endl;
+  cout<<CV_MINOR_VERSION<<endl;
 	//Tensor<double,1> ts;
 	//ts.Load("woman_g.tiff");
 	//ts(Cube(0,0,0,16,16,1)).Print();

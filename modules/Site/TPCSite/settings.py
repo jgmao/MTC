@@ -122,7 +122,8 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    os.path.join(ROOT_DIR,'SubTest/Templates'),
+    #os.path.join(ROOT_DIR,'SubTest/Templates'),
+    os.path.join(ROOT_DIR,'templates'),
 )
 
 INSTALLED_APPS = (
@@ -138,9 +139,10 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     'Matching',
     'SubTest',
+    'GranulateStudy',
     'south',
 )
-
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
 # the site admins on every HTTP 500 error when DEBUG=False.
