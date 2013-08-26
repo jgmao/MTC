@@ -1,13 +1,13 @@
 # Django settings for TPCSite project.
 import os
-DEBUG = True
+DEBUG = False#True
 TEMPLATE_DEBUG = DEBUG
 ROOT_DIR = os.path.join(os.path.dirname(__file__),'../')
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
 MANAGERS = ADMINS
-
+ALLOWED_HOSTS = ['*']
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.

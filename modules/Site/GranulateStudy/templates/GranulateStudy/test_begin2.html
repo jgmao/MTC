@@ -7,10 +7,32 @@
 {% block content %}
 
 <p>Welcome!</p>
-<p>This is a test for the granulation of texture.</p>
-<p> There will be 25 pairs of images shown.</p>
-<p> For each pair, please select YES if you think in current granulation this is a texture, or NO if you think in current granulation it is not a texture.</p>
-<p> If you select YES (it is texture), the granulation will be decrease and you will see a smaller granulate partition of SAME texture. If you select NO (it is not texture), the granulation will be increased and you will see a bigger granulate partition of SAME texture. </p>
+<p>This is a test for the granularity of texture images.</p>
+<p> There will be 25 pairs of images shown in this test. To the left is the original image and To the right is the image partitioned by granularity of 8,16,32,64 or 128, as shown below.</p>
+<div>
+<center>
+<table>
+<tr>
+<td>
+<img src = {{STATIC_URL}}gran/42-15408629_0_org.png>
+</td>
+<td>
+<img src = {{STATIC_URL}}gran/42-15408629_0_g32.png>
+</td>
+</tr>
+<tr>
+<td>
+<p> original image </p>
+</td>
+<td>
+<p> partitioned 32x32</p>
+</td>
+</tr>
+</table>
+</center>
+</div>
+<p> For each pair, please select YES if you think in current granularity partitions are textures, or NO if you think in current granularity the partitions are not textures.</p>
+<p> If you select YES (paritions are textures), the partition size will be decreased and you will see a smaller partition of SAME image. If you select NO (partitions are not textures), the granularity will be increased and you will see a bigger partition of SAME image. </p>
 <form action="/grantest/">?
 <input type="Submit" value="click to start">
 </form>

@@ -119,7 +119,7 @@ def show_image(request,count):
             org_idx_B = org_idx_old_B
             cls_idx = cls_idx_old
         dist_idx = dist_idx_old #randint(0,len(orgs))
-        form = SubTestForm();
+        form = SubTestForm()
     for elem in dbtype:
         if dbtype[elem]==imagetype:
             prefix = dbpath[elem]
