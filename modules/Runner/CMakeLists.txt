@@ -27,7 +27,7 @@ target_link_libraries(Tester ${OpenCV_LIBS} TensorLite Size3 Cube Steerable algo
 
 foreach(program ${PROGRAMS})
   add_executable(${program} src/${program}.cpp)
-  target_link_libraries(${program} ${OpenCV_LIBS} Cube Size3 Tester TensorLite Steerable LRI algorithms util LRI Granulate)
+  target_link_libraries(${program} ${OpenCV_LIBS} Cube Size3 Tester TensorLite Steerable LRI algorithms util LRI Granulate Metric)
  # install(TARGETS ${PROGRAMS}
 #	RUNTIME DESTINATION ${MTC_SOURCE_DIR}/bin
 #	LIBRARY DESTINATION ${MTC_SOURCE_DIR}/lib

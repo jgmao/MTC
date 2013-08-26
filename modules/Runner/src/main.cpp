@@ -43,8 +43,10 @@ int main(int argc, char* argv[])
 	//test.TestFilter2D();
 	//test.TestAlgorithms();
 	//test.TestSSIM("/home/guoxin/Projects/MTC/data/texture1.png","/home/guoxin/Projects/MTC/data/texture2.png");
-	test.TestGranulate();
-	//test.TestKmeans();
+	//test.TestGranulateGen();
+  test.TestGranulateTrain();
+        //test.TestMetric();
+  //test.TestKmeans();
 	//test.TestHuffTree();
 	//test.TestJPEG();
 	//test.Test3DMat();

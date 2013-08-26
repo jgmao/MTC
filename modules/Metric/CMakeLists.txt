@@ -6,7 +6,7 @@ include_directories(${MTC_TENSOR_DIR}/include ${MTC_MODULES_DIR}/Utility/include
 
 #link_directories(${MTC_TENSOR_DIR}/src)
 set(common_link_dir  ${MTC_TENSOR_DIR} ${MTC_METRIC_DIR}/src ${MTC_UTIL_DIR})
-set(PROGRAMS Steerable LRI algorithms Granulate)
+set(PROGRAMS Steerable LRI algorithms Granulate Metric)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Debug/lib)
@@ -27,7 +27,7 @@ message("${ARCHIVE_OUTPUT_DIRECTORY}")
 
 foreach(program ${PROGRAMS})
   add_library(${program} src/${program}.cpp)
-  target_link_libraries(${program} ${OpenCV_LIBS} TensorLite util)
+  target_link_libraries(${program} ${OpenCV_LIBS} ${Boost_LIBRARIES} TensorLite util)
   #install(TARGETS ${PROGRAMS}
 #	RUNTIME DESTINATION ${MTC_SOURCE_DIR}/bin
 #	LIBRARY DESTINATION ${MTC_SOURCE_DIR}/lib

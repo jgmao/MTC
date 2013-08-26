@@ -6,7 +6,6 @@
 
 namespace metric {
 
-
 #ifdef WIN32
 #define EXPORTLIB __declspec(dllexport)
 #else

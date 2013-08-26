@@ -1,12 +1,13 @@
 #include "Tester.h"
 #include <stdio.h>
-#include "Steerable.h"
+//#include "Steerable.h"
 #include <iostream>
 #include <sstream>
 #include <bitset>
 //#include "PoissonSolver.h"
 #include <sys/types.h>
 //#include <process.h>
+//#include <Metric.h>
 
 using namespace std;
 using namespace tensor;
@@ -392,6 +393,7 @@ void Tester::TestSSIM(string file1, string file2)
 	B.Print();
 	//A.SetSubWinSize(Size3(16,16,1));
 	//A.SetSubWinStep(Size3(1,1,1));
+	ComputeStatistics(A,Size3(16,16,1),Size3(16,16,1));
 	double ss = Compare(A,B,CompareCriteria::COMPARE_CRITERIA_SSIM,Size3(16,16,1),Size3(16,16,1),3,4,(int)FilterBoundary::FILTER_BOUND_HALF,(int)FeaturePoolType::FEATURE_POOL_MIN,(int)MetricModifier::STSIM2_BASELINE,false,true);
 	cout<<ss<<endl;
 }
@@ -419,6 +421,28 @@ void Tester::TestFilter2D(void)
 	im.Filter2D(gauss).Display();
 
 }
+void Tester::TestMetric()
+{
+   Metric mc;
+   mc.subwinSize = Size3(16,16,1);
+   mc.subwinStep = Size3(16,16,1);
+   //mc.subsample = true;
+   //mc.changeWin=true;
+   //mc.searchPath =  "H:/Code/Matlab/metric trainning/data/";
+   string scorefilepath = "../../Size/subtestoutput_corbis64_inter.txt";
+   mc.searchPath = "../../../data/totest/dist_corbis_64_inter/";
+   mc.trainMetirc(mc.searchPath,scorefilepath);
+}
+
+void Tester::TestGranulateTrain()
+{
+  Metric mc;
+  string scorefilepath = "/modules/Site/grantest_output.txt";
+  mc.searchPath = "/data/totest/gran/";
+  mc.trainGranularity(mc.searchPath,scorefilepath);
+
+}
+
 /*
 void Tester::TestKmeans(void)
 {
@@ -854,7 +878,7 @@ void Tester::TestAlgorithms(void)
 
 }
 
-void Tester::TestGranulate()
+void Tester::TestGranulateGen()
 {
   Granulate g;
   g.readFiles("/home/guoxin/Projects/MTC/data/totest/","tiff");

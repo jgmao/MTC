@@ -1,4 +1,7 @@
 #include "Metric.h"
+#include <dirent.h>
+#include <sys/stat.h>
+namespace metric{
 Metric::Metric()
 {
   featureNum = 4;
@@ -8,8 +11,8 @@ Metric::Metric()
   Nsc = 3;
   gamma0 = vector<vector<Mat_<double> > >(Nor*Nsc+2,vector<Mat_<double>>(featureNum));
   gamma1 = vector<vector<Mat_<double> > >(Nor*Nsc+2,vector<Mat_<double>>(featureNum));  
-  lambda1 = vector<vector<double>>(Nor*Nsc+2,vector<double>(featureNum));
-  lambda0 = vector<vector<double>>(Nor*Nsc+2,vector<double>(featureNum));
+  lambda1 = vector<vector<double> >(Nor*Nsc+2,vector<double>(featureNum));
+  lambda0 = vector<vector<double> >(Nor*Nsc+2,vector<double>(featureNum));
   subsample = false;
   changeWin = false;
   sameCount = 0;
@@ -21,20 +24,44 @@ Metric::Metric()
 
 bool Metric::readFiles(string path, string searchPattern, string searchExt)
 {
+  //check if path end with /
+  char endwith = *path.rbegin();
+  if (endwith!='/')
+    path=path+"/";
+  this->clustercount=0;
+  string filename;
+#ifdef WIN32
   string fullSearchPath = path + searchPattern+"*"+searchExt;
   WIN32_FIND_DATA FindData;
   HANDLE hFind;
   hFind = FindFirstFile( fullSearchPath.c_str(), &FindData );
-  clustercount=0;
   if( hFind == INVALID_HANDLE_VALUE )
   {
     cout << "Error searching directory\n";
     return false;
   }
+#else
+  DIR *dir;
+  class dirent *ent;
+  dir = opendir(path.c_str());
+#endif
   do
   {
-    string filename = FindData.cFileName;
-    filenames.push_back(FindData.cFileName);
+#ifdef WIN32
+      filename = FindData.cFileName;
+      filenames.push_back(FindData.cFileName);
+#else
+      if (!strcmp(ent->d_name,"." )) continue;
+      if (!strcmp(ent->d_name,"..")) continue;
+      string file_name = ent->d_name;
+      unsigned long found = file_name.rfind("."+searchExt);
+      if (found!=std::string::npos)
+      {
+          filename = path + "/" + file_name;
+          filenames.push_back(filename);
+          cout<<"Got: "<<file_name<<endl;
+      }
+#endif
     std::smatch res;
     std::regex rx(searchPattern+"_([^]*)_(\\d+)"+searchExt);
     std::regex_search(filename,res,rx);
@@ -45,7 +72,15 @@ bool Metric::readFiles(string path, string searchPattern, string searchExt)
       clustercount++;
     }
   }
+#ifdef WIN32
   while( FindNextFile(hFind, &FindData) > 0 );
+  FindClose(path);
+#else
+  while ((ent = readdir(dir)) !=NULL);
+  closedir(dir);
+#endif
+
+#ifdef WIN32
   if( GetLastError() != ERROR_NO_MORE_FILES )
   {
     cout << "Something went wrong during searching\n";
@@ -53,10 +88,13 @@ bool Metric::readFiles(string path, string searchPattern, string searchExt)
   }
   else
   {
+#endif
     pairNum = filenames.size()*(filenames.size()-1)/2;
     label = Mat(pairNum,1,CV_8S);
     return true;
+#ifdef WIN32
   }
+#endif
 }
 
 int Metric::computeStats(string path, string searchPattern, string searchExt)
@@ -68,7 +106,7 @@ int Metric::computeStats(string path, string searchPattern, string searchExt)
   {
     Tensor<double,1> temp(path+filename);
     //temp.Print();
-    vector<Tensor<double,2> > stat = temp.ComputeStatistics(subwinSize,subwinStep);
+    vector<Tensor<double,2> > stat = ComputeStatistics(temp,subwinSize,subwinStep);
    // stat[0+1].Print();
     //stat[14+1].Print();
     //stat[28+1].Print();
@@ -91,9 +129,9 @@ int Metric::computeStats(string path, string searchPattern, string searchExt)
  {
    pairNum = 1;
    coeffNum = 0;
-   stats = vector<vector<Tensor<double,2>>>(2);
+   stats = vector<vector<Tensor<double,2> > >(2);
    stats[0] = ComputeStatistics(im1, subwinSize,subwinStep,this->subsample,changeWin);
-   stats[1] = im2.ComputeStatistics(im2, subwinSize,subwinStep,this->subsample,changeWin);
+   stats[1] = ComputeStatistics(im2, subwinSize,subwinStep,this->subsample,changeWin);
    coeffNum=0;
    coeff_in_band.clear();
   for (auto t : stats[0])
@@ -121,10 +159,10 @@ int Metric::computeFeatures(string searchPattern, string searchExt)
   f0 = Mat(pairNum*coeff_in_band[0],(Nsc*Nor+2)*featureNum*2,CV_64F);
   f1 = Mat(pairNum*coeff_in_band[0],(Nsc*Nor+2)*featureNum*2,CV_64F);
   Mat* pf;
-  for (int i=0; i<filenames.size();i++)
+  for (unsigned int i=0; i<filenames.size();i++)
   {
     std::cout<<"i= "<<i<<endl;
-    for (int j=i+1; j< filenames.size(); j++)
+    for (unsigned int j=i+1; j< filenames.size(); j++)
     {
       string s = filenames[i];
       string p = filenames[j];
@@ -135,7 +173,7 @@ int Metric::computeFeatures(string searchPattern, string searchExt)
       //vector<Tensor<double,2>> f;
       CV_Assert(stats[i].size()==stats[j].size());
       int count=0;
-      bool inverse = 0;
+      //bool inverse = 0;
       Rect roi;
       if (~clusterA.compare(clusterB)) //same cluster
       {
@@ -155,7 +193,7 @@ int Metric::computeFeatures(string searchPattern, string searchExt)
         //coeffcount0 += count;
         label.at<INT8>(paircount,0)=0;
       }
-      for (int k=0; k<stats[i].size(); k++)
+      for (unsigned int k=0; k<stats[i].size(); k++)
       {
         
         roi = Rect(k*2,posCount*coeff_in_band[k],2,coeff_in_band[k]);
@@ -229,7 +267,7 @@ int Metric::computeFeatures(const vector<vector<Tensor<double,2>>>& stats)
   CV_Assert(stats.size()==2);//only compare a pair
    f = Mat(pairNum*coeff_in_band[0],(Nsc*Nor+2)*featureNum*2,CV_64F);
    Rect roi;
-   for (int k=0; k<stats[0].size(); k++)
+   for (unsigned int k=0; k<stats[0].size(); k++)
    {
       roi = Rect(k*2,0,2,coeff_in_band[k]);
       //stats[0][k].Print();
@@ -391,12 +429,12 @@ void Metric::trainMetirc(string path,string scorefilepath)
   Mat b(features.size(),1,CV_64F);
   Mat bl(features.size(),1,CV_64F);
   cout<<features[0].at<double>(0,0)<<","<<features[1].at<double>(0,0)<<endl;
-  for (int i=0; i< features.size(); i++)
+  for (unsigned int i=0; i< features.size(); i++)
   {
     Mat temp(coeffNum,2,CV_64F);
     int copypos =0;
     //mylib::DisplayMat(features[i],"featurei",true);
-    for (int j=0; j<coeff_in_band.size();j++)
+    for (unsigned int j=0; j<coeff_in_band.size();j++)
     {
       Rect roi(j*2,0,2,coeff_in_band[j]);
       Rect toroi(0,copypos,2,coeff_in_band[j]);
@@ -435,7 +473,7 @@ void Metric::trainMetirc(string path,string scorefilepath)
   cout<<"abs error is: "<<err<<endl;
   ofstream coefffile;
   coefffile.open("coeff_in_band.txt");
-  for (int i=0; i< coeff_in_band.size();i++)
+  for (unsigned int i=0; i< coeff_in_band.size();i++)
   {
     coefffile<<coeff_in_band[i]<<";"<<endl;
   }
@@ -457,8 +495,8 @@ void Metric::trainMetric(string path, string searchPattern, string searchExt)
   }
   computeStats(path,searchPattern,searchExt);
   computeFeatures(searchPattern,searchExt);
-  int count = 0;
-  Rect roi;
+  //int count = 0;
+  //Rect roi;
   dec = Mat(coeffNum,pairNum,CV_64F);
   for (int subband = 0; subband<Nor*Nsc+2; subband++)
   {
@@ -467,9 +505,10 @@ void Metric::trainMetric(string path, string searchPattern, string searchExt)
     {
       estimateML(f0,subband,feature,gamma0,lambda0);
       estimateML(f1,subband,feature,gamma1,lambda1);
-   
-      computeLLR(f1,llr(Rect(0,0,coeffNum,sameCount)),subband,feature, gamma0,gamma1,lambda0,lambda1);
-      computeLLR(f0,llr(Rect(0,sameCount,coeffNum,diffCount)),subband,feature,gamma0,gamma1,lambda0,lambda1);
+      Mat llr1 = llr(Rect(0,0,coeffNum,sameCount));
+      Mat llr0 = llr(Rect(0,sameCount,coeffNum,diffCount));
+      computeLLR(f1,llr1,subband,feature, gamma0,gamma1,lambda0,lambda1);
+      computeLLR(f0,llr0,subband,feature,gamma0,gamma1,lambda0,lambda1);
     }
   }
   saveGamma("gamma0",gamma0);
@@ -509,6 +548,7 @@ void Metric::trainMetric(string path, string searchPattern, string searchExt)
   mylib::DisplayMat(lb,"lb",true);
   mylib::DisplayMat(label,"label",true);
   double rst = cv::sum((lb-label))[0];
+  cout<<rst<<endl;
 
 }
 
@@ -609,8 +649,8 @@ void Metric::saveLambda(string filename, const vector<vector<double>>& lambda)
 {
   //convert lambda to mat
   cv::Mat L(lambda.size(),lambda[0].size(),CV_64F);
-  for (int i=0; i< lambda.size();i++)
-    for (int j=0; j< lambda[0].size(); j++)
+  for (unsigned int i=0; i< lambda.size();i++)
+    for (unsigned int j=0; j< lambda[0].size(); j++)
       L.at<double>(i,j) = lambda[i][j];
   cv::FileStorage fs(filename,cv::FileStorage::WRITE);
   fs << filename<<L;
@@ -622,8 +662,8 @@ void Metric::loadLambda(string filename, vector<vector<double>>& lambda)
   cv::FileStorage fs(filename,cv::FileStorage::READ);
   Mat_<double> L ;
   fs[filename]>>L;
-  for (int i=0; i< lambda.size();i++)
-    for (int j=0; j< lambda[0].size(); j++)
+  for (unsigned int i=0; i< lambda.size();i++)
+    for (unsigned int j=0; j< lambda[0].size(); j++)
       lambda[i][j] = L.at<double>(i,j);
   fs.release();
 }
@@ -650,7 +690,7 @@ double Metric::computeMetricLSE(const Tensor<double,1>& im1, const Tensor<double
     Mat temp(coeffNum,2,CV_64F);
     int copypos =0;
    // mylib::DisplayMat(f,"f",true);
-    for (int j=0; j<coeff_in_band.size();j++)
+    for (unsigned int j=0; j<coeff_in_band.size();j++)
     {
       Rect roi(j*2,0,2,coeff_in_band[j]);
       Rect toroi(0,copypos,2,coeff_in_band[j]);
@@ -671,4 +711,70 @@ void Metric::loadParams(void)
   loadLambda("lambda0",lambda0);
   loadLambda("lambda1",lambda1);
   loadClassifier("svm");
+}
+
+void Metric::trainGranularity(string path, string scorefilepath)
+{
+  char curpath[FILENAME_MAX];
+  GetCurDir(curpath,sizeof(curpath));
+  cout<<"reading scorefile: "<<string(curpath)+scorefilepath<<endl;
+  ifstream scorefile;
+  scorefile.open(string(curpath)+scorefilepath,std::ios::in);
+  //cout<<"is good?"<< scorefile.good()<<endl;
+  char temp[1024];
+  //string temp;
+  /*int count=0;
+  while(scorefile.getline(temp,1024))
+    count++;
+  scorefile.close();*/
+  //scorefile.open(path+"/subtestoutput.txt");
+  vector<Mat> features;
+  vector<double> scores;
+  while(scorefile.getline(temp,1024))
+  {
+    string str(temp);
+    cout<<str<<endl;
+    boost::smatch res;
+    boost::regex rx("\\b(.*)_org\\.png");//find everyword end with _org.png
+    boost::regex_search(str,res,rx);
+    cout<<"org: "<<res[0]<<", "<<res[1]<<", ";
+    //cout<<"path"<<path<<endl;
+    string prefix = res[1];
+    Tensor<double,1> org(string(curpath)+path+"/"+string(res[0]));
+    org = org.Crop((org.size()/4).Point3(),org.size()/2+Point3i(0,0,1));
+    rx.set_expression("\\b(\\d),");
+    boost::regex_search(str,res,rx);
+    int yesSize = Granulate::sz_idx[std::stoi(res[1])];
+    int noSize = yesSize/2;
+
+   // cout<<"cand1 "<<prefix+"_g"+std::to_string(yesSize)<<endl;
+    Tensor<double,1> cand1(string(curpath)+path+"/"+prefix+"_g"+std::to_string(yesSize)+".png");
+    cand1 = cand1.Crop((cand1.size()/4).Point3(),cand1.size()/2+Point3i(0,0,1));
+
+    //cout<<"cand0 "<<prefix+"_g"+std::to_string(noSize)<<endl;
+    Tensor<double,1> cand0(string(curpath)+path+"/"+prefix+"_g"+std::to_string(noSize)+".png");
+    cand0 = cand0.Crop((cand0.size()/4).Point3(),cand0.size()/2+Point3i(0,0,1));
+
+    //the order is yes first, then no second
+    scores.push_back(1.0);
+    scores.push_back(-1.0);
+    //compute statistics using yesSize
+    this->subwinSize=Size3(yesSize,yesSize,1);
+    this->subwinStep=this->subwinSize;
+    computeStats(org,cand1);
+    computeFeatures(stats);
+    features.push_back(f);
+    cout<<f.size()<<endl;
+    this->subwinSize=Size3(noSize,noSize,1);
+    this->subwinStep=this->subwinSize;
+    computeStats(org,cand0);
+    computeFeatures(stats);
+    //do LS
+    features.push_back(f);
+    cout<<f.size()<<endl;
+    //mylib::DisplayMat(f);
+  }
+
+  cout<<"test"<<endl;
+}
 }

@@ -8,6 +8,8 @@
 #define EXPORTLIB
 #endif
 using namespace tensor;
+#ifndef ALGORITHMS_H
+#define ALGORITHMS_H
 namespace metric{
   
   EXPORTLIB double ComputeMSE(const Mat& tsA, const Mat& tsB) ; // if lambda = 0, then it is normal MSE, otherwise it is MSE with constraint
@@ -61,3 +63,4 @@ namespace metric{
   EXPORTLIB Tensor<double,2> ComputeRho(const Mat& im11, const Mat& im12, const Size3& subWinSize, const Size3& subWinStep);
   EXPORTLIB Tensor<double,1> ComputeCrossTerm(const Mat& im11, const Mat& im12, const Mat& im21, const Mat& im22, const Size3& subWinSize, const Size3& subWinStep);
 }
+#endif

@@ -10,6 +10,8 @@ using namespace std;
 #define EXPORTLIB
 #endif
 namespace metric{
+#ifndef LRI_H
+#define LRI_H
 class LRI
 {
 public:
@@ -29,4 +31,5 @@ private:
 public:
   EXPORTLIB double computeNewMetric(const Mat& im1, const Mat& im2);
 };
+#endif
 }

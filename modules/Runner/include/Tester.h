@@ -11,6 +11,7 @@
 #include "algorithms.h"
 #include <Granulate.h>
 #include <opencv2/opencv.hpp>
+#include <Metric.h>
 using namespace std;
 using namespace tensor;
 using namespace metric;
@@ -46,7 +47,9 @@ public:
   //void TestDistortion(string fname);
   void TestTensor();
   void TestAlgorithms();
-  void TestGranulate();
+  void TestGranulateGen();
+  void TestMetric();
+  void TestGranulateTrain();
 };/*
 
 template <class T> class TestTensor : public testing::Test

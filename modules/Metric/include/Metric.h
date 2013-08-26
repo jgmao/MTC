@@ -3,14 +3,36 @@
 #include <TensorLite.h>
 #include <boost/math/special_functions/bessel.hpp>
 #include <boost/math/constants/constants.hpp>
+#include <boost/regex.hpp>
+#include <algorithms.h>
 #include <regex>
+#include <opencv2/ml.hpp>
+#include <Granulate.h>
+namespace metric{
+#ifndef METRIC_H
+#define METRIC_H
+#ifdef WINDOWS
+  #include <dirent.h>
+  #define GetCurDir _getcwd
+#else
+  #include <unistd.h>
+  #define GetCurDir getcwd
+#endif
+
 #ifndef DEC_FLAG
 #define DEC_FLAG
 #define DEC_FLAG_HARD 0
 #define DEC_FLAG_SOFT 1
 #endif
+
+#ifndef WIN32
+  typedef signed char INT8;
+#endif
+
 using namespace std;
 using namespace boost::math;
+using namespace tensor;
+using namespace cv;
 static const double pi = 3.14159265358979323846;
 
 #ifdef WIN32
@@ -36,6 +58,7 @@ public:
   Mat& makeDec(const Mat& LLR, Mat& dec, double thred = 0, int flag=0); 
   void trainMetric(string path, string searchPattern, string searchExt);
   void trainMetirc(string path,string scorefilepath="");
+  void trainGranularity(string path, string scorefilepath="");
   void loadParams(void);
   float predict(const Mat& f);
   
@@ -79,3 +102,5 @@ protected:
   void loadLambda(string filename, vector<vector<double>>& lambda);
   bool loadClassifier(string filename);
 };
+#endif
+}
