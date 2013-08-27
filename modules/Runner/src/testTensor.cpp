@@ -32,6 +32,7 @@ int main(void)
   Tensor<double,1>(tv[0]).Display(); 
   Tensor<double,1> ts2("/home/guoxin/Projects/MTC/data/texture2.png");
   cout<<ComputeMSE(ts,ts2)<<endl;
+  ts2.Print("t2",true);
   return 0;
 }
 

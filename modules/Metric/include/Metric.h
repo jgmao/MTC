@@ -51,14 +51,15 @@ public:
   int computeStats(string path, string searchPattern, string searchExt);
   int computeFeatures(string searchPattern, string searchExt);
   int computeFeatures(const vector<vector<Tensor<double,2>>>& stats);
-  int computeStats(const Tensor<double,1>& im1, const Tensor<double,1>& im2);
+  int computeStats(const Tensor<double,1>& im1, const Tensor<double,1>& im2, FeaturePoolType pooltype=FeaturePoolType::FEATURE_POOL_AVE);
+  int computeStats(const Tensor<double,1>& im, FeaturePoolType pooltype=FeaturePoolType::FEATURE_POOL_AVE);
   Mat getFeature(const Mat& f, int subband, int feature);
   Mat& estimateML(const Mat& f, int subband, int feature,vector<vector<Mat_<double>>>& gamma, vector<vector<double>>& lambda);
   Mat& computeLLR(const Mat& f, Mat& llr, int subband, int feature, vector<vector<Mat_<double>>>& gamma0, vector<vector<Mat_<double>>>& gamma1, vector<vector<double>>& lambda0, vector<vector<double>>& lambda1);
   Mat& makeDec(const Mat& LLR, Mat& dec, double thred = 0, int flag=0); 
   void trainMetric(string path, string searchPattern, string searchExt);
   void trainMetirc(string path,string scorefilepath="");
-  void trainGranularity(string path, string scorefilepath="");
+  void trainGranularity(string path, string scorefilepath="", FeaturePoolType pooltype = FeaturePoolType::FEATURE_POOL_MIN);
   void loadParams(void);
   float predict(const Mat& f);
   

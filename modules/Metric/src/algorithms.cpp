@@ -89,15 +89,21 @@ namespace metric
   }
 
 
-  vector<Tensor<double,2> > ComputeStatistics(const Mat& ts, const Size3& subWinSize, const Size3& subWinStep, bool subsample, bool changeWin,int nLevel, int nDir,FilterBoundary boundary_cut, bool compute00 )
+  vector<Tensor<double,2> > ComputeStatistics(const Mat& ts, const Size3& subWinSize, const Size3& subWinStep, bool subsample, bool changeWin,int nLevel, int nDir,FilterBoundary boundary_cut, FeaturePoolType pooltype, bool compute00 )
   {
     typedef vector<Tensor<double,2> > vT;
     Steerable sp;
     Tensor<double,2> tc = Tensor<double,1>(ts).ToComplex();
+    if (boundary_cut == FilterBoundary::FILTER_BOUND_EXTEND) //zero padding and then cut center
+    {
+      tc=tc.ExtendBoundary(tc.size()/2);
+    }
     sp.buildSCFpyr(tc,3,4,1,subsample);
     vT& pyr = sp.getSpaceDomainPyr();
-
-    if ( boundary_cut == FilterBoundary::FILTER_BOUND_HALF)//modify Dec 27 2011, not cut half but cut half + boundary
+    //cout<<"size is: "<<ts.size()<<endl;
+    //cout<<"print extended size: ";
+    //tc.size().Print();
+    if ( boundary_cut == FilterBoundary::FILTER_BOUND_HALF||boundary_cut == FilterBoundary::FILTER_BOUND_EXTEND)//modify Dec 27 2011, not cut half but cut half + boundary
       {
         for (unsigned int i = 0; i< pyr.size(); i++)
           {
@@ -141,8 +147,11 @@ namespace metric
     vT statistics(4*bands);
     for (index = 0; index < (int)pyr.size(); index++)
       {
+       // cout<<"===========doing idx "<<index<<endl;
         //pyr[index].Print("pry.txt",true); //checked, the pyr are correct
         sz = pyr[index].size();
+        //cout<<"subwinsizeLv ";
+        //subWinSizeLv.Print();
         if (subWinSizeLv.height>pyr[index].size().height||subWinSizeLv.width>pyr[index].size().width)
           {
             lvl = lvl+1;
@@ -165,7 +174,7 @@ namespace metric
           }
         weight = subWinSizeLv.height*subWinSizeLv.width;
         scalar = weight/(weight-1);
-
+        //subWinSizeLv.Print();
         cv::Mat flatKel1=cv::Mat(subWinSizeLv,pyr[index][0].type()-((pyr[index][0].channels()-1)<<CV_CN_SHIFT),Scalar(1.0/weight));
         cv::Mat flatKel2 = cv::Mat(subWinSizeLv,pyr[index][0].type()-((pyr[index][0].channels()-1)<<CV_CN_SHIFT),Scalar(1.0/(weight-1)));
         //mylib::DisplayMat(flatKel1);
@@ -181,7 +190,6 @@ namespace metric
         rho10[index] = ComputeRho(pyr[index](Cube(0,0,0,sz.height-1,sz.width,sz.depth)),
             pyr[index](Cube(1,0,0,sz.height-1,sz.width,sz.depth)),
             subWinSizeLv-Size3(1,0,0), subWinStepLv);
-
         statistics[index]=mu[index].Clone();
         statistics[index+bands]=sigma2[index].Clone();
         statistics[index+2*bands] = rho01[index].Clone();
@@ -211,7 +219,17 @@ namespace metric
           {
             statistics.push_back(rho00[index].Clone());
           }
-      }
+    }
+    for (unsigned int i=0; i<statistics.size(); i++)
+    {
+        //statistics[i].Print();
+        if (pooltype==FeaturePoolType::FEATURE_POOL_AVE)
+          statistics[i]=Tensor<double,2>(Size3(1,1,1),statistics[i].Mean());
+        else if (pooltype==FeaturePoolType::FEATURE_POOL_MIN)
+          statistics[i]=Tensor<double,2>(Size3(1,1,1),statistics[i].Abs().Min());
+
+        //statistics[i].Print();
+    }
     return statistics;
   }
 

@@ -42,6 +42,7 @@ namespace metric{
                              bool changeWin=false,
                              int nLevel = 3, int nDir=4,
                              FilterBoundary boundary_cut=FilterBoundary::FILTER_BOUND_FULL,
+                             FeaturePoolType pooltype = FeaturePoolType::FEATURE_POOL_ALL,
                              bool compute00=false
                              ) ;
   // this need SVM Metric implementation EXPORTLIB double ComputeSVMMetric(const Mat& tsA, const Mat& tsB, const Size3& subWinSize, const Size3& subWinStep);

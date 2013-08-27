@@ -125,13 +125,13 @@ int Metric::computeStats(string path, string searchPattern, string searchExt)
   dec = Mat(pairNum,coeffNum,CV_64F);
   return stats.size();
 }
- int Metric::computeStats(const Tensor<double,1>& im1, const Tensor<double,1>& im2)
+ int Metric::computeStats(const Tensor<double,1>& im1, const Tensor<double,1>& im2, FeaturePoolType pooltype)
  {
    pairNum = 1;
    coeffNum = 0;
    stats = vector<vector<Tensor<double,2> > >(2);
-   stats[0] = ComputeStatistics(im1, subwinSize,subwinStep,this->subsample,changeWin);
-   stats[1] = ComputeStatistics(im2, subwinSize,subwinStep,this->subsample,changeWin);
+   stats[0] = ComputeStatistics(im1, subwinSize,subwinStep,this->subsample,changeWin,3,4,FilterBoundary::FILTER_BOUND_FULL,pooltype);
+   stats[1] = ComputeStatistics(im2, subwinSize,subwinStep,this->subsample,changeWin,3,4,FilterBoundary::FILTER_BOUND_FULL,pooltype);
    coeffNum=0;
    coeff_in_band.clear();
   for (auto t : stats[0])
@@ -144,6 +144,24 @@ int Metric::computeStats(string path, string searchPattern, string searchExt)
   return stats.size();
  }
 
+int Metric::computeStats(const Tensor<double,1>& im, FeaturePoolType pooltype)
+{
+  pairNum=1;
+  coeffNum=0;
+  stats = vector<vector<Tensor<double,2>>>(1);
+  stats[0] = ComputeStatistics(im, subwinSize,subwinStep,this->subsample,changeWin,3,4,FilterBoundary::FILTER_BOUND_EXTEND,pooltype);
+  coeffNum=0;
+  coeff_in_band.clear();
+  for (auto t : stats[0])
+  {
+     // t.Print();
+    coeffNum += t.size().area();
+    coeff_in_band.push_back( t.size().area() );
+  }
+  llr = Mat(pairNum,coeffNum,CV_64F);
+  dec = Mat(pairNum,coeffNum,CV_64F);
+  return stats.size();
+}
 int Metric::computeFeatures(string searchPattern, string searchExt)
 {
   std::smatch res;
@@ -264,7 +282,7 @@ int Metric::computeFeatures(string searchPattern, string searchExt)
 
 int Metric::computeFeatures(const vector<vector<Tensor<double,2>>>& stats)
 {
-  CV_Assert(stats.size()==2);//only compare a pair
+ // cout<<pairNum<<","<<featureNum<<","<<coeff_in_band[0]<<endl;
    f = Mat(pairNum*coeff_in_band[0],(Nsc*Nor+2)*featureNum*2,CV_64F);
    Rect roi;
    for (unsigned int k=0; k<stats[0].size(); k++)
@@ -276,13 +294,24 @@ int Metric::computeFeatures(const vector<vector<Tensor<double,2>>>& stats)
       //(stats[0][k] - stats[1][k]).Print();
       //0 is org, 1 is cand
       //do Weber's law (cand - org)/org
-      Mat exptemp,logit;
-      Mat temp=   (stats[1][k] - stats[0][k]).GetFrameRef(0).clone();
+      Mat logit;
+      //Mat temp=   (stats[1][k] - stats[0][k]).GetFrameRef(0).clone();
       //Tensor<double,2> num(temp);
-      Tensor<double,2> num(stats[1][k]-stats[0][k]);
-      Tensor<double,2> dem(stats[0][k]);
-      Tensor<double,2> web = num.Abs()/dem.Abs();
-      logit = web.GetFrameRef(0).clone();
+      if (stats.size()==2)
+      {
+        Tensor<double,2> num(stats[1][k]-stats[0][k]);
+        Tensor<double,2> dem(stats[0][k]);
+        Tensor<double,2> web = num.Abs()/dem.Abs();
+        logit = web.GetFrameRef(0).clone();
+      }
+      else if (stats.size()==1)
+      {
+        logit = stats[0][k].GetFrameRef(0).clone();
+      }
+      else
+      {
+          CV_Assert(stats.size()==1||stats.size()==2);
+      }
       /*try simple div only 20130805
       //num.Print();
       //dem.Print();
@@ -332,6 +361,9 @@ int Metric::computeFeatures(const vector<vector<Tensor<double,2>>>& stats)
       //  temp = Scalar(1,1) - temp;
       //mylib::DisplayMat(temp);
       //save to feature vector
+     // cout<<roi<<endl;
+     // cout<<f.size()<<endl;
+     // cout<<logit.size()<<endl;
       logit.reshape(1,stats[0][k].size().area())
           .copyTo(f(roi));
      //mylib::DisplayMat(f,"f",true);
@@ -713,7 +745,7 @@ void Metric::loadParams(void)
   loadClassifier("svm");
 }
 
-void Metric::trainGranularity(string path, string scorefilepath)
+void Metric::trainGranularity(string path, string scorefilepath,FeaturePoolType pooltype)
 {
   char curpath[FILENAME_MAX];
   GetCurDir(curpath,sizeof(curpath));
@@ -739,21 +771,13 @@ void Metric::trainGranularity(string path, string scorefilepath)
     boost::regex_search(str,res,rx);
     cout<<"org: "<<res[0]<<", "<<res[1]<<", ";
     //cout<<"path"<<path<<endl;
-    string prefix = res[1];
     Tensor<double,1> org(string(curpath)+path+"/"+string(res[0]));
-    org = org.Crop((org.size()/4).Point3(),org.size()/2+Point3i(0,0,1));
+   // org = org.Crop((org.size()/4).Point3(),org.size()/2+Point3i(0,0,1));
     rx.set_expression("\\b(\\d),");
     boost::regex_search(str,res,rx);
     int yesSize = Granulate::sz_idx[std::stoi(res[1])];
     int noSize = yesSize/2;
 
-   // cout<<"cand1 "<<prefix+"_g"+std::to_string(yesSize)<<endl;
-    Tensor<double,1> cand1(string(curpath)+path+"/"+prefix+"_g"+std::to_string(yesSize)+".png");
-    cand1 = cand1.Crop((cand1.size()/4).Point3(),cand1.size()/2+Point3i(0,0,1));
-
-    //cout<<"cand0 "<<prefix+"_g"+std::to_string(noSize)<<endl;
-    Tensor<double,1> cand0(string(curpath)+path+"/"+prefix+"_g"+std::to_string(noSize)+".png");
-    cand0 = cand0.Crop((cand0.size()/4).Point3(),cand0.size()/2+Point3i(0,0,1));
 
     //the order is yes first, then no second
     scores.push_back(1.0);
@@ -761,20 +785,87 @@ void Metric::trainGranularity(string path, string scorefilepath)
     //compute statistics using yesSize
     this->subwinSize=Size3(yesSize,yesSize,1);
     this->subwinStep=this->subwinSize;
-    computeStats(org,cand1);
+    computeStats(org);
     computeFeatures(stats);
     features.push_back(f);
-    cout<<f.size()<<endl;
+    //cout<<f.size()<<endl;
     this->subwinSize=Size3(noSize,noSize,1);
     this->subwinStep=this->subwinSize;
-    computeStats(org,cand0);
+    computeStats(org);
     computeFeatures(stats);
     //do LS
     features.push_back(f);
-    cout<<f.size()<<endl;
+    //cout<<f.size()<<endl;
     //mylib::DisplayMat(f);
   }
+  //after reading done
+  //1. ouptut statistcs for viewing
+  Mat A(features.size(),coeffNum*2,CV_64F);
+  Mat b(features.size(),1,CV_64F);
+  Mat bl(features.size(),1,CV_64F);
+  cout<<features[0].at<double>(0,0)<<","<<features[1].at<double>(0,0)<<endl;
+  for (unsigned int i=0; i< features.size(); i++)
+  {
+    Mat temp(coeffNum,2,CV_64F);
+    int copypos =0;
+    //mylib::DisplayMat(features[i],"featurei",true);
+    for (unsigned int j=0; j<coeff_in_band.size();j++)
+    {
+      Rect roi(j*2,0,2,coeff_in_band[j]);
+      Rect toroi(0,copypos,2,coeff_in_band[j]);
+      features[i](roi).copyTo(temp(toroi));
+    //  mylib::DisplayMat(features[i](roi));
+    //  mylib::DisplayMat(temp,"temp",true);
+      copypos+=coeff_in_band[j];
+    }
+    //mylib::DisplayMat(temp);
+    temp.reshape(1,1).copyTo(A.row(i));
+    b.at<double>(i,0) = scores[i];
+    //if (b.at<double>(i,0)>0.99)
+    //  b.at<double>(i,0)=0.99;
+    //if (b.at<double>(i,0)<0.01)
+    //  b.at<double>(i,0)=0.01;
+    //bl.at<double>(i,0) = log(b.at<double>(i,0)/(1 - b.at<double>(i,0)));
+  }
+  mylib::DisplayMat(A,"A",true);
+  mylib::DisplayMat(b,"b",true);
+  ofstream coefffile;
+  coefffile.open("coeff_in_band.txt");
+  for (unsigned int i=0; i< coeff_in_band.size();i++)
+  {
+    coefffile<<coeff_in_band[i]<<";"<<endl;
+  }
+  coefffile.close();
+  cout<<"feature exaction done"<<endl;
+  //2. make a SVM
+  b.convertTo(label,CV_32F);
+  params.svm_type = SVM::NU_SVR;
+  params.kernel_type = SVM::LINEAR;
+  params.term_crit = TermCriteria(CV_TERMCRIT_ITER,100,1e-6);
+  params.nu = 0.5;
+  Mat floatA;
+  A.convertTo(floatA,CV_32F);
+  //mylib::DisplayMat(floatdec,"dec.txt",true);
+  s.train_auto(floatA,label,Mat(),Mat(),params);
+  s.save("./temp/svm");
+  Mat lb(label.size(),label.type());
+  SVM s2;
+  s2.load("./temp/svm");
+  for (int i=0; i < label.size().height;i++)
+  {
 
-  cout<<"test"<<endl;
+    lb.at<float>(i,0) = s2.predict(floatA.row(i));
+  }
+
+  cv::compare(lb,0,lb,CV_CMP_GE);
+  lb.convertTo(lb,CV_32F);
+  lb = lb/255*2.0 -1.0;
+  mylib::DisplayMat(lb,"lb",true);
+  mylib::DisplayMat(label,"label",true);
+  double rst = cv::sum((lb-label))[0];
+  cout<<rst<<endl;
+
+  cout<<"svm done"<<endl;
+
 }
 }

@@ -3,7 +3,7 @@
 void mylib::DisplayMat(const cv::Mat &m, const string & name, bool tofileonly)
 {
 	fstream logfile;
-	logfile.open(".\\"+name+"_Ts.txt",ios::out);
+	logfile.open("./temp/"+name+"_Ts.txt",ios::out);
 	if (!tofileonly)
 		std::cout<<"Display "<<m.size.p[0] <<" "<<m.size.p[1]<<" Matrix:"<<name<<" Data type: "<<m.type()<<endl;
 	//logfile<<"Display "<<m.size.p[0] <<" "<<m.size.p[1] <<" Matrix:"<<name<<" Data type: "<<m.type()<<endl;

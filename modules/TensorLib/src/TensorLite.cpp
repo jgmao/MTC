@@ -478,7 +478,7 @@ template<class T, size_t cn> void Tensor<T,cn>::Print(const string& fname, bool 
 {
 
 	fstream logfile;
-	logfile.open(".\\"+fname+".txt",ios::out); 
+	logfile.open("./temp/"+fname+".txt",ios::out);
 	//bool tofileonly=false;
 	if (!tofileonly)
 	{
@@ -1250,8 +1250,12 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::Filter2D(const Mat& ker,
 		}
 		else if (boundary == (int)FilterBoundary::FILTER_BOUND_VALID)
 		{
+		  //tsSize.Print();
+		  //cout<<ker.size()<<endl;
 			Size3 validSize(tsSize.height - ker.size().height +1, tsSize.width - ker.size().width+1, 1);
 			Point3i validOffset(ker.size().height/2, ker.size().width/2,0);
+			//validSize.Print();
+			//cout<<validOffset<<endl;
 			return rst.Crop(validOffset,validSize);
 		}
 		else
