@@ -91,17 +91,20 @@ void Steerable::buildSCFpyrLevs(Steerable::data_ref loDft, vector<Steerable::dat
 	cv::Mat ag0mask;
 	cv::Mat shiftfactor(loDft.size().height,loDft.size().width,loDft.type(),mylib::complexToScalar(pow(std::complex<double>(0,-1),nDir-1))); 
 	data_type imbp = loDft.FreqComplexFilter(hi1mask);
-
-	for (int i=0; i< nDir; i++)
+	if (nDir==1)
+	  rst.push_back(imbp);
+	else
 	{
-		ag0mask = angleFilter(loDft.size().height,nDir,i);
-		//mylib::DisplayMat(ag0mask);
-		ag0mask = toComplex(ag0mask);
-		ag0mask = mylib::FreqComplexFilter(ag0mask,shiftfactor);
+	  for (int i=0; i< nDir; i++)
+	  {
+		  ag0mask = angleFilter(loDft.size().height,nDir,i);
+		  //mylib::DisplayMat(ag0mask);
+		  ag0mask = toComplex(ag0mask);
+		  ag0mask = mylib::FreqComplexFilter(ag0mask,shiftfactor);
 	
 		rst.push_back(imbp.FreqComplexFilter(ag0mask));
-	}
-
+	  }
+  }
 	if (subsample)
 		next_twidth = twidth;
 	else
@@ -480,6 +483,12 @@ vector<Steerable::data_type>& Steerable::getSpaceDomainPyr(void)
 {
 	return this->pyr_space;
 }
+
+vector<Steerable::data_type>& Steerable::getPyr(void)
+{
+  return this->pyr_freq;
+}
+
 //
 //
 cv::Mat Steerable::DFTShift(cv::Mat & A)

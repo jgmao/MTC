@@ -372,6 +372,8 @@ cv::Mat mylib::getChannel(const cv::Mat& im, int n)
 int mylib::combination(int fromNum, int selectNum)
 {
 	double r; 
+	if (selectNum>fromNum)
+	  return 0;
 	r = factorial(fromNum)/factorial(selectNum)/factorial(fromNum - selectNum);
 	return (int)r;
 }

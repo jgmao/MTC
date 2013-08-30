@@ -149,7 +149,7 @@ int Metric::computeStats(const Tensor<double,1>& im, FeaturePoolType pooltype)
   pairNum=1;
   coeffNum=0;
   stats = vector<vector<Tensor<double,2>>>(1);
-  stats[0] = ComputeStatistics(im, subwinSize,subwinStep,this->subsample,changeWin,3,4,FilterBoundary::FILTER_BOUND_EXTEND,pooltype);
+  stats[0] = ComputeStatistics(im, subwinSize,subwinStep,this->subsample,changeWin,3,1,FilterBoundary::FILTER_BOUND_EXTEND,pooltype,true);
   coeffNum=0;
   coeff_in_band.clear();
   for (auto t : stats[0])
@@ -283,8 +283,10 @@ int Metric::computeFeatures(string searchPattern, string searchExt)
 int Metric::computeFeatures(const vector<vector<Tensor<double,2>>>& stats)
 {
  // cout<<pairNum<<","<<featureNum<<","<<coeff_in_band[0]<<endl;
-   f = Mat(pairNum*coeff_in_band[0],(Nsc*Nor+2)*featureNum*2,CV_64F);
-   Rect roi;
+  //cout<<"number of features are"<<  stats[0].size()<<endl;
+  f = Mat(pairNum*coeff_in_band[0],(Nsc*Nor+2)*featureNum*2+2*(mylib::combination(Nor,2)*Nsc+(Nsc-1)*Nor),CV_64F);
+  //cout<<(Nsc*Nor+2)*featureNum*2+2*(mylib::combination(Nor,2)*Nsc+(Nsc-1)*Nor)<<endl;
+  Rect roi;
    for (unsigned int k=0; k<stats[0].size(); k++)
    {
       roi = Rect(k*2,0,2,coeff_in_band[k]);
@@ -762,6 +764,7 @@ void Metric::trainGranularity(string path, string scorefilepath,FeaturePoolType 
   //scorefile.open(path+"/subtestoutput.txt");
   vector<Mat> features;
   vector<double> scores;
+  vector<int> sizes;
   while(scorefile.getline(temp,1024))
   {
     string str(temp);
@@ -777,24 +780,44 @@ void Metric::trainGranularity(string path, string scorefilepath,FeaturePoolType 
     boost::regex_search(str,res,rx);
     int yesSize = Granulate::sz_idx[std::stoi(res[1])];
     int noSize = yesSize/2;
-
-
+    int xsSize = noSize/2;
+    int xlSize = 128;
     //the order is yes first, then no second
     scores.push_back(1.0);
     scores.push_back(-1.0);
+    scores.push_back(-2.0);
+
     //compute statistics using yesSize
     this->subwinSize=Size3(yesSize,yesSize,1);
     this->subwinStep=this->subwinSize;
     computeStats(org);
     computeFeatures(stats);
     features.push_back(f);
+     sizes.push_back(yesSize);
     //cout<<f.size()<<endl;
     this->subwinSize=Size3(noSize,noSize,1);
     this->subwinStep=this->subwinSize;
     computeStats(org);
     computeFeatures(stats);
-    //do LS
     features.push_back(f);
+ sizes.push_back(yesSize);
+    this->subwinSize=Size3(xsSize,xsSize,1);
+    this->subwinStep=this->subwinSize;
+    computeStats(org);
+    computeFeatures(stats);
+    features.push_back(f);
+     sizes.push_back(yesSize);
+    //if (xlSize<=128)
+    //{
+    this->subwinSize=Size3(xlSize,xlSize,1);
+    this->subwinStep=this->subwinSize;
+    computeStats(org);
+    computeFeatures(stats);
+    features.push_back(f);
+    scores.push_back(2.0);
+     sizes.push_back(yesSize);
+    // }
+
     //cout<<f.size()<<endl;
     //mylib::DisplayMat(f);
   }
@@ -803,7 +826,9 @@ void Metric::trainGranularity(string path, string scorefilepath,FeaturePoolType 
   Mat A(features.size(),coeffNum*2,CV_64F);
   Mat b(features.size(),1,CV_64F);
   Mat bl(features.size(),1,CV_64F);
-  cout<<features[0].at<double>(0,0)<<","<<features[1].at<double>(0,0)<<endl;
+  Mat ms(features.size(),1,CV_32F);
+  //cout<<features[0].at<double>(0,0)<<","<<features[1].at<double>(0,0)<<endl;
+  cout<<A.size()<<endl;
   for (unsigned int i=0; i< features.size(); i++)
   {
     Mat temp(coeffNum,2,CV_64F);
@@ -821,16 +846,25 @@ void Metric::trainGranularity(string path, string scorefilepath,FeaturePoolType 
     //mylib::DisplayMat(temp);
     temp.reshape(1,1).copyTo(A.row(i));
     b.at<double>(i,0) = scores[i];
+    if (scores[i]==1)
+      bl.at<double>(i,0)= 1;
+    else
+      bl.at<double>(i,0)=-1;
     //if (b.at<double>(i,0)>0.99)
     //  b.at<double>(i,0)=0.99;
     //if (b.at<double>(i,0)<0.01)
     //  b.at<double>(i,0)=0.01;
     //bl.at<double>(i,0) = log(b.at<double>(i,0)/(1 - b.at<double>(i,0)));
+
+   ms.at<float>(i,0)=float(sizes[i]);
   }
   mylib::DisplayMat(A,"A",true);
   mylib::DisplayMat(b,"b",true);
+  mylib::DisplayMat(bl,"bl",true);
+  mylib::DisplayMat(ms,"ms",true);
+
   ofstream coefffile;
-  coefffile.open("coeff_in_band.txt");
+  coefffile.open("./temp/coeff_in_band.txt");
   for (unsigned int i=0; i< coeff_in_band.size();i++)
   {
     coefffile<<coeff_in_band[i]<<";"<<endl;
@@ -838,9 +872,9 @@ void Metric::trainGranularity(string path, string scorefilepath,FeaturePoolType 
   coefffile.close();
   cout<<"feature exaction done"<<endl;
   //2. make a SVM
-  b.convertTo(label,CV_32F);
+  bl.convertTo(label,CV_32F);
   params.svm_type = SVM::NU_SVR;
-  params.kernel_type = SVM::LINEAR;
+  params.kernel_type = SVM::RBF;
   params.term_crit = TermCriteria(CV_TERMCRIT_ITER,100,1e-6);
   params.nu = 0.5;
   Mat floatA;

@@ -12,6 +12,7 @@ message("${Boost_LIBRARIES}")
 endif()
 
 #include("/usr/local/include")
+#set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
 set(CMAKE_CXX_FLAGS_DEBUG "-std=c++11 -O0 -g3 -Wall  ")
 set(CMAKE_CXX_FLAGS_RELEASE   "-std=c++11 -Ofast -Wall ")
 

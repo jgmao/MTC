@@ -1,6 +1,6 @@
 # Django settings for TPCSite project.
 import os
-DEBUG = False#True
+DEBUG = True#True
 TEMPLATE_DEBUG = DEBUG
 ROOT_DIR = os.path.join(os.path.dirname(__file__),'../')
 ADMINS = (

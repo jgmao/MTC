@@ -120,6 +120,7 @@ public:
 	cv::Mat convertTo(cv::Mat &A, int type = CV_8U);
 	//STBlock convertTo(STBlock &A, int type = CV_8U);
 	EXPORTLIB vector<data_type>& getSpaceDomainPyr(void); //get space domain
+	EXPORTLIB vector<data_type>& getPyr(void);
 };
 } 
 #endif

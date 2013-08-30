@@ -98,8 +98,11 @@ namespace metric
     {
       tc=tc.ExtendBoundary(tc.size()/2);
     }
-    sp.buildSCFpyr(tc,3,4,1,subsample);
-    vT& pyr = sp.getSpaceDomainPyr();
+    sp.buildSCFpyr(tc,nLevel,nDir,1,subsample);
+    //! instead of use Space domain, use freq domain
+    //vT& pyr = sp.getSpaceDomainPyr();
+    vT& pyr = sp.getPyr();
+    cout<<"subband size : "<<pyr.size()<<endl;
     //cout<<"size is: "<<ts.size()<<endl;
     //cout<<"print extended size: ";
     //tc.size().Print();
@@ -203,6 +206,7 @@ namespace metric
             {
               rho00[index] = ComputeRho( pyr[ lv*nDir + dr], pyr[ (lv+1)*nDir + dr],
                   subWinSizeLv,subWinStepLv);
+              //cout<<index<<endl;
               index++;
             }
 
@@ -213,6 +217,7 @@ namespace metric
               {
                 rho00[index] = ComputeRho(pyr[lv*nDir + dr],pyr[lv*nDir + p],
                     subWinSizeLv, subWinStepLv);
+               // cout<<index<<endl;
                 index++;
               }
         for (index=0; index<crossbandNum; index++)
@@ -220,6 +225,10 @@ namespace metric
             statistics.push_back(rho00[index].Clone());
           }
     }
+
+    cout<<"size of feature for window size: ";
+    subWinSize.Print();
+    cout<<"is "<<statistics[0].size()<<endl;
     for (unsigned int i=0; i<statistics.size(); i++)
     {
         //statistics[i].Print();
