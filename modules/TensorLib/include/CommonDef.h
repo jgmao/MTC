@@ -158,7 +158,10 @@ enum class FeaturePoolType :int {FEATURE_POOL_AVE,FEATURE_POOL_MIN,FEATURE_POOL_
 #endif
 
 
-
+#ifndef BOUND_DIR
+#define BOUND_DIR
+enum class BoundDir {UP,DOWN,LEFT,RIGHT,FRONT,BACK};//may be extern?
+#endif
 
 #endif
 #ifndef FOOT_ITEM
@@ -170,6 +173,28 @@ struct FootItem
     std::string bitstring;
 };
 #endif
+
+#ifndef DIRECTION
+#define DIRECTION
+
+enum class Directions	 {DIRECTION_VERTICAL,
+									DIRECTION_HORIZONTAL,
+									DIRECTION_CENTER,
+									DIRECTION_OTHER};
+
+enum class CornerPos {CORNER_NW,
+							  CORNER_SE};
+#endif
+
+#ifndef SOURCE_CODING_METHOD
+#define SOURCE_CODING_METHOD
+enum class SrcCodingMethod { JPEG_HUFF, HUFFMAN_CODE, UNARY_CODE};
+
+#endif
+
+
+
+
 
 
 }

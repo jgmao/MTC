@@ -108,6 +108,7 @@ namespace tensor{
     typedef const Vec<T,cn> c_value_type;
     typedef value_type& ref_type;
     typedef c_value_type& c_ref_type;
+
   public:
     /////////////2.1 constructor, copy  assignment and type conversion ////////////////////////
 
