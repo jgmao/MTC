@@ -1,11 +1,11 @@
-set(MTC_RUNNER_DIR ${MTC_MODULES_DIR}/Runner)
-set(MTC_TENSOR_DIR ${MTC_MODULES_DIR}/TensorLib)
-set(MTC_UTIL_DIR ${MTC_MODULES_DIR}/Utility)
-set(MTC_METRIC_DIR ${MTC_MODULES_DIR}/Metric)
+#set(MTC_RUNNER_DIR ${MTC_MODULES_DIR}/Runner)
+#set(MTC_TENSOR_DIR ${MTC_MODULES_DIR}/TensorLib)
+#set(MTC_UTIL_DIR ${MTC_MODULES_DIR}/Utility)
+#set(MTC_METRIC_DIR ${MTC_MODULES_DIR}/Metric)
 
 message("tensor dir is: ${MTC_TENSOR_DIR}")
-include_directories(${MTC_RUNNER_DIR}/include ${MTC_TENSOR_DIR}/include ${MTC_UTIL_DIR}/include ${MTC_METRIC_DIR}/include)
-set(com_link ${MTC_RUNNER_DIR}/src ${MTC_TENSOR_DIR} ${MTC_METRIC_DIR} ${MTC_UTIL_DIR})
+include_directories(${MTC_RUNNER_DIR}/include ${MTC_TENSORLIB_DIR}/include ${MTC_UTILITY_DIR}/include ${MTC_METRIC_DIR}/include)
+set(com_link ${MTC_RUNNER_DIR}/src ${MTC_TENSORLIB_DIR} ${MTC_METRIC_DIR} ${MTC_UTILITY_DIR})
 
 
 set(PROGRAMS gpussim testTensor main)

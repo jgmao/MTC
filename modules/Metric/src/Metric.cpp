@@ -42,7 +42,7 @@ bool Metric::readFiles(string path, string searchPattern, string searchExt)
   }
 #else
   DIR *dir;
-  class dirent *ent;
+  struct dirent *ent;
   dir = opendir(path.c_str());
 #endif
   do
@@ -96,6 +96,208 @@ bool Metric::readFiles(string path, string searchPattern, string searchExt)
   }
 #endif
 }
+
+vector<string> Metric::readFiles(string path, string searchPrefix, string searchPattern, string searchExt)
+{
+  char last = *path.rbegin();
+
+  if (last!='/')
+    path = path+"/";
+  last = *searchExt.begin();
+  if (last!='.')
+    searchExt="."+searchExt;
+
+  this->clustercount=0;
+
+#ifdef WIN32
+  string fullSearchPath = path + searchPrefix+"*"+searchExt;
+  WIN32_FIND_DATA FindData;
+  HANDLE hFind;
+  wstring wfullSearchPath;
+  wfullSearchPath.assign(fullSearchPath.begin(),fullSearchPath.end());
+  hFind = FindFirstFile( wfullSearchPath.c_str(), &FindData );
+  if( hFind == INVALID_HANDLE_VALUE )
+  {
+    cout << "Error searching directory\n";
+    return filenames;
+  }
+#else
+  DIR *dir;
+  struct dirent *ent;
+  dir = opendir(path.c_str());
+#endif
+
+
+  do
+  {
+    string filename;
+#ifdef WIN32
+    wstring wfilename= FindData.cFileName;
+    filename.assign(wfilename.begin(),wfilename.end());
+    filenames.push_back(filename);
+#else
+    if (!strcmp(ent->d_name,"." )) continue;
+    if (!strcmp(ent->d_name,"..")) continue;
+    string file_name = ent->d_name;
+    unsigned long found = file_name.rfind("."+searchExt);
+    if (found!=std::string::npos)
+    {
+        filename = path + "/" + file_name;
+        filenames.push_back(filename);
+        cout<<"Got: "<<file_name<<endl;
+    }
+#endif
+
+    std::smatch res;
+    //std::regex rx(searchPattern+"_([^]*)_(\\d+)"+searchExt);
+    std::regex rx(searchPrefix+searchPattern+searchExt);
+    std::regex_search(filename,res,rx);
+    std::cout << "class: "<<res[1] << " , num: " << res[2] << ", d? "<<res[3]<<"\n";
+    string cluster = string(res[1])+string(res[3]);
+    if (clusternames.find(cluster)==clusternames.end())
+    {
+      clusternames.insert(pair<string,int>(cluster,clustercount));
+      clustercount++;
+    }
+  }
+#ifdef WIN32
+  while( FindNextFile(hFind, &FindData) > 0 );
+  FindClose(path);
+#else
+  while ((ent=readdir(dir))!=NULL);
+  closedir(dir);
+#endif
+
+#ifdef WIN32
+  if( GetLastError() != ERROR_NO_MORE_FILES )
+  {
+    cout << "Something went wrong during searching\n";
+  }
+  else
+  {
+#endif
+    pairNum = filenames.size()*(filenames.size()-1)/2;
+    label = Mat(pairNum,1,CV_8S);
+    return filenames;
+#ifdef WIN32
+  }
+#endif
+}
+
+bool Metric::readFileData(string path, string searchPrefix, string searchPattern, string searchExt, int flag)
+{
+  char last = *path.rbegin();
+
+  if (last!='/')
+    path = path+"/";
+  last = *searchExt.begin();
+  if (last!='.')
+    searchExt="."+searchExt;
+
+  this->clustercount=0;
+#ifdef WIN32
+  WIN32_FIND_DATA FindData;
+  HANDLE hFind;
+  string fullSearchPath = path + searchPrefix+"*"+searchExt;
+  wstring wfullSearchPath;
+  wfullSearchPath.assign(fullSearchPath.begin(),fullSearchPath.end());
+  hFind = FindFirstFile( wfullSearchPath.c_str(), &FindData );
+
+  if( hFind == INVALID_HANDLE_VALUE )
+  {
+    cout << "Error searching directory\n";
+    return false;
+  }
+#else
+  DIR *dir;
+  struct dirent *ent;
+  dir = opendir(path.c_str());
+#endif
+
+  FNode* clusterHead, *clusterTail;
+  clusterHead = ftable;
+  clusterTail = ftable;
+  int inClusterCount=0;
+  int imagecount=0;
+  do
+  {
+    string filename;
+#ifdef WIN32
+    wstring wfilename= FindData.cFileName;
+    filename.assign(wfilename.begin(),wfilename.end());
+    filenames.push_back(filename);
+#else
+    if (!strcmp(ent->d_name,"." )) continue;
+    if (!strcmp(ent->d_name,"..")) continue;
+    string file_name = ent->d_name;
+    unsigned long found = file_name.rfind("."+searchExt);
+    if (found!=std::string::npos)
+    {
+        filename = path + "/" + file_name;
+        filenames.push_back(filename);
+        cout<<"Got: "<<file_name<<endl;
+    }
+#endif
+    std::smatch res;
+    //std::regex rx(searchPattern+"_([^]*)_(\\d+)"+searchExt);
+    std::regex rx(searchPrefix+searchPattern+searchExt);
+    std::regex_search(filename,res,rx);
+    std::cout << "class: "<<res[1] << " , num: " << res[2] << ", d? "<<res[3]<<"\n";
+    string cluster = string(res[1])+string(res[3]);
+    if (clusternames.find(cluster)==clusternames.end())
+    {
+      clusternames.insert(pair<string,int>(cluster,clustercount));
+      if (clusterHead==NULL)
+      {
+        clusterHead = new FNode(cluster,0);
+        ftable = clusterHead;
+      }
+      else
+      {
+        clusterTail->nextNode = NULL;
+        clusterHead->nextClass = new FNode(cluster,0);
+        clusterHead->clusterNumber = inClusterCount;
+        clusterHead = clusterHead->nextClass;
+      }
+      clusterTail = clusterHead;
+      clustercount++;
+      inClusterCount=0;
+    }
+    clusterTail->nextNode = new FNode(path+filename,stoi(string(res[2])),flag);
+    clusterTail->nextNode->clusterNumber = inClusterCount;
+    clusterTail->nextClass = clusterHead->nextClass;
+    clusterTail = clusterTail->nextNode;
+    inClusterCount++;
+    imagecount++;
+  }
+#ifdef WIN32
+  while( FindNextFile(hFind, &FindData) > 0 );
+  FindClose(path);
+#else
+  while ((ent = readdir(dir)) !=NULL);
+  closedir(dir);
+#endif
+  clusterHead->nextClass=NULL;
+  clusterTail->nextNode=NULL;
+  cout<<"No. of clusters:"<<clustercount<<endl;
+  cout<<"No. of images:"<<imagecount<<endl;
+#ifdef WIN32
+  if( GetLastError() != ERROR_NO_MORE_FILES )
+  {
+    cout << "Something went wrong during searching\n";
+    return false;
+  }
+  else
+  {
+#endif
+    pairNum = filenames.size()*(filenames.size()-1)/2;
+    label = Mat(pairNum,1,CV_8S);
+    return true;
+#ifdef WIN32
+  }
+#endif
+}
+
 
 int Metric::computeStats(string path, string searchPattern, string searchExt)
 {

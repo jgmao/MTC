@@ -191,7 +191,7 @@ template<class T, size_t cn> void Tensor<T,cn>::Display(int sec, int flag) const
 
 }
 //!20130815 move this to utility module inside Tensor (not mylib)
-/*!
+
 template<typename T, size_t cn> void Tensor<T,cn>::DisplayAll(std::vector<Tensor<T,cn>>& vts, int row, int col, bool save, string savename) const
 {
   Size3 padsz(0,0,0);
@@ -219,7 +219,7 @@ template<typename T, size_t cn> void Tensor<T,cn>::DisplayAll(std::vector<Tensor
   else
     all.Display();
 }
-*/
+
 
 template<class T, size_t cn> void Tensor<T,cn>::Load(string cFileName) 
 {

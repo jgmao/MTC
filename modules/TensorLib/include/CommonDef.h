@@ -54,10 +54,33 @@
 #include <vector>
 namespace tensor{
 //Marcos
-
+  //debug
+  //typedef uchar uchar;
+  #ifndef DEBUG_SYMBOL
+  #define DEBUG_SYMBOL
+  #define DEBUG_X 64//27*32
+  #define DEBUG_Y 64//
+  #define DEBUG_DISP_X -128
+  #define DEBUG_DISP_Y 0
+  #define DEBUG_SIZE -16
+  /*extern int DEBUG_X ;
+  extern int DEBUG_Y;
+  extern int DEBUG_DISP_X;
+  extern int DEBUG_DISP_Y;
+  extern int DEBUG_SIZE;*/
+  #endif
 #ifndef USE_GPU
 //#define USE_GPU
 #endif
+
+
+#ifdef WIN32
+#define EXPORTLIB __declspec(dllexport)
+#else
+#define EXPORTLIB
+#endif
+
+
 
 #ifndef BUFFERGPU
 #define BUFFERGPU
@@ -138,6 +161,16 @@ enum class FeaturePoolType :int {FEATURE_POOL_AVE,FEATURE_POOL_MIN,FEATURE_POOL_
 
 
 #endif
+#ifndef FOOT_ITEM
+#define FOOT_ITEM
+struct FootItem
+{
+    double value;
+    int bits;
+    std::string bitstring;
+};
+#endif
+
 
 }
 #endif

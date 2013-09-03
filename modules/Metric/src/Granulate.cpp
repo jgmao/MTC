@@ -32,7 +32,7 @@ namespace metric {
 #else
 
     DIR *dir;
-    class dirent *ent;
+    struct dirent *ent;
     dir = opendir(path.c_str());
     cout<<"path is: "<<path<<endl;
     cout<<"search ext is"<<searchExt<<endl;

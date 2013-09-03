@@ -1,6 +1,6 @@
-set(MTC_UTIL_DIR ${MTC_MODULES_DIR}/Utility)
-include_directories(${MTC_UTIL_DIR}/include)
-link_directories(${MTC_UTIL_DIR}/src)
+#set(MTC_UTIL_DIR ${MTC_MODULES_DIR}/Utility)
+include_directories(${MTC_UTILITY_DIR}/include)
+link_directories(${MTC_UTILITY_DIR}/src)
 set(PROGRAMS util )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")

@@ -124,7 +124,8 @@ namespace metric
             int hh = pyr[i].size().height/2 + pyr[i].size().height/4;
             int ww = pyr[i].size().width/2  + pyr[i].size().width/4;
             int dd = pyr[i].size().depth/2  + pyr[i].size().depth/4;
-            dd<1?dd=1:dd=dd;
+            if (dd<1)
+              dd=1;
             Cube roi(pyr[i].size().height/8, pyr[i].size().width/8, 0, hh,ww,dd); // temporaly use this /8
             pyr[i] = pyr[i](roi);//no size changed
           }
@@ -431,7 +432,8 @@ namespace metric
             int hh = pyrA[i].size().height/2 + pyrA[i].size().height/4;
             int ww = pyrA[i].size().width/2  + pyrA[i].size().width/4;
             int dd = pyrA[i].size().depth/2  + pyrA[i].size().depth/4;
-            dd<1?dd=1:dd=dd;
+            if (dd<1)
+              dd=1;
             //just half, dec 28 2012
             //int hh = pyrA[i].size().height/2;
             //int ww = pyrA[i].size().width/2;
@@ -531,7 +533,8 @@ namespace metric
           {
 
             double clipThrd = (mu_A[index].Abs().Sum()/double(mu_A[index].size().volumn()))[0]*0.1;
-            clipThrd>4?clipThrd=clipThrd:clipThrd=4;
+            if (clipThrd<4)
+              clipThrd=4;
             clipThrd = clipThrd*clipThrd;
             L[index] = ((mu_A[index]-mu_B[index])*((mu_A[index]-mu_B[index]).Conjugate())).Real().MaxClip(clipThrd);
             L[index] = Tensor<double,1>(mu_A[index].size(),Vec<double,1>(clipThrd)) - L[index];
@@ -552,7 +555,8 @@ namespace metric
             if (index == 12)//DC band only
               {
                 double clipThrd = (mu_A[index].Abs().Sum()/double(mu_A[index].size().volumn()))[0]*0.1;
-                clipThrd>4?clipThrd=clipThrd:clipThrd=4;
+                if (clipThrd<4)
+                  clipThrd=4;
                 //mu_A[index].Print("mu A");
                 //mu_B[index].Print("mu B");
                 clipThrd = clipThrd*clipThrd;
@@ -573,7 +577,8 @@ namespace metric
             if (index >=8 && index <= 12)//DC band only and lower band
               {
                 double clipThrd =(mu_A[index].Abs().Sum()/double(mu_A[index].size().volumn()))[0]*0.1;
-                clipThrd>4?clipThrd=clipThrd:clipThrd=4;
+                if (clipThrd<4)
+                  clipThrd=4;
                 //mu_A[index].Print("mu A");
                 //mu_B[index].Print("mu B");
                 clipThrd = clipThrd*clipThrd;

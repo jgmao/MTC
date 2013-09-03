@@ -9,6 +9,45 @@
 #include <opencv2/ml.hpp>
 #include <Granulate.h>
 namespace metric{
+
+#ifndef FNODE
+#define FNODE
+  class FNode
+  {
+  public:
+    string fname;//for the first node of each cluster this is the cluster name
+    int clusterNumber;//for the first node of each cluster this is the total number of image in the cluster
+    FNode* nextNode;
+    FNode* nextClass;
+    Mat data;
+    FNode(string fname,int clusterNumber)
+    {
+      this->fname = fname;
+      this->clusterNumber = clusterNumber;
+      data = cv::imread(fname,IMREAD_GRAYSCALE);
+    }
+    FNode(string fname,int clusterNumber, int flag)
+    {
+      this->fname = fname;
+      this->clusterNumber = clusterNumber;
+      data = cv::imread(fname,IMREAD_GRAYSCALE);
+      if (flag == 1) //crop center
+        data = data(Rect(data.size().width/4,data.size().height/4,data.size().width/2,data.size().height/2));
+      else if (flag==2)
+      {
+        Mat temp;
+        //temp = Tensor<UINT8,1>(data).SubSample(Size3(2,2,1)).GetFrame(0);
+        //cv::resize(data,temp,Size(data.size().width/2,data.size().height/2),0.5,0.5,CV_INTER_AREA);
+        cv::pyrDown(data,temp,Size(temp.cols/2,temp.rows/2));
+        data = temp.clone();
+      }
+    }
+    FNode(){}
+  };
+#endif
+
+
+
 #ifndef METRIC_H
 #define METRIC_H
 #ifdef WINDOWS
@@ -46,6 +85,8 @@ public:
   Metric();
 public:
   bool readFiles(string path, string searchPattern, string searchExt);
+  vector<string> readFiles(string path, string searchPrefix, string searchPattern, string searchExt);
+  bool readFileData(string path, string searchPrefix, string searchPattern, string searchExt, int flag);
   double computeMetric(const Tensor<double,1>& im1, const Tensor<double,1>& im2);
   double computeMetricLSE(const Tensor<double,1>& im1, const Tensor<double,1>& im2);
   int computeStats(string path, string searchPattern, string searchExt);
@@ -97,6 +138,7 @@ protected:
   SVM s;
   SVMParams params;
   Mat weights;
+  FNode* ftable;
   void saveGamma(string filename,const vector<vector<Mat_<double>>>& gamma);
   void loadGamma(string filename, vector<vector<Mat_<double>>>& gamma);
   void saveLambda(string filename, const vector<vector<double>>& lambda);
