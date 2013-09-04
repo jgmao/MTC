@@ -109,8 +109,8 @@ bool PoissonSolver::buildLCMatrix(Eigen::SparseMatrix<T> &A, Eigen::Matrix<T, Ei
   b = Eigen::VectorXd(nz);
   u = Eigen::VectorXd(nz);
   int rowA = 0;
-  int bh = h-2;
-  int bw = w-2;
+  //int bh = h-2;
+  //int bw = w-2;
   A.reserve(5*nz);
   //mylib::DisplayMat(mask1,"mask1");
   //mylib::DisplayMat(laplacian_cand,"lap");
@@ -138,7 +138,7 @@ bool PoissonSolver::buildLCMatrix(Eigen::SparseMatrix<T> &A, Eigen::Matrix<T, Ei
     if(*p==0) continue;
     int id = y*(w*ch)+(x*ch);
     int tidx=id-ch*w, lidx=id-ch, ridx=id+ch, bidx=id+ch*w; //index of up, left, right, down in sparse matrix A
-    double temp=0;	
+    //double temp=0;
     uchar tlrb = 15; // 0b1111
     //disabled//20130528, solve lighting itself, and add it to candid
     //disabled//*drv = 0; 
@@ -401,8 +401,8 @@ bool PoissonSolver::buildPostLCMatrix(Eigen::SparseMatrix<T> &A, Eigen::Matrix<T
   b = Eigen::VectorXd(nz);
   u = Eigen::VectorXd(nz);
   int rowA = 0;
-  int bh = h-2;
-  int bw = w-2;
+  //int bh = h-2;
+  //int bw = w-2;
   A.reserve(5*nz);
   //mylib::DisplayMat(mask1,"mask1");
   //mylib::DisplayMat(laplacian_cand,"lap");
@@ -418,7 +418,7 @@ bool PoissonSolver::buildPostLCMatrix(Eigen::SparseMatrix<T> &A, Eigen::Matrix<T
     if(*p==0) continue;
     int id = y*(w*ch)+(x*ch);
     int tidx=id-ch*w, lidx=id-ch, ridx=id+ch, bidx=id+ch*w; //index of up, left, right, down in sparse matrix A
-    double temp=0;	
+    //double temp=0;
     uchar tlrb = 15; // 0b1111
     if(mask1.at<double>(y-1,x)==0)//up
     { 
@@ -521,8 +521,8 @@ bool PoissonSolver::buildStichingMatrix(Eigen::SparseMatrix<T> &A, Eigen::Matrix
   b = Eigen::VectorXd(nz);
   u = Eigen::VectorXd(nz);
   int rowA = 0;
-  int bh = h-2;
-  int bw = w-2;
+  //int bh = h-2;
+  //int bw = w-2;
   A.reserve(5*nz);
   for(int y=1; y<h-1; ++y) {
     double *p = mask1.ptr<double>(y)+1;
@@ -533,7 +533,7 @@ bool PoissonSolver::buildStichingMatrix(Eigen::SparseMatrix<T> &A, Eigen::Matrix
  
       int id = y*(w*ch)+(x*ch);
       int tidx=id-ch*w, lidx=id-ch, ridx=id+ch, bidx=id+ch*w; //index of up, left, right, down in sparse matrix A
-	  double temp=0;	
+          //double temp=0;
 //	  cout<<tar1;
       uchar tlrb = 15; // 0b1111
       if(mask1.at<double>(y-1,x)==0) {
@@ -710,8 +710,8 @@ void PoissonSolver::gradientStiching(cv::Mat& _dst, int offx, int offy)
 	cv::Mat N_old,W,temp;
 	NI = cv::Mat::ones(laplacian_cand.size(),laplacian_cand.type());
 	W=cv::Mat::zeros(laplacian_cand.size(),laplacian_cand.type());
-	double dev=DBL_MAX;
-	cv::Mat dstCln = dst1.clone();
+//	double dev=DBL_MAX;
+	//cv::Mat dstCln = dst1.clone();
 	//mylib::DisplayMat(mask1);
 	for (int iter=1; iter< T; iter++)
 	{
@@ -957,7 +957,7 @@ vector<double> PoissonSolver::interpFeet(vector<FootType>& feet, Point spos, Poi
   //sort
   //cout<<"sorting...."<<idx.size()<<"\n";
   std::sort(idx.begin(),idx.end());
-  for (int i=0; i<idx.size()-1; i++)
+  for (unsigned int i=0; i<idx.size()-1; i++)
   {
    // cout<<rst[idx[i+1]]<<endl;
     //cout<<rst[idx[i]]<<endl;

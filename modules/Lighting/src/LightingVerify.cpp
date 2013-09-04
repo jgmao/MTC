@@ -71,7 +71,7 @@ vector<double>& LightingVerify::doPLC(int blksize, int bdsize, int fsize )
   estimateLight(originalImages,lightingOrg,blksize,bdsize,fsize);
   estimateLight(correctedImages,lightingRst,blksize,bdsize,fsize); 
 
-  for (int i=0; i< fnames.size(); i++)
+  for (unsigned int i=0; i< fnames.size(); i++)
   {
     double temp = ComputeMSE(lightingOrg[i],lightingRst[i]);
     MSEs.push_back(temp);///double(lightingOrg[i].size().area())
@@ -144,7 +144,7 @@ void LightingVerify::saveResults(string folder)
   mkdir(path.c_str(),0755);
 # endif
   fp.open(path+"mse.txt",ios::out);
-  for (int i=0; i< fnames.size();i++)
+  for (unsigned int i=0; i< fnames.size();i++)
   {
     vector<Tensor<double,1>> dummy;
     Tensor<double,1> temp = this->originalImages[i];    

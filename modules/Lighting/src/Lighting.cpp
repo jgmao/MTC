@@ -32,7 +32,7 @@ Mat Lighting::LSFitting(const Mat& im, int order) const
 				t(count,0,0) = ts(i,j,0);
 				count++;
 			}
-			for (int i=0; i< cn; i++)
+			for (unsigned int i=0; i< cn; i++)
 			{
 				rst[i] = (H[i].t() * H[i]).inv()*(H[i].t()*t[i]);
 			}
@@ -56,7 +56,7 @@ Mat Lighting::LSFitting(const Mat& im, int order) const
 				t(count,0,0)=ts(i,j,0);
 				count++;
 			}
-			for (int i=0; i< cn; i++)
+			for (unsigned int i=0; i< cn; i++)
 			{
 				rst[i] = (H[i].t() * H[i]).inv()*(H[i].t()*t[i]);
 			}
@@ -148,7 +148,7 @@ Mat Lighting::LightingCorrection(Mat& changeFrom, const Mat& changeTo,bool saveC
 	//	mylib::DisplayMat(fcand[i]);
 		for (int x=0; x<flit[i].size().height; x++)
 			for (int y=0; y<flit[i].size().width; y++)
-				for (int cc=0; cc< cn; cc++)
+				for (unsigned int cc=0; cc< cn; cc++)
 				{
 					if ((x+y>2) || (lf == 4 && x>=2 && y>=2))
 					{
