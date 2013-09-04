@@ -1,7 +1,7 @@
 #set(MTC_TENSOR_DIR ${MTC_MODULES_DIR}/TensorLib)
 include_directories(${MTC_TENSORLIB_DIR}/include ${MTC_UTILITY_DIR}/include ${MTC_LIGHTING_DIR}/include)
 #link_directories(${MTC_TENSOR_DIR}/src)
-set(PROGRAMS Size3 Cube TensorLite CubePlus QNode)
+set(PROGRAMS Size3 Cube TensorLite)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Debug/lib)
@@ -35,8 +35,8 @@ endforeach(program)
 
 
 #build to a single one
-#add_library(TensorLib SHARED ${all_src})
-#target_link_libraries(TensorLib ${OpenCV_LIBS})
+add_library(TensorLib SHARED ${all_src})
+target_link_libraries(TensorLib ${OpenCV_LIBS} util)
 
 
 

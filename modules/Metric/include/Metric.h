@@ -6,7 +6,9 @@
 #include <boost/regex.hpp>
 #include <algorithms.h>
 #include <regex>
+#if (CV_MINOR_VERSION > 5)
 #include <opencv2/ml.hpp>
+#endif
 #include <Granulate.h>
 namespace metric{
 

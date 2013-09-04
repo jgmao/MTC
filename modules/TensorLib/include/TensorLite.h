@@ -68,11 +68,13 @@
 #define TENSORLITE_H
 #include "CommonDef.h"
 #include <opencv2/opencv.hpp>
+#if CV_MINOR_VERSION >5
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/gpuarithm.hpp>
 #include <opencv2/gpufilters.hpp>
 #include <opencv2/gpuimgproc.hpp>
+#endif
 
 //#include <cv.h>
 //#include "highgui.h"

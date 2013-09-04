@@ -64,3 +64,6 @@ Makefile
 *_log*
 *_Ts*
 *.pyc
+*.make
+link.txt
+

@@ -1,14 +1,18 @@
 #include <iostream>                   // Console I/O
 #include <sstream>                    // String to number conversion
-
+#if (CV_MINOR_VERSION > 5)
 #include <opencv2/core.hpp>      // Basic OpenCV structures
 #include <opencv2/core/utility.hpp>
 #include <opencv2/imgproc.hpp>// Image processing methods for the CPU
 #include <opencv2/highgui.hpp>// Read images
-
 // GPU structures and methods
 #include <opencv2/gpuarithm.hpp>
 #include <opencv2/gpufilters.hpp>
+
+#else
+#include <opencv2/opencv.hpp>
+#include <opencv2/gpu/gpu.hpp>
+#endif
 
 using namespace std;
 using namespace cv;
@@ -311,9 +315,11 @@ Scalar getMSSIM_GPU( const Mat& i1, const Mat& i2)
     gpu::split(tmp1, vI1);
     gpu::split(tmp2, vI2);
     Scalar mssim;
-
+#if (CV_MINOR_VERSION >5)
     Ptr<gpu::Filter> gauss = gpu::createGaussianFilter(vI2[0].type(), -1, Size(11, 11), 1.5);
-
+#else
+    cv::Ptr<gpu::FilterEngine_GPU> gauss=gpu::createGaussianFilter_GPU(vI2[0].type(), Size(11, 11), 1.5);
+#endif
     for( int i = 0; i < gI1.channels(); ++i )
     {
         gpu::GpuMat I2_2, I1_2, I1_I2;
@@ -380,9 +386,12 @@ Scalar getMSSIM_GPU_optimized( const Mat& i1, const Mat& i2, BufferMSSIM& b)
     gpu::split(b.t1, b.vI1, stream);
     gpu::split(b.t2, b.vI2, stream);
     Scalar mssim;
-
+#if (CV_MINOR_VERSION >5)
     Ptr<gpu::Filter> gauss = gpu::createGaussianFilter(b.vI1[0].type(), -1, Size(11, 11), 1.5);
-
+#else
+    cv::Ptr<gpu::FilterEngine_GPU> gauss= gpu::createGaussianFilter_GPU(b.vI1[0].type(), Size(11, 11), 1.5);
+#endif
+#if (CV_MINOR_VERSION >5)
     for( int i = 0; i < b.gI1.channels(); ++i )
     {
         gpu::multiply(b.vI2[i], b.vI2[i], b.I2_2, 1, -1, stream);        // I2^2
@@ -432,5 +441,6 @@ Scalar getMSSIM_GPU_optimized( const Mat& i1, const Mat& i2, BufferMSSIM& b)
         mssim.val[i] = s.val[0] / (b.ssim_map.rows * b.ssim_map.cols);
 
     }
+#endif
     return mssim;
 }

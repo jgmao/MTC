@@ -30,19 +30,22 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /usr/bin/cmake
+CMAKE_COMMAND = /opt/local/bin/cmake
 
 # The command to remove a file.
-RM = /usr/bin/cmake -E remove -f
+RM = /opt/local/bin/cmake -E remove -f
+
+# Escaping for special characters.
+EQUALS = =
 
 # The program to use to edit the cache.
-CMAKE_EDIT_COMMAND = /usr/bin/cmake-gui
+CMAKE_EDIT_COMMAND = /opt/local/bin/ccmake
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/guoxin/Projects/MTC
+CMAKE_SOURCE_DIR = /Users/guoxinjin/Projects/MTC
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/guoxin/Projects/MTC
+CMAKE_BINARY_DIR = /Users/guoxinjin/Projects/MTC
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -50,7 +53,7 @@ CMAKE_BINARY_DIR = /home/guoxin/Projects/MTC
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake cache editor..."
-	/usr/bin/cmake-gui -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	/opt/local/bin/ccmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : edit_cache
 
 # Special rule for the target edit_cache
@@ -60,7 +63,7 @@ edit_cache/fast: edit_cache
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	/opt/local/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : rebuild_cache
 
 # Special rule for the target rebuild_cache
@@ -69,14 +72,14 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	cd /home/guoxin/Projects/MTC && $(CMAKE_COMMAND) -E cmake_progress_start /home/guoxin/Projects/MTC/CMakeFiles /home/guoxin/Projects/MTC/modules/Utility/CMakeFiles/progress.marks
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/Utility/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/guoxin/Projects/MTC/CMakeFiles 0
+	cd /Users/guoxinjin/Projects/MTC && $(CMAKE_COMMAND) -E cmake_progress_start /Users/guoxinjin/Projects/MTC/CMakeFiles /Users/guoxinjin/Projects/MTC/modules/Utility/CMakeFiles/progress.marks
+	cd /Users/guoxinjin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/Utility/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/guoxinjin/Projects/MTC/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/Utility/clean
+	cd /Users/guoxinjin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/Utility/clean
 .PHONY : clean
 
 # The main clean target
@@ -85,22 +88,22 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/Utility/preinstall
+	cd /Users/guoxinjin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/Utility/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/Utility/preinstall
+	cd /Users/guoxinjin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/Utility/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /home/guoxin/Projects/MTC && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /Users/guoxinjin/Projects/MTC && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
 # Convenience name for target.
 modules/Utility/CMakeFiles/util.dir/rule:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/Utility/CMakeFiles/util.dir/rule
+	cd /Users/guoxinjin/Projects/MTC && $(MAKE) -f CMakeFiles/Makefile2 modules/Utility/CMakeFiles/util.dir/rule
 .PHONY : modules/Utility/CMakeFiles/util.dir/rule
 
 # Convenience name for target.
@@ -109,7 +112,7 @@ util: modules/Utility/CMakeFiles/util.dir/rule
 
 # fast build rule for target.
 util/fast:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Utility/CMakeFiles/util.dir/build.make modules/Utility/CMakeFiles/util.dir/build
+	cd /Users/guoxinjin/Projects/MTC && $(MAKE) -f modules/Utility/CMakeFiles/util.dir/build.make modules/Utility/CMakeFiles/util.dir/build
 .PHONY : util/fast
 
 src/MyLib.o: src/MyLib.cpp.o
@@ -117,7 +120,7 @@ src/MyLib.o: src/MyLib.cpp.o
 
 # target to build an object file
 src/MyLib.cpp.o:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Utility/CMakeFiles/util.dir/build.make modules/Utility/CMakeFiles/util.dir/src/MyLib.cpp.o
+	cd /Users/guoxinjin/Projects/MTC && $(MAKE) -f modules/Utility/CMakeFiles/util.dir/build.make modules/Utility/CMakeFiles/util.dir/src/MyLib.cpp.o
 .PHONY : src/MyLib.cpp.o
 
 src/MyLib.i: src/MyLib.cpp.i
@@ -125,7 +128,7 @@ src/MyLib.i: src/MyLib.cpp.i
 
 # target to preprocess a source file
 src/MyLib.cpp.i:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Utility/CMakeFiles/util.dir/build.make modules/Utility/CMakeFiles/util.dir/src/MyLib.cpp.i
+	cd /Users/guoxinjin/Projects/MTC && $(MAKE) -f modules/Utility/CMakeFiles/util.dir/build.make modules/Utility/CMakeFiles/util.dir/src/MyLib.cpp.i
 .PHONY : src/MyLib.cpp.i
 
 src/MyLib.s: src/MyLib.cpp.s
@@ -133,7 +136,7 @@ src/MyLib.s: src/MyLib.cpp.s
 
 # target to generate assembly for a file
 src/MyLib.cpp.s:
-	cd /home/guoxin/Projects/MTC && $(MAKE) -f modules/Utility/CMakeFiles/util.dir/build.make modules/Utility/CMakeFiles/util.dir/src/MyLib.cpp.s
+	cd /Users/guoxinjin/Projects/MTC && $(MAKE) -f modules/Utility/CMakeFiles/util.dir/build.make modules/Utility/CMakeFiles/util.dir/src/MyLib.cpp.s
 .PHONY : src/MyLib.cpp.s
 
 # Help Target
@@ -159,6 +162,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /home/guoxin/Projects/MTC && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /Users/guoxinjin/Projects/MTC && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

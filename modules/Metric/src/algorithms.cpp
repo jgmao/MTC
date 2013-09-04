@@ -249,7 +249,11 @@ namespace metric
 
     if (im11.size()!= im12.size())
       {
+#if (CV_MINOR_VERSION >5)
         CV_Error(Error::StsUnmatchedSizes,"im11,im12 must in same size");
+#else
+        CV_Error(CV_StsUnmatchedSizes,"im11,im12 must in same size");
+#endif
       }
 
     const double C = 0.0001;

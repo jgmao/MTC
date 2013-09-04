@@ -130,8 +130,11 @@ template<class T, size_t cn> void Tensor<T,cn>::Display(int flag) const
       	
 	if (cFileName.empty())
 		tempName="Unknown";
-
+#if (CV_MINOR_VERSION < 5)
+	cv::namedWindow(tempName,flag|CV_WINDOW_FREERATIO/*|CV_GUI_EXPANDED*/);
+#else
 	cv::namedWindow(tempName,flag|WINDOW_FREERATIO/*|CV_GUI_EXPANDED*/);//if Qt enabled, you can uncomment this
+#endif
 	cv::moveWindow(tempName.c_str(),100,100);
 	
 	if (tsSize.depth==1)
@@ -168,7 +171,11 @@ template<class T, size_t cn> void Tensor<T,cn>::Display(int sec, int flag) const
 
 	if (cFileName.empty())
 		tempName="Unknown";
+#if (CV_MINOR_VERSION > 5)
 	cv::namedWindow(tempName,flag|WINDOW_KEEPRATIO/*|CV_GUI_EXPANDED*/);//if Qt enabled, you can uncomment this
+#else
+	cv::namedWindow(tempName,flag|CV_WINDOW_KEEPRATIO/*|CV_GUI_EXPANDED*/);//if Qt enabled, you can uncomment this
+#endif
 	cv::moveWindow(tempName.c_str(),100,100);
 
 	if (tsSize.depth==1)
@@ -617,7 +624,11 @@ template<class T, size_t cn> void Tensor<T,cn>::SaveBlock(const string& cFileNam
 {
 	if (size().depth>1)
 	{
+#if (CV_MINOR_VERSION > 5)
 		cv::VideoWriter vd(cFileName+".avi",cv::VideoWriter::fourcc('D','I','B',' '),30, cv::Size(size().width,this-> size().height),true);
+#else
+	    cv::VideoWriter vd(cFileName+".avi", CV_FOURCC('D','I','B',' '),30, cv::Size(size().width,this-> size().height),true);
+#endif
 		for (int i=0;i<this-> size().depth;i++)
 		{
 

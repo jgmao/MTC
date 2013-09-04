@@ -4,6 +4,7 @@
 #set(MTC_METRIC_DIR
 include_directories(${MTC_TENSORLIB_DIR}/include ${MTC_UTILITY_DIR}/include ${MTC_LIGHTING_DIR}/include ${EIGEN3_INCLUDE_DIR} ${MTC_METRIC_DIR}/include)
 #link_directories(${MTC_TENSOR_DIR}/src)
+#message("${EIGEN3_INCLUDE_DIR}")
 #set(common_link_dir  ${MTC_TENSOR_DIR} ${MTC_LT_DIR}/src ${MTC_UTIL_DIR})
 set(PROGRAMS ThinPlateSpline PoissonSolver LightingVerify Lighting)
 
