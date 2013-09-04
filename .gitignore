@@ -54,6 +54,7 @@ release
 Release
 CMakeFiles
 Makefile
+Makefile*
 *.config
 *.creator
 *.files
@@ -66,4 +67,5 @@ Makefile
 *.pyc
 *.make
 link.txt
+*.swp
 
