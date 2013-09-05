@@ -49,10 +49,11 @@ Thumbs.db
 *.so
 *.dylib
 debug
-Debug
+Debug/
 release
-Release
-CMakeFiles
+Release/
+CMakeFiles/
+*CMakeFiles/
 Makefile
 Makefile*
 *.config

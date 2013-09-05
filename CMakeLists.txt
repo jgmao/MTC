@@ -5,7 +5,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  set(OS "Linunx")
+  set(OS "Linux")
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "WINDOWS")
@@ -42,10 +42,16 @@ message("${EIGEN3_INCLUDE_DIR}" )
 
 
 #include("/usr/local/include")
-set(CMAKE_CXX_COMPILER "/opt/local/bin/g++")
 
-set(CMAKE_CXX_FLAGS_DEBUG "-std=c++11  -O0 -g3 -Wall")
-set(CMAKE_CXX_FLAGS_RELEASE   "-std=c++11 -stdlib=libc++ -Ofast -Wall ")
+if("${OS}" MATCHES "MacOSX")
+set(CMAKE_CXX_COMPILER "/opt/local/bin/g++")
+else()
+set(CMAKE_CXX_COMPILER "clang++")
+endif()
+message("${CMAKE_CXX_COMPILER}")
+
+set(CMAKE_CXX_FLAGS_DEBUG "-std=c++11 -O0 -g3 -Wall")
+set(CMAKE_CXX_FLAGS_RELEASE   "-std=c++11 -O3 -DNDEBUG -Wall ")
 
 if( NOT CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Debug CACHE STRING

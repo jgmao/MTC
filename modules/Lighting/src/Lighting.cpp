@@ -209,16 +209,16 @@ Mat Lighting::LightingCorrection(Mat& changeFrom, const Mat& changeTo,bool saveC
 	//this->SetBlock((*this) + BuildLightingPlane(tempTagLighting - tempCanLighting));
 }
 
-Mat Lighting::LightingCorrection(Mat& changeFrom, const Mat& changeTo, const Tensor<double,1>& VQCodebook, vector<Vec<double,1> > & lightTag,vector<Vec<double,1> >& lightCan)
+Mat Lighting::LightingCorrection(Mat& changeFrom, const Mat& changeTo, const Tensor<double,1>& VQCodebook)
 {
 	//do this after quilting
 	//change to is the original block (the lighting should be)
 	Tensor<double,1> tempTagLighting = LSFitting(changeFrom);
 	Tensor<double,1> tempCanLighting = LSFitting(changeTo);
 	for (int i=0; i< tempTagLighting.size().height; i++)
-		lightTag.push_back(tempTagLighting(i,0,0));
+		this->lightTag.push_back(tempTagLighting(i,0,0));
 	for (int j=0; j< tempCanLighting.size().height; j++)
-		lightCan.push_back(tempCanLighting(j,0,0));
+		this->lightCan.push_back(tempCanLighting(j,0,0));
 	//tempTagLighting.Print();
 	//SearchCodeword(tempTagLighting,VQCodebook).Print();
 	//tempCanLighting.Print();
@@ -286,7 +286,57 @@ Mat Lighting::ComputeTPSS(const Mat& im, double p) const
   }
   return G;
 }
+int Lighting::GetLightingCodeLength(void) const
+{
+	return this->codeLength;
+}
+void Lighting::SetLightingCodeLength(int l)
+{
+	this->codeLength=l;
+}
 
+
+
+
+void Lighting::RecordLighting(void)
+{
+  fstream lightfile;
+  lightfile.open("./lighting.txt",ios::app);
+
+  for (unsigned int i=0; i< lightingDCTCoeffStat.size(); i++)
+    lightfile<<lightingDCTCoeffStat[i]<<endl;
+  lightfile.close();
+}
+
+Mat Lighting::ComputeSAT(const Mat& im) const
+{
+  //2D only
+  CV_Assert(im.channels()==1);
+  Tensor<double,1> temp(im);
+  Tensor<double,1> S = temp.ExtendHalfBoundary();
+  
+  Point3i pos(im.size().height-1, im.size().width-1,0);
+  
+  S = this->ComputeSAT(S,Point3i(0,0,0),pos);
+//  for ( int i=1; i< this->tsSize.height+1; i++)
+//    for (int j=1; j<this->tsSize.width+1; j++)
+//    {
+//      S(i,j,0)=S(i-1,j,0)+S(i,j-1,0)-S(i-1,j-1,0)+S(i,j,0);
+//    } 
+  return S;
+}
+Mat Lighting::ComputeSAT(const Mat& S, const Point3i& sPos, const Point3i& ePos) const
+{
+  //remember S is extended boundary by 1 to the left and up (zeros)
+  Mat SAT=S;
+  for (int i = sPos.x+1; i <= ePos.x+1; i++)
+    for (int j=sPos.y+1; j <= ePos.y +1; j++)
+    {
+      SAT.at<double>(i,j)=SAT.at<double>(i-1,j)+SAT.at<double>(i,j-1)-SAT.at<double>(i-1,j-1)+SAT.at<double>(i,j);
+    }
+  return SAT;
+
+}
 }
 
 

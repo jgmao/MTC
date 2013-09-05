@@ -26,13 +26,14 @@ endif()
 
 
 foreach(program ${PROGRAMS})
-  add_library(${program} src/${program}.cpp)
-  target_link_libraries(${program} ${OpenCV_LIBS} ${Boost_LIBRARIES} TensorLib util)
+  #add_library(${program} src/${program}.cpp)
+  #target_link_libraries(${program} ${OpenCV_LIBS} ${Boost_LIBRARIES} TensorLib util)
   #install(TARGETS ${PROGRAMS}
+  set(all_src ${all_src} src/${program}.cpp)
 #	RUNTIME DESTINATION ${MTC_SOURCE_DIR}/bin
 #	LIBRARY DESTINATION ${MTC_SOURCE_DIR}/lib
 #	ARCHIVE DESTINATION ${MTC_SOURCE_DIR}/lib
 # )
 endforeach(program)
-
-
+add_library(LightingLib SHARED ${all_src})
+target_link_libraries(LightingLib ${OpenCV_LIBS} util ${Boost_LIBRARIES} TensorLib)

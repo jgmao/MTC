@@ -140,12 +140,13 @@ public:
   
 	int compareInsert(double d, cv::Point3i pos)
 	{
-    std::lock_guard<std::mutex> guard(mymutex);    list<CandidateRecord>::iterator iter=rec.begin();
+    std::lock_guard<std::mutex> guard(mymutex);
+    list<CandidateRecord>::iterator iter=rec.begin();
     CandidateRecord temp;
     temp.addr = pos;
     temp.data = d;
 		int count=0;
-		for (iter;iter!=rec.end();iter++)
+		for (iter=rec.begin();iter!=rec.end();iter++)
 		{
 			if (iter->data<d)
 			{
@@ -162,7 +163,7 @@ public:
 	{
     vector<cv::Point3i> address;
     list<CandidateRecord>::iterator iter=rec.begin();
-    for (iter;iter!=rec.end();iter++)
+    for (iter=rec.begin();iter!=rec.end();iter++)
 		{
       address.push_back(iter->addr);
     }
@@ -304,7 +305,7 @@ public:
     std::lock_guard<std::mutex> guard(mymutex);
 		vector<double>::iterator iter=data.begin();
 		int count=0;
-		for (iter;iter!=data.end();iter++)
+		for (iter=data.begin();iter!=data.end();iter++)
 		{
 			if ((*iter)<d)
 			{

@@ -106,8 +106,8 @@ public:
 		iterator it = find(key);
 		if (it!=end())
 		{
-      int extSize = max(it->second.GetExtraContent().size().height,it->second.GetExtraContent().size().width);
-      int osize = min(it->second.GetExtraContent().size().height,it->second.GetExtraContent().size().width);
+      //int extSize = max(it->second.GetExtraContent().size().height,it->second.GetExtraContent().size().width);
+      //int osize = min(it->second.GetExtraContent().size().height,it->second.GetExtraContent().size().width);
 			//big to small case A 
 			if (val.height< it->second.height && it->first.direction==BoundDir::LEFT) //Big to small case A - vertical
 				this->operator[](PBRecord(it->first.offset+Point3i(val.height,0,0),it->first.direction)) = CubePlus(it->second.GetContent().Crop(Point3i(val.height,0,0),it->second.size()/2+Size3(0,0,1)),it->second.GetExtraContent()/*.Crop(Point3i(extSize/2-1,0,0),Size3(extSize/2+1,osize/2+1,1))*/);//-Size3(val.height,0,0));

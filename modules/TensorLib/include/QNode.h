@@ -56,10 +56,10 @@
 #include "CommonDef.h"
 #include "TensorLite.h"
 #include "LinkQueue.h"
-
+#include "Lighting.h"
 #include "PostBlendSet.h"
 #include "PoissonSolver.h"
-
+using namespace lighting;
 namespace tensor{
 template< class T, size_t cn> class QNode :	public Tensor<T,cn>
 {
@@ -100,7 +100,7 @@ public:
   EXPORTLIB Vec<T,cn> GetApproxFoot() const;
 public:
     EXPORTLIB vector<vector<int>>& Quilting(QNode<T,cn>& ts);
-    EXPORTLIB vector<vector<int>>& Quilting(vector<Tensor<T,cn>>& boundA, vector<Tensor<T,cn>>& boundB, int dir=-1);
+    EXPORTLIB vector<vector<int>>& Quilting(vector<Tensor<T,cn>>& boundA, vector<Tensor<T,cn>>& boundB, BoundDir dir=BoundDir::NONE);
     EXPORTLIB QNode<T,cn>& LinearInterp(double qsize,bool computeFoot=true, Directions direction = Directions::DIRECTION_OTHER);
     EXPORTLIB QNode<T,cn>& LinearInterpGeneric(double qsize);
     //EXPORTLIB void SetFootRegion(int region=0);
@@ -128,7 +128,7 @@ public:
     //EXPORTLIB QNode<T,cn>& PostPLC(const QNode<T,cn>& changeTo);
 
 
-    EXPORTLIB void GradientStitching(const QNode<T,cn> & changeTo, int blendPos, Size3 boundSize = Size3(0,0,0), Tensor<T,1> & tempmask=Tensor<T,1> ());
+    EXPORTLIB void GradientStitching(const QNode<T,cn> & changeTo, BlendingLocation blendPos, Size3 boundSize,const  Tensor<T,1>& tempmask);
 
 
     EXPORTLIB void LightingCorrection2(const Tensor<T,cn>& fromLight, const Tensor<T,cn>& toLight);
@@ -154,12 +154,12 @@ private:
 
 	//////////////////////////
 	vector<vector<int>> Blending(Matrix3Di path, QNode<T,cn>& ts, int criteria =0); // ts is the other patch which will blend to 
-	vector<vector<int>> Blending(Matrix3Di path, vector<Tensor<T,cn>>& boundA,vector<Tensor<T,cn>>& boundB, int dir = -1);
+	vector<vector<int>> Blending(Matrix3Di path, vector<Tensor<T,cn>>& boundA,vector<Tensor<T,cn>>& boundB, BoundDir dir);
 	Matrix3Di FindPath(const QNode<T,cn>& ts);
-	Matrix3Di FindPath(const vector<Tensor<T,cn>>& boundA, vector<Tensor<T,cn>>& boundB,int dir=-1);
-	double ShortestPathDP(int i, int j, const cv::Mat &emx, cv::Mat &dpmx, vector<vector<int>> &pathPlane, int direction=0);
-	void TreatCrossRegion(Matrix3Di & path, int corner = CORNER_NW);
-	void MakePath(vector<vector<int>>& pathPlane, cv::Mat &dpmx, int direction);
+	Matrix3Di FindPath(const vector<Tensor<T,cn>>& boundA, vector<Tensor<T,cn>>& boundB,BoundDir dir=BoundDir::NONE);
+	double ShortestPathDP(int i, int j, const cv::Mat &emx, cv::Mat &dpmx, vector<vector<int>> &pathPlane, Directions direction= Directions::DIRECTION_VERTICAL);
+	void TreatCrossRegion(Matrix3Di & path, CornerPos corner = CornerPos::CORNER_NW);
+	void MakePath(vector<vector<int>>& pathPlane, cv::Mat &dpmx, Directions direction);
 protected:
 	Size3 overlapSize;
 	Vec<double,cn> footError;
@@ -168,10 +168,11 @@ protected:
   Vec<double,cn> leftFoot;
   Vec<double,cn> upFoot;
   Vec<double,cn> antiFoot;
+  Lighting lt;
 	Point3i footPos;
 	string quanBit;
 	int bits;
-	int predicted_method; //0, not predicted, 1, quilted, 2, PQI
+	CodingMethodNames predicted_method; //0, not predicted, 1, quilted, 2, PQI
 	double qsize;//quantize size
 	bound_type boundary;//for 2D still image, only two bound exist
 	//int footComputeRegion;

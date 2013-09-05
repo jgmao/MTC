@@ -12,7 +12,7 @@ QNode<T,cn>::QNode(void):Tensor<T,cn>()
 {
 	overlapSize= Size3();
 	bits=0;
-	predicted_method=0;
+	predicted_method=CodingMethodNames::NO_CODING;
 	qsize = 0;
 }
 template< class T, size_t cn>
@@ -20,7 +20,7 @@ QNode<T,cn>::QNode(const cv::Mat &mt):Tensor<T,cn>(mt)
 {
 	//overlapSize= Size3();
 	bits=0;
-	predicted_method=0;
+	predicted_method=CodingMethodNames::CODING_JPEG;
 	qsize = 0;
 	footPos = Point3i(this->size().height-1,this->size().width-1,this->size().depth-1);
 	nodeFoot = this->operator[](footPos);
@@ -57,7 +57,7 @@ template< class T, size_t cn>
 QNode<T,cn>::QNode(const QTree& qt):QTree<T,cn>(qt)
 {
 	bits=0;
-	predicted_method=0;
+	predicted_method=CodingMethodNames::NO_CODING
 	qsize = 0;
 	footPos = Point3i(size().height-1,size().width-1,size().depth-1);
 	nodeFoot = this->operator[](footPos);
@@ -68,7 +68,7 @@ template< class T, size_t cn>
 QNode<T,cn>::QNode(const Size3& sz, const Vec<T,cn>& val):Tensor<T,cn>(sz,val)
 {
 	bits=0;
-	predicted_method=0;
+	predicted_method=CodingMethodNames::NO_CODING;
 	qsize = 0;
 	footPos = Point3i(this->size().height-1,this->size().width-1,this->size().depth-1);
 	nodeFoot = this->operator[](footPos);
@@ -79,7 +79,7 @@ template< class T, size_t cn>
 QNode<T,cn>::QNode(const QTree& qt, const Size3& overlapSize):QTree<T,cn>(qt)
 {
 	bits=0;
-	predicted_method=0;
+	predicted_method=CodingMethodNames::NO_CODING
 	qsize = 0;
 	footPos = Point3i(size().height-1,size().width-1,size().depth-1);
 	nodeFoot = this->operator[](footPos);
@@ -92,7 +92,7 @@ QNode<T,cn>::QNode(const Size3& sz, const Size3& overlapSize):Tensor<T,cn>(sz)
 	
 	this->overlapSize = overlapSize;
 	bits=0;
-	predicted_method=0;
+	predicted_method=CodingMethodNames::NO_CODING;
 	qsize = 0;
 	footPos = Point3i(this->size().height-1,this->size().width-1,this->size().depth-1);
 	nodeFoot = this->operator[](footPos);
@@ -106,7 +106,7 @@ QNode<T,cn>::QNode(const Size3& sz, double overlapRatio):Tensor<T,cn>(sz)
 	this->overlapSize.width = int((double)sz.width*overlapRatio);
 	this->overlapSize.depth = int((double)sz.depth*overlapRatio);
 	bits=0;
-	predicted_method=0;
+	predicted_method=CodingMethodNames::NO_CODING;
 	qsize = 0;
 	footPos = Point3i(this->size().height-1,this->size().width-1,this->size().depth-1);
 	nodeFoot = this->operator[](footPos);
@@ -153,7 +153,7 @@ QNode<T,cn>::QNode(const Tensor<T,cn>& ts, const Size3& sz, const Point3i& pos, 
 	ts.Ref(roi,*this);
 	//*this = QTree(ts.Crop(pos,sz));
 	bits=0;
-	predicted_method=0;
+	predicted_method=CodingMethodNames::NO_CODING;
 	qsize = 0;
 	footPos = this->tsSize.Point3() - Point3i(1,1,1);//Point3i(size().height-1,size().width-1,size().depth-1);
 	nodeFoot = ts[footPos+roi.offset()];
@@ -229,7 +229,7 @@ template< class T, size_t cn>
 QNode<T,cn>::QNode(string cFileName):Tensor<T,cn>(cFileName)
 {
 	bits=0;
-	predicted_method=0;
+	predicted_method=CodingMethodNames::NO_CODING;
 	qsize = 0;
 	footPos = Point3i(this->size().height-1,this->size().width-1,this->size().depth-1);
 	nodeFoot = this->operator[](footPos);
@@ -256,16 +256,16 @@ string QNode<T,cn>::GetBits(void) const
 }
 
 template< class T, size_t cn>
-QNode<T,cn>& QNode<T,cn>::LinearInterp(double qsize, bool computefoot, int direction)
+QNode<T,cn>& QNode<T,cn>::LinearInterp(double qsize, bool computefoot, Directions direction)
 {
 	this->qsize = qsize;
 	bits=0;
-	if (size().height!= size().width)
+	if (this->size().height!= this->size().width)
 	{
 		//unsupport
 		exit(-1);
 	}
-	if (size().depth>1)
+	if (this->size().depth>1)
 	{
 		cout<<"error, Node need to be 2D image at this time\n";
 		exit(1);
@@ -285,7 +285,7 @@ QNode<T,cn>& QNode<T,cn>::LinearInterp(double qsize, bool computefoot, int direc
 	InterpCenter();
  // eNode.Display();
 //  Print();
-	this->predicted_method = CODING_PQI;
+	this->predicted_method = CodingMethodNames::CODING_PQI;
 	return *this;
 }
 template< class T, size_t cn>
@@ -306,12 +306,12 @@ QNode<T,cn>& QNode<T,cn>::LinearInterpGeneric(double qsize)
 template<class T, size_t cn>
 void QNode<T,cn>::InitBound(double qsize)
 {
-	if (offset().x==0 && offset().y==0)
+	if (this->offset().x==0 && this->offset().y==0)
 	{
 		//make up the very first node
 		MakeVeryFirstNode(qsize);
 	}
-	else if (offset().x==0 && offset().y!=0)
+	else if (this->offset().x==0 && this->offset().y!=0)
 	{
 		//make the 1st row
 		//boundary[0].Print();
@@ -319,7 +319,7 @@ void QNode<T,cn>::InitBound(double qsize)
 	//	extNode.GetBoundaryUp().Print();
 	//	extNode.Print();
 	}
-	else if (offset().y==0 && offset().x!=0)
+	else if (this->offset().y==0 && this->offset().x!=0)
 	{
 		//boundary[0].Print();
 		InterpZeroCol();
@@ -415,26 +415,26 @@ void QNode<T,cn>::ComputeFoot(double qsize, Directions direction, SrcCodingMetho
 	//else
 	if (direction == Directions::DIRECTION_VERTICAL)
 	{
-		PredictedFoot = (Vec<double,cn>::all(0.5).mul(upBound[bPos+Point3i(0,tsSize.width,0)] + this->operator[](footPos)));//now foot is at center of last col
+		PredictedFoot = (Vec<double,cn>::all(0.5).mul(upBound[bPos+Point3i(0,this->tsSize.width,0)] + this->operator[](footPos)));//now foot is at center of last col
 		tempFootPos = footPos - Point3i(this->size().height/2,0,0);
 	}
 	else if (direction == Directions::DIRECTION_HORIZONTAL)
 	{
-		PredictedFoot = (Vec<double,cn>::all(0.5).mul(this->operator[](footPos) + leftBound[bPos+Point3i(tsSize.height,0,0)])); // foot is at center of last col
+		PredictedFoot = (Vec<double,cn>::all(0.5).mul(this->operator[](footPos) + leftBound[bPos+Point3i(this->tsSize.height,0,0)])); // foot is at center of last col
 		tempFootPos = footPos - Point3i(0,this->size().width/2,0);
 	}
 	else if (direction == Directions::DIRECTION_CENTER)
 	{
-		PredictedFoot = (Vec<double,cn>::all(0.25).mul(upBound[bPos+Point3i(0,tsSize.width/2,0)] +
-															this->operator[](footPos-Point3i(0,tsSize.width/2,0))+
-															this->operator[](footPos-Point3i(tsSize.height/2,0,0))+
-															leftBound[bPos+Point3i(tsSize.height/2,0,0)]));
+		PredictedFoot = (Vec<double,cn>::all(0.25).mul(upBound[bPos+Point3i(0,this->tsSize.width/2,0)] +
+															this->operator[](footPos-Point3i(0,this->tsSize.width/2,0))+
+															this->operator[](footPos-Point3i(this->tsSize.height/2,0,0))+
+															leftBound[bPos+Point3i(this->tsSize.height/2,0,0)]));
 
 		tempFootPos = footPos - Point3i(this->size().height/2,this->size().width/2,0);
 	}
 	else
 	{
-		PredictedFoot = (Vec<double,cn>::all(0.5).mul(upBound[bPos+Point3i(0,tsSize.width,0)] + leftBound[bPos+Point3i(tsSize.height,0,0)]));
+		PredictedFoot = (Vec<double,cn>::all(0.5).mul(upBound[bPos+Point3i(0,this->tsSize.width,0)] + leftBound[bPos+Point3i(this->tsSize.height,0,0)]));
 	}
 	//Print();
 	footError = Vec<double,cn>(this->operator[](tempFootPos)) - PredictedFoot;
@@ -447,18 +447,18 @@ void QNode<T,cn>::ComputeFoot(double qsize, Directions direction, SrcCodingMetho
 template<class T, size_t cn>
 void QNode<T,cn>::MakeVeryFirstNode(double qsize) 
 {
-	Vec<T,cn> PredictedFoot = Vec<T,cn>::all(127);
+	//Vec<T,cn> PredictedFoot = Vec<T,cn>::all(127);
 	//footError = nodeFoot - PredictedFoot;
 	//approxFoot = Quantize(footError,qsize) + PredictedFoot;
   Size3 upSize,leftSize;
   if (upBound.size()==Size3(0,0,0))
   {
-    upSize = this->overlap()+Size3(0,tsSize.width,1);
+    upSize = this->overlap()+Size3(0,this->tsSize.width,1);
   }
   else
     upSize = upBound.size();
   if (leftBound.size()==Size3(0,0,0))
-    leftSize = this->overlap()+Size3(tsSize.height,0,1);
+    leftSize = this->overlap()+Size3(this->tsSize.height,0,1);
   else
     leftSize = leftBound.size();
 	upBound = Tensor<T,cn>(upSize,Vec<T,cn>::all(127));
@@ -477,14 +477,14 @@ void QNode<T,cn>::InterpZeroRow(void)
 	Point3i bPos = overlapSize.Point3() - Point3i(1,1,0);
 	leftBound[bPos] = leftBound[bPos+Point3i(1,0,0)];
   //if (upBound.size()==Size3(0,0,0))
-    upBound = Tensor<T,cn>(overlap()+Size3(0,tsSize.width,1));
+    upBound = Tensor<T,cn>(overlap()+Size3(0,this->tsSize.width,1));
 	upBound[bPos] = leftBound[bPos+Point3i(1,0,0)];
-	upBound[bPos+Point3i(0,tsSize.width,0)] = leftBound[bPos+Point3i(tsSize.height,0,0)];
-	for(int z=0; z < size().depth; z++)
+	upBound[bPos+Point3i(0,this->tsSize.width,0)] = leftBound[bPos+Point3i(this->tsSize.height,0,0)];
+	for(int z=0; z < this->size().depth; z++)
 	{
-		int width = tsSize.width+1;
+		int width = this->tsSize.width+1;
 		int stepY = width>>1;
-		for (stepY; stepY>0; stepY=stepY>>1)
+		for (; stepY>0; stepY=stepY>>1)
 		{
 			for (int i=1; i*stepY<width-1; i++)
 			{
@@ -510,14 +510,14 @@ void QNode<T,cn>::InterpZeroCol(void)
 	Point3i bPos = overlapSize.Point3()-Point3i(1,1,0);
 	upBound[bPos] = upBound[bPos+Point3i(0,1,0)];
   //if (leftBound.size()==Size3(0,0,0))
-    leftBound = Tensor<T,cn>(overlap()+Size3(tsSize.height,0,1));
+    leftBound = Tensor<T,cn>(overlap()+Size3(this->tsSize.height,0,1));
 	leftBound[bPos]=upBound[bPos+Point3i(0,1,0)];
-	leftBound[bPos+Point3i(tsSize.height,0,0)] = upBound[bPos+Point3i(0,tsSize.width,0)];
-	for(int z=0; z< size().depth; z++)
+	leftBound[bPos+Point3i(this->tsSize.height,0,0)] = upBound[bPos+Point3i(0,this->tsSize.width,0)];
+	for(int z=0; z< this->size().depth; z++)
 	{
-		int height = tsSize.height+1;
+		int height = this->tsSize.height+1;
 		int stepX = height>>1;
-		for (stepX; stepX>0; stepX=stepX>>1)
+		for (; stepX>0; stepX=stepX>>1)
 		{
 			for (int i=1; i*stepX<height-1; i++)
 			{
@@ -538,7 +538,7 @@ void QNode<T,cn>::InterpZeroCol(void)
 template<class T, size_t cn>
 bool QNode<T,cn>::AssertExtend(const QNode& extNode,int n) const
 {
-	if (extNode.size() - Size3(n,n,0) == size())
+	if (extNode.size() - Size3(n,n,0) == this->size())
 		return true;
 	else
 		return false;
@@ -546,15 +546,15 @@ bool QNode<T,cn>::AssertExtend(const QNode& extNode,int n) const
 template<class T, size_t cn>
 void QNode<T,cn>::InterpLastRow(void)
 {
-	Tensor<T,cn> extRow(Size3(1,tsSize.width+1,tsSize.depth));
+	Tensor<T,cn> extRow(Size3(1,this->tsSize.width+1,this->tsSize.depth));
 	Point3i bPos = overlapSize.Point3() - Point3i(1,1,0);
-	extRow(0,0,0)= leftBound[bPos + Point3i(tsSize.height,0,0)];
-	extRow(0,tsSize.width,0) = this->operator[](footPos);//approxFoot; modify gjin Sep 15, 2011 
-	for(int z=0; z < size().depth; z++)
+	extRow(0,0,0)= leftBound[bPos + Point3i(this->tsSize.height,0,0)];
+	extRow(0,this->tsSize.width,0) = this->operator[](footPos);//approxFoot; modify gjin Sep 15, 2011
+	for(int z=0; z < this->size().depth; z++)
 	{
 		int width = extRow.size().width;
 		int stepY = width>>1;
-		for (stepY; stepY>0; stepY=stepY>>1)
+		for (; stepY>0; stepY=stepY>>1)
 		{
 			for (int i=1; i*stepY<width-1; i++)
 			{
@@ -567,22 +567,22 @@ void QNode<T,cn>::InterpLastRow(void)
 			}
 		}
 	}
-	SetBlock(Point3i(tsSize.height-1,0,0),extRow.Crop(Point3i(0,1,0),Size3(1,tsSize.width,1)));
+	this->SetBlock(Point3i(this->tsSize.height-1,0,0),extRow.Crop(Point3i(0,1,0),Size3(1,this->tsSize.width,1)));
 	return;
 }
 
 template<class T, size_t cn>
 void QNode<T,cn>::InterpLastCol(void)
 {
-	Tensor<T,cn> extCol(Size3(tsSize.height+1,1,tsSize.depth));
+	Tensor<T,cn> extCol(Size3(this->tsSize.height+1,1,this->tsSize.depth));
 	Point3i bPos = overlapSize.Point3() - Point3i(1,1,0);
-	extCol(0,0,0)= upBound[bPos + Point3i(0,tsSize.width,0)];
+	extCol(0,0,0)= upBound[bPos + Point3i(0,this->tsSize.width,0)];
 	extCol(extCol.size().height-1,0,0) = this->operator[](footPos);//approxFoot; modify gjin Sep 15, 2011
-	for(int z=0; z< size().depth; z++)
+	for(int z=0; z< this->size().depth; z++)
 	{
 		int height = extCol.size().height;
 		int stepX = height>>1;
-		for (stepX; stepX>0; stepX=stepX>>1)
+		for (; stepX>0; stepX=stepX>>1)
 		{
 			for (int i=1; i*stepX<height-1; i++)
 			{
@@ -596,21 +596,21 @@ void QNode<T,cn>::InterpLastCol(void)
 		}
 	}
   //extCol.Print();
-	SetBlock(Point3i(0,tsSize.width-1,0),extCol.Crop(Point3i(1,0,0),Size3(tsSize.height,1,1)));
+        this->SetBlock(Point3i(0,this->tsSize.width-1,0),extCol.Crop(Point3i(1,0,0),Size3(this->tsSize.height,1,1)));
   //this->Print();
   //eNode.Print();
 }
 template<class T, size_t cn>
 void QNode<T,cn>::InterpCenter(void)
 {
-	Tensor<T,cn> extNode = ExtendHalfBoundary();
+	Tensor<T,cn> extNode = this->ExtendHalfBoundary();
 	Point3i bPos = overlapSize.Point3() - Point3i(1,1,0);
 	
 	extNode.SetBlock(upBound.Crop(bPos,Size3(1,extNode.size().width,1)));
 	extNode.SetBlock(leftBound.Crop(bPos,Size3(extNode.size().height,1,1)));
 	//extNode.Display(0);
 
-	for (int z=0; z< size().depth; z++)
+	for (int z=0; z< this->size().depth; z++)
 	{
 		int index=0;
 		int height = extNode.size().height;//-qNode.overlapSize.height;
@@ -665,7 +665,7 @@ void QNode<T,cn>::InterpCenter(void)
 			index++;
 		}
 	}
-	SetBlock(extNode.Crop(Point3i(1,1,0),tsSize));
+	this->SetBlock(extNode.Crop(Point3i(1,1,0),this->tsSize));
 }
 template<class T, size_t cn>
 Point3i QNode<T,cn>::GetFootPos(void) const
@@ -678,7 +678,7 @@ Point3i QNode<T,cn>::GetFootPos(void)
 	return this->offset()  + this->footPos;//this->footPos;
 }
 template<class T, size_t cn>
-Vec<double,cn> QNode<T,cn>::Quantize(const typename Vec<double,cn>& val, double qsize, SrcCodingMethod coding_method)
+Vec<double,cn> QNode<T,cn>::Quantize(const Vec<double,cn>& val, double qsize, SrcCodingMethod coding_method)
 {
 
 	QNode<T,cn>::value_type rst;
@@ -783,11 +783,11 @@ vector<vector<int>>& QNode<T,cn>::Quilting(QNode<T,cn>& ts) //quilting must be r
 	seam = Blending(path,ts);
 	//leftBound.Print();
 	//upBound.Print();
-	SetBlock(ts);//use predicted to substitude qNode
+	this->SetBlock(ts);//use predicted to substitude qNode
 	return seam;
 }
 template<class T, size_t cn>
-vector<vector<int>>& QNode<T,cn>::Quilting(vector<Tensor<T,cn>>& boundA, vector<Tensor<T,cn>>& boundB,int dir)
+vector<vector<int>>& QNode<T,cn>::Quilting(vector<Tensor<T,cn>>& boundA, vector<Tensor<T,cn>>& boundB,BoundDir dir)
 {
 	QNode<T,cn>::Matrix3Di path;
 	//Tensor<T,cn>::DisplayAll(boundA,1,1);
@@ -800,7 +800,7 @@ vector<vector<int>>& QNode<T,cn>::Quilting(vector<Tensor<T,cn>>& boundA, vector<
 	return seam;
 }
 template<class T, size_t cn>
-vector<vector<int>> QNode<T,cn>::Blending(Matrix3Di path, vector<Tensor<T,cn>>& boundA, vector<Tensor<T,cn>>& boundB,int dir)
+vector<vector<int>> QNode<T,cn>::Blending(Matrix3Di path, vector<Tensor<T,cn>>& boundA, vector<Tensor<T,cn>>& boundB,BoundDir dir)
 {
 	cv::Mat tempMat, seamRst,crossRst,tempRst, tempOrg, temp;
 	cv::Mat kernel;
@@ -812,7 +812,7 @@ vector<vector<int>> QNode<T,cn>::Blending(Matrix3Di path, vector<Tensor<T,cn>>& 
 	int position;
 	Matrix3Di::iterator iter = path.begin();
 	//pos = offset();
-	int index =0;	
+	//int index =0;
 	int filterLength = min(boundA[0].size().height,boundA[0].size().width);
 	filterLength = filterLength/2+1;
 	for (unsigned int s=0; s<path.size(); s++)
@@ -848,7 +848,7 @@ vector<vector<int>> QNode<T,cn>::Blending(Matrix3Di path, vector<Tensor<T,cn>>& 
 		cv::multiply(boundA[s][0],mask,boundA[s][0]); 
 		cv::add(boundA[s][0],temp,boundA[s][0]);
 		vector<vector<int>>& tempBoundary=*iter;
-		if (s==1 || boundA[s].offset().x == 0 || dir == LEFT)
+		if (s==1 || boundA[s].offset().x == 0 || dir == BoundDir::LEFT)
 		{
 			for (unsigned int i=0; i< iter->size(); i++)
 			{
@@ -923,8 +923,8 @@ vector<vector<int>> QNode<T,cn>::Blending(Matrix3Di path,QNode<T,cn>& ts, int cr
 	//vector<cv::Point3i> startPos = GetBoundOffset(refNode,1);
 	if (criteria ==0)
 	{
-		pos = offset();
-		int index =0;	
+		pos = this->offset();
+		//int index =0;
 		int filterLength = min(overlapSize.height,overlapSize.width);//big block will blur too much! 
 		filterLength = filterLength/2+1;
 		for (unsigned int s=0; s<path.size(); s++)
@@ -960,7 +960,7 @@ vector<vector<int>> QNode<T,cn>::Blending(Matrix3Di path,QNode<T,cn>& ts, int cr
 			cv::multiply(ts.bounds[s]->GetFrame(0),mask,bounds[s]->GetFrame(0)); // change right and below as the predicted
 			cv::add(bounds[s]->GetFrame(0),temp,bounds[s]->GetFrame(0));
 			vector<vector<int>>& tempBoundary=*iter;
-			if (s==1 || offset().x == 0)
+			if (s==1 || this->offset().x == 0)
 			{
 				for (unsigned int i=0; i< iter->size(); i++)
 				{
@@ -1032,7 +1032,7 @@ vector<vector<int>> QNode<T,cn>::Blending(Matrix3Di path,QNode<T,cn>& ts, int cr
 
 
 template<class T, size_t cn>
-typename QNode<T,cn>::Matrix3Di QNode<T,cn>::FindPath(const vector<Tensor<T,cn>>& boundA,vector<Tensor<T,cn>>& boundB,int dir)
+typename QNode<T,cn>::Matrix3Di QNode<T,cn>::FindPath(const vector<Tensor<T,cn>>& boundA,vector<Tensor<T,cn>>& boundB,BoundDir dir)
 {
 	if (boundA.size()!= boundB.size())
 		CV_Error(CV_StsBadSize,"the two input boundary vectors do not have same number of elements");
@@ -1048,7 +1048,7 @@ typename QNode<T,cn>::Matrix3Di QNode<T,cn>::FindPath(const vector<Tensor<T,cn>>
 	cv::Mat temp; 
 	T tempSum=0;
 	Vec<T,cn> elem;
-	int count=0;
+	//int count=0;
 	for (unsigned int s=0; s< bSize; s++)
 	{
 		Size3 sz = boundA[s].size();
@@ -1074,25 +1074,25 @@ typename QNode<T,cn>::Matrix3Di QNode<T,cn>::FindPath(const vector<Tensor<T,cn>>
 					}
 					emx.at<T>(i,j) = (T)std::sqrt(double(tempSum/cn));
 				}
-			if ( s==1 || boundA[s].offset().x==0 || dir==LEFT) //vertical
+			if ( s==1 || boundA[s].offset().x==0 || dir==BoundDir::LEFT) //vertical
 			{	
 				emx.row(0).copyTo(dpmx.row(0));
 				for (int l = 0; l<boundA[s].size().width; l++)
-					ShortestPathDP(emx.size().height-1,l,emx,dpmx,*(path.end()-1),DIRECTION_VERTICAL);
-				MakePath(*(path.end()-1),dpmx,DIRECTION_VERTICAL);
+					ShortestPathDP(emx.size().height-1,l,emx,dpmx,*(path.end()-1),Directions::DIRECTION_VERTICAL);
+				MakePath(*(path.end()-1),dpmx,Directions::DIRECTION_VERTICAL);
 			}
 			else // horizontal
 			{	emx.col(0).copyTo(dpmx.col(0));
 				for (int l=0; l<boundA[s].size().height; l++)
-					ShortestPathDP(l,emx.size().width-1,emx,dpmx,*(path.end()-1),DIRECTION_HORIZONTAL);
-				MakePath(*(path.end()-1),dpmx,DIRECTION_HORIZONTAL);
+					ShortestPathDP(l,emx.size().width-1,emx,dpmx,*(path.end()-1),Directions::DIRECTION_HORIZONTAL);
+				MakePath(*(path.end()-1),dpmx,Directions::DIRECTION_HORIZONTAL);
 			}
 
 		}	
 			
 	}
 	if ( bSize  == 2)
-		TreatCrossRegion(path,CORNER_SE);
+		TreatCrossRegion(path,CornerPos::CORNER_SE);
 	return path;
 
 }
@@ -1116,7 +1116,7 @@ typename QNode<T,cn>::Matrix3Di QNode<T,cn>::FindPath(const QNode<T,cn>& ts)
 	{
 		CV_Error(CV_StsBadSize,"The boundaries size are different!");
 	}
-	int count=0;
+	//int count=0;
 	//for safty reconstruct bounds 
 	bounds.clear();
 	bounds.push_back(&upBound);
@@ -1151,14 +1151,14 @@ typename QNode<T,cn>::Matrix3Di QNode<T,cn>::FindPath(const QNode<T,cn>& ts)
 			{	
 				emx.row(0).copyTo(dpmx.row(0));
 				for (int l = 0; l<overlapSize.width; l++)
-					ShortestPathDP(emx.size().height-1,l,emx,dpmx,*(path.end()-1),DIRECTION_VERTICAL);
-				MakePath(*(path.end()-1),dpmx,DIRECTION_VERTICAL);
+					ShortestPathDP(emx.size().height-1,l,emx,dpmx,*(path.end()-1),Directions::DIRECTION_VERTICAL);
+				MakePath(*(path.end()-1),dpmx,Directions::DIRECTION_VERTICAL);
 			}
 			else
 			{	emx.col(0).copyTo(dpmx.col(0));
 				for (int l=0; l<overlapSize.height; l++)
-					ShortestPathDP(l,emx.size().width-1,emx,dpmx,*(path.end()-1),DIRECTION_HORIZONTAL);
-				MakePath(*(path.end()-1),dpmx,DIRECTION_HORIZONTAL);
+					ShortestPathDP(l,emx.size().width-1,emx,dpmx,*(path.end()-1),Directions::DIRECTION_HORIZONTAL);
+				MakePath(*(path.end()-1),dpmx,Directions::DIRECTION_HORIZONTAL);
 			}
 
 		}	
@@ -1170,7 +1170,7 @@ typename QNode<T,cn>::Matrix3Di QNode<T,cn>::FindPath(const QNode<T,cn>& ts)
 }
 
 template<class T, size_t cn>
-double QNode<T,cn>::ShortestPathDP(int i, int j, const cv::Mat &emx, cv::Mat &dpmx, vector<vector<int>> &pathPlane, int direction=0)
+double QNode<T,cn>::ShortestPathDP(int i, int j, const cv::Mat &emx, cv::Mat &dpmx, vector<vector<int>> &pathPlane, Directions direction)
 {
 	if (i<0 || j<0)
 	{
@@ -1188,11 +1188,11 @@ double QNode<T,cn>::ShortestPathDP(int i, int j, const cv::Mat &emx, cv::Mat &dp
 	}
 	else
 	{
-		if (direction == DIRECTION_VERTICAL)
+		if (direction == Directions::DIRECTION_VERTICAL)
 		{
-			T a=(T)ShortestPathDP(i-1,j-1,emx,dpmx,pathPlane,DIRECTION_VERTICAL);
-			T b=(T)ShortestPathDP(i-1,j,emx,dpmx,pathPlane, DIRECTION_VERTICAL);
-			T c=(T)ShortestPathDP(i-1,j+1,emx,dpmx,pathPlane, DIRECTION_VERTICAL);
+			T a=(T)ShortestPathDP(i-1,j-1,emx,dpmx,pathPlane,Directions::DIRECTION_VERTICAL);
+			T b=(T)ShortestPathDP(i-1,j,emx,dpmx,pathPlane, Directions::DIRECTION_VERTICAL);
+			T c=(T)ShortestPathDP(i-1,j+1,emx,dpmx,pathPlane, Directions::DIRECTION_VERTICAL);
 			int tempPath=-1;
 			dpmx.at<T>(i,j)= emx.at<T>(i,j);
 			if (a<b)
@@ -1226,9 +1226,9 @@ double QNode<T,cn>::ShortestPathDP(int i, int j, const cv::Mat &emx, cv::Mat &dp
 		}
 		else
 		{
-			T a=(T)ShortestPathDP(i-1,j-1,emx,dpmx,pathPlane,DIRECTION_HORIZONTAL);
-			T b=(T)ShortestPathDP(i,j-1,emx,dpmx,pathPlane,DIRECTION_HORIZONTAL);
-			T c=(T)ShortestPathDP(i+1,j-1,emx,dpmx,pathPlane,DIRECTION_HORIZONTAL);
+			T a=(T)ShortestPathDP(i-1,j-1,emx,dpmx,pathPlane,Directions::DIRECTION_HORIZONTAL);
+			T b=(T)ShortestPathDP(i,j-1,emx,dpmx,pathPlane,Directions::DIRECTION_HORIZONTAL);
+			T c=(T)ShortestPathDP(i+1,j-1,emx,dpmx,pathPlane,Directions::DIRECTION_HORIZONTAL);
 			int tempPath=-1;
 			dpmx.at<T>(i,j)= emx.at<T>(i,j);
 			if (a<b)
@@ -1271,7 +1271,7 @@ double QNode<T,cn>::ShortestPathDP(int i, int j, const cv::Mat &emx, cv::Mat &dp
 }
 
 template<class T, size_t cn>
-void QNode<T,cn>::TreatCrossRegion(Matrix3Di & path, int corner)
+void QNode<T,cn>::TreatCrossRegion(Matrix3Di & path, CornerPos corner)
 {
 	QNode<T,cn>::Matrix3Di backup = path;
 	unsigned int m,n,M,N;
@@ -1282,14 +1282,14 @@ void QNode<T,cn>::TreatCrossRegion(Matrix3Di & path, int corner)
 		for (unsigned int i=0; i< path[0].size();i++)
 			for (unsigned int j=0; j<path[1][0].size();j++)
 			{
-				if (corner == CORNER_NW)
+				if (corner == CornerPos::CORNER_NW)
 				{
 					if (backup[0][i][j]==1 && backup[1][i][j] ==0)
 						path[1][i][j]=1;
 					if (backup[0][i][j]==0 && backup[1][i][j] ==1)
 						path[0][i][j]=1;
 				}
-				else if (corner ==CORNER_SE)
+				else if (corner ==CornerPos::CORNER_SE)
 				{
 
 					if (backup[0][m-i-1][N-j-1]==1 && backup[1][M-i-1][n-j-1] ==0)
@@ -1306,7 +1306,7 @@ void QNode<T,cn>::TreatCrossRegion(Matrix3Di & path, int corner)
 }
 
 template<class T, size_t cn>
-void QNode<T,cn>::MakePath(vector<vector<int>>&pathPlane, cv::Mat &dpmx, int direction)
+void QNode<T,cn>::MakePath(vector<vector<int>>&pathPlane, cv::Mat &dpmx, Directions direction)
 {
 
 	//mylib::DisplayMat(dpmx);
@@ -1316,7 +1316,7 @@ void QNode<T,cn>::MakePath(vector<vector<int>>&pathPlane, cv::Mat &dpmx, int dir
 	int height = (int) pathPlane.size();
 	int width  = (int) pathPlane[0].size();
 	
-	if (direction == DIRECTION_VERTICAL)
+	if (direction == Directions::DIRECTION_VERTICAL)
 	{
 		for (int i=0;i<width;i++)
 		{
@@ -1405,8 +1405,8 @@ Tensor<T,cn> QNode<T,cn>::GetExtendTensor(bool up, bool left , bool down, bool r
 	{
 		extNode.SetBlock(r, this->rightBound);
 	}
-	extNode.SetSubWinSize(this->GetSubWinSize());
-	extNode.SetSubWinStep(this->GetSubWinStep());
+	//extNode.SetSubWinSize(this->GetSubWinSize());
+	//extNode.SetSubWinStep(this->GetSubWinStep());
 	return extNode;
 }
 template<class T, size_t cn> 
@@ -1445,8 +1445,8 @@ Tensor<T,cn> QNode<T,cn>::GetExtendTensor( Vec<T,cn> padding, bool up, bool left
 	{
 		extNode.SetBlock(r, Tensor<T,cn>(this->rightBound.size(),padding));
 	}
-	extNode.SetSubWinSize(this->GetSubWinSize());
-	extNode.SetSubWinStep(this->GetSubWinStep());
+	//extNode.SetSubWinSize(this->GetSubWinSize());
+	//extNode.SetSubWinStep(this->GetSubWinStep());
 	return extNode;
 }
 template<class T, size_t cn>
@@ -1534,9 +1534,9 @@ void QNode<T,cn>::Ref(const Tensor<T,cn>& ts, const Cube& roi, const Size3& boun
 	ts.Ref(roi,*this);
 	//*this = QTree(ts.Crop(pos,sz));
 	bits=0;
-	predicted_method=0;
+	predicted_method=CodingMethodNames::NO_CODING;
 	qsize = 0;
-	footPos = tsSize.Point3() - Point3i(1,1,1);//Point3i(size().height-1,size().width-1,size().depth-1);
+	footPos = this->tsSize.Point3() - Point3i(1,1,1);//Point3i(size().height-1,size().width-1,size().depth-1);
 	nodeFoot = ts[footPos+roi.offset()];
 	overlapSize = boundarySize;
     Size3 extSize = sz;
@@ -1649,7 +1649,7 @@ int QNode<T,cn>::getFeetNumber(void) const
 template <class T, size_t cn>
 void QNode<T,cn>::SetFoot(const Tensor<T,cn>& src)
 {
-	nodeFoot = src[tsOffset+footPos];
+	this->nodeFoot = src[this->tsOffset+this->footPos];
 }
 template <class T, size_t cn>
 Vec<T,cn> QNode<T,cn>::GetFoot() const
@@ -1823,7 +1823,7 @@ QNode<T,cn>& QNode<T,cn>::PoissonLightingCorrection(const QNode<T,cn>& changeTo,
   {
     Vec<double,cn> pred_foot = (feet[0].second.value  + feet[(2<<level)].second.value)/2;
  	  this->footError = this->nodeFoot - pred_foot;
-	  this->approxFoot = Quantize(footError,qsize/2,UNARY_CODE) + pred_foot;
+          this->approxFoot = Quantize(footError,qsize/2,SrcCodingMethod::UNARY_CODE) + pred_foot;
     (this->feet.end()-1)->second.value = approxFoot[0];
     (this->feet.end()-1)->second.bits = quanBit.size();
     (this->feet.end()-1)->second.bitstring = quanBit;
@@ -1841,12 +1841,12 @@ QNode<T,cn>& QNode<T,cn>::PoissonLightingCorrection(const QNode<T,cn>& changeTo,
         int next_idx = i+step;
         next_idx==stride?next_idx=2*stride:next_idx;
         Vec<double,cn> pred_foot = (feet[i-step].second.value + feet[next_idx].second.value)/2;
-        feet[i].second.value = (Quantize((feet[i].second.value-pred_foot[0]),qsize/2,UNARY_CODE) + pred_foot)[0];
+        feet[i].second.value = (Quantize((feet[i].second.value-pred_foot[0]),qsize/2,SrcCodingMethod::UNARY_CODE) + pred_foot)[0];
         feet[i].second.bits = quanBit.size();
         feet[i].second.bitstring = quanBit;
         _quanBitString+=quanBit;
         pred_foot = (feet[stride+i-step].second.value + feet[stride+i+step].second.value)/2;
-        feet[stride+i].second.value = (Quantize(feet[stride+i].second.value-pred_foot[0],qsize/2,UNARY_CODE)+pred_foot)[0];
+        feet[stride+i].second.value = (Quantize(feet[stride+i].second.value-pred_foot[0],qsize/2,SrcCodingMethod::UNARY_CODE)+pred_foot)[0];
         feet[stride+i].second.bits = quanBit.size();
         feet[stride+i].second.bitstring = quanBit;
         _quanBitString+=quanBit;
@@ -1972,28 +1972,28 @@ QNode<T,cn>& QNode<T,cn>::PoissonLightingCorrection(const QNode<T,cn>& changeTo,
 }
 
 template <class T, size_t cn>
-void QNode<T,cn>::GradientStitching(const QNode<T,cn>& changeTo, int blendPos, Size3 boundSize, Tensor<T,1>& tempmask)
+void QNode<T,cn>::GradientStitching(const QNode<T,cn>& changeTo, BlendingLocation blendPos, Size3 boundSize, const Tensor<T,1>& tempmask)
 {
 	Tensor<T,1>  maskExt;
 	CV_DbgAssert(overlap().height>=boundSize.height && overlap().width>=boundSize.width && overlap().depth>=boundSize.depth);
 	Tensor<T,1> mask(this->size()+boundSize*2);
-	if (blendPos == CUSTOM_BLENDING)
+	if (blendPos == BlendingLocation::CUSTOM_BLENDING)
 	{
 		mask = tempmask;
 	}
-	else if (blendPos == FORWARD_BLENDING)
+	else if (blendPos == BlendingLocation::FORWARD_BLENDING)
 	{
 		Tensor<T,1> mask2(this->size(),0);
 		mask2 = mask2.ExtendHalfBoundary(boundSize,255);
 		mask.SetBlock(mask2);
 		//mask.Print();
 	}
-	else if (blendPos == POST_BLENDING_RIGHT)
+	else if (blendPos == BlendingLocation::POST_BLENDING_RIGHT)
 	{
 		Tensor<T,1> mask2(this->size().height, boundSize.width,1, 255);
 		mask.SetBlock(Point3i(0,boundSize.width+this->size().width,0),mask2);
 	}
-	else if (blendPos == POST_BLENDING_LOW)
+	else if (blendPos == BlendingLocation::POST_BLENDING_LOW)
 	{
 		Tensor<T,1> mask2(boundSize.width,this->size().width,1,255);
 		mask.SetBlock(Point3i(boundSize.height+this->size().height,0,0),mask2);
@@ -2008,22 +2008,22 @@ void QNode<T,cn>::GradientStitching(const QNode<T,cn>& changeTo, int blendPos, S
 
 	PoissonSolver pb(candExt.GetFrame(0),tarExt.GetFrame(0),maskExt.GetFrame(0));
 	cv::Mat dst;
-	pb.gradientStiching(dst,offset().x, offset().y);
+	pb.gradientStiching(dst,this->offset().x, this-> offset().y);
 	//mylib::DisplayMat(dst,"dst");
 	QNode<T,cn> temp = QNode<T,cn>(Tensor<T,cn>(dst),this->size(),this->overlap().Point3(),this->overlap());
 	
-	if (blendPos == FORWARD_BLENDING)
+	if (blendPos == BlendingLocation::FORWARD_BLENDING)
 	{
 		this->leftBound.SetBlock(temp.GetBoundaryLeft());
 		this->upBound.SetBlock(temp.GetBoundaryUp());
 		this->SetBlock(temp);
 	}
-	else if (blendPos == POST_BLENDING_RIGHT)
+	else if (blendPos == BlendingLocation::POST_BLENDING_RIGHT)
 	{
 		this->rightBound.SetBlock(temp.rightBound);
 		//this->lowBound.SetBlock(temp.lowBound);
 	}
-	else if (blendPos == POST_BLENDING_LOW)
+	else if (blendPos == BlendingLocation::POST_BLENDING_LOW)
 	{
 		this->lowBound.SetBlock(temp.lowBound);
 	}
@@ -2041,20 +2041,19 @@ Tensor<T,cn> QNode<T,cn>::LightingCorrection(const Tensor<T,cn>& changeTo, bool 
 	Tensor<T,cn>  candid= this->ExtendBoundary(Size3(overlapSize.height,overlapSize.width,overlapSize.depth));
 	candid.SetBlock(upBound);
 	candid.SetBlock(leftBound);
-	candid.SetBlock(Point3i(0,tsSize.width+overlapSize.width,0),rightBound);
-	candid.SetBlock(Point3i(tsSize.height+overlapSize.height,0,0),lowBound);
+	candid.SetBlock(Point3i(0,this->tsSize.width+overlapSize.width,0),rightBound);
+	candid.SetBlock(Point3i(this->tsSize.height+overlapSize.height,0,0),lowBound);
 	//candid.Display(0);
-	Tensor<T,cn> lighting = candid.LightingCorrection(changeTo,saveCodeLength);
-	this->SetLightingCodeLength(candid.GetLightingCodeLength());
-	candid.RecodeLighting();
+  // all lighting information will be saved into this->light
+  Tensor<T,cn> lighting = this->lt.LightingCorrection(candid,changeTo,saveCodeLength);
+	//this->lt.SetLightingCodeLength(candid.lt.GetLightingCodeLength());
+	lt.RecordLighting();
 	//candid.Display(0);
-	this->SetBlock(candid.Crop(overlapSize.Point3(),tsSize));
+	this->SetBlock(candid.Crop(overlapSize.Point3(),this->tsSize));
 	this->upBound.SetBlock(candid.Crop(Point3i(0,0,0),upBound.size()));
 	this->leftBound.SetBlock(candid.Crop(Point3i(0,0,0), leftBound.size()));
-	this->lowBound.SetBlock(candid.Crop(Point3i(tsSize.height+overlapSize.height,0,0),lowBound.size()));
-	this->rightBound.SetBlock(candid.Crop(Point3i(0,tsSize.width+overlapSize.width,0),rightBound.size()));
-	this->lightTag = candid.GetTagLighting();
-	this->lightCan = candid.GetCanLighting();
+	this->lowBound.SetBlock(candid.Crop(Point3i(this->tsSize.height+overlapSize.height,0,0),lowBound.size()));
+	this->rightBound.SetBlock(candid.Crop(Point3i(0,this->tsSize.width+overlapSize.width,0),rightBound.size()));
 	return lighting;
 }
 
@@ -2065,18 +2064,16 @@ Tensor<T,cn> QNode<T,cn>::LightingCorrection(const Tensor<T,cn>& changeTo, const
 	Tensor<T,cn>  candid= this->ExtendBoundary(Size3(overlapSize.height,overlapSize.width,overlapSize.depth));
 	candid.SetBlock(upBound);
 	candid.SetBlock(leftBound);
-	candid.SetBlock(Point3i(0,tsSize.width+overlapSize.width,0),rightBound);
-	candid.SetBlock(Point3i(tsSize.height+overlapSize.height,0,0),lowBound);
+	candid.SetBlock(Point3i(0,this->tsSize.width+overlapSize.width,0),rightBound);
+	candid.SetBlock(Point3i(this->tsSize.height+overlapSize.height,0,0),lowBound);
 	//candid.Display(0);
-	Tensor<T,cn> lighting = candid.LightingCorrection(changeTo,VQCodebook);
+	Tensor<T,cn> lighting = lt.LightingCorrection(candid, changeTo,VQCodebook);
 	//candid.Display(0);
-	this->SetBlock(candid.Crop(overlapSize.Point3(),tsSize));
+	this->SetBlock(candid.Crop(overlapSize.Point3(),this->tsSize));
 	this->upBound.SetBlock(candid.Crop(Point3i(0,0,0),upBound.size()));
 	this->leftBound.SetBlock(candid.Crop(Point3i(0,0,0), leftBound.size()));
-	this->lowBound.SetBlock(candid.Crop(Point3i(tsSize.height+overlapSize.height,0,0),lowBound.size()));
-	this->rightBound.SetBlock(candid.Crop(Point3i(0,tsSize.width+overlapSize.width,0),rightBound.size()));
-	this->lightTag = candid.GetTagLighting();
-	this->lightCan = candid.GetCanLighting();
+	this->lowBound.SetBlock(candid.Crop(Point3i(this->tsSize.height+overlapSize.height,0,0),lowBound.size()));
+	this->rightBound.SetBlock(candid.Crop(Point3i(0,this->tsSize.width+overlapSize.width,0),rightBound.size()));
 	return lighting;
 
 }
@@ -2088,8 +2085,8 @@ void QNode<T,cn>::LightingCorrection2(const Tensor<T,cn>& fromLight, const Tenso
 	Tensor<T,cn>  candid= this->ExtendBoundary(Size3(overlapSize.height,overlapSize.width,overlapSize.depth));
 	candid.SetBlock(upBound);
 	candid.SetBlock(leftBound);
-	candid.SetBlock(Point3i(0,tsSize.width+overlapSize.width,0),rightBound);
-	candid.SetBlock(Point3i(tsSize.height+overlapSize.height,0,0),lowBound);
+	candid.SetBlock(Point3i(0,this->tsSize.width+overlapSize.width,0),rightBound);
+	candid.SetBlock(Point3i(this->tsSize.height+overlapSize.height,0,0),lowBound);
 	CV_Assert(fromLight.size().width == toLight.size().width && fromLight.size().height == toLight.size().height);
 	CV_Assert(fromLight.size().width == candid.size().width && fromLight.size().height == candid.size().height);
 	CV_Assert(candid.type()!=0); // if use unsigned type, wrong answers!
@@ -2100,11 +2097,11 @@ void QNode<T,cn>::LightingCorrection2(const Tensor<T,cn>& fromLight, const Tenso
 	//QNode<T,cn> extNode(
 	candid = (candid - fromLight) + toLight;
 	//candid.Display(0);
-	this->SetBlock(candid.Crop(overlapSize.Point3(),tsSize));
+	this->SetBlock(candid.Crop(overlapSize.Point3(),this->tsSize));
 	this->upBound.SetBlock(candid.Crop(Point3i(0,0,0),upBound.size()));
 	this->leftBound.SetBlock(candid.Crop(Point3i(0,0,0), leftBound.size()));
-	this->lowBound.SetBlock(candid.Crop(Point3i(tsSize.height+overlapSize.height,0,0),lowBound.size()));
-	this->rightBound.SetBlock(candid.Crop(Point3i(0,tsSize.width+overlapSize.width,0),rightBound.size()));
+	this->lowBound.SetBlock(candid.Crop(Point3i(this->tsSize.height+overlapSize.height,0,0),lowBound.size()));
+	this->rightBound.SetBlock(candid.Crop(Point3i(0,this->tsSize.width+overlapSize.width,0),rightBound.size()));
 	return;
 }
 template <class T, size_t cn>
@@ -2114,8 +2111,8 @@ QNode<T,cn>& QNode<T,cn>::LightingCorrection2(const QNode<T,cn>& changeTo)
 	Tensor<T,cn>  candid= this->ExtendBoundary(Size3(overlapSize.height,overlapSize.width,overlapSize.depth));
 	candid.SetBlock(upBound);
 	candid.SetBlock(leftBound);
-	candid.SetBlock(Point3i(0,tsSize.width+overlapSize.width,0),rightBound);
-	candid.SetBlock(Point3i(tsSize.height+overlapSize.height,0,0),lowBound);
+	candid.SetBlock(Point3i(0,this->tsSize.width+overlapSize.width,0),rightBound);
+	candid.SetBlock(Point3i(this->tsSize.height+overlapSize.height,0,0),lowBound);
 	//Tensor<T,cn> lighting = candid.LightingCorrection(changeTo);
 	candid = candid.ExtendHalfBoundary();
 	candid.Display(0);
@@ -2125,21 +2122,21 @@ QNode<T,cn>& QNode<T,cn>::LightingCorrection2(const QNode<T,cn>& changeTo)
 	target = target.ExtendHalfBoundary();
 	target.Display(0);
 
-	this->SetBlock(candid.Crop(overlapSize.Point3(),tsSize));
+	this->SetBlock(candid.Crop(overlapSize.Point3(),this->tsSize));
 	this->upBound.SetBlock(candid.Crop(Point3i(0,0,0),upBound.size()));
 	this->leftBound.SetBlock(candid.Crop(Point3i(0,0,0), leftBound.size()));
-	this->lowBound.SetBlock(candid.Crop(Point3i(tsSize.height+overlapSize.height,0,0),lowBound.size()));
-	this->rightBound.SetBlock(candid.Crop(Point3i(0,tsSize.width+overlapSize.width,0),rightBound.size()));
+	this->lowBound.SetBlock(candid.Crop(Point3i(this->tsSize.height+overlapSize.height,0,0),lowBound.size()));
+	this->rightBound.SetBlock(candid.Crop(Point3i(0,this->tsSize.width+overlapSize.width,0),rightBound.size()));
 	return *this;
 }
 template <class T, size_t cn> QNode<T,cn> QNode<T,cn>::Clone() const
 {
 
-	//QNode<T,cn> rst(tsSize);
+	//QNode<T,cn> rst(this->tsSize);
 	QNode<T,cn> rst(this->Tensor<T,cn>::Clone());
 	//rst = Tensor<T,cn>::Clone();
 	rst.overlapSize = overlapSize;
-	rst.tsOffset = tsOffset;
+	rst.tsOffset = this->tsOffset;
 	rst.bits = bits;
 	rst.predicted_method = predicted_method;
 	rst.footError = footError;
@@ -2156,8 +2153,8 @@ template <class T, size_t cn> QNode<T,cn> QNode<T,cn>::Clone() const
 	rst.lowBound = this->lowBound.Clone();
 	rst.bounds.push_back(&rst.upBound);
 	rst.bounds.push_back(&rst.leftBound);
-	rst.SetSubWinSize(this->subWinSize);
-	rst.SetSubWinStep(this->subWinStep);
+	//rst.SetSubWinSize(this->subWinSize);
+	//rst.SetSubWinStep(this->subWinStep);
   rst.feet = this->feet;
 	//rst.SetBlock(*this);
 	return rst;

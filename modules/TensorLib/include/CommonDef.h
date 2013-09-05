@@ -160,7 +160,7 @@ enum class FeaturePoolType :int {FEATURE_POOL_AVE,FEATURE_POOL_MIN,FEATURE_POOL_
 
 #ifndef BOUND_DIR
 #define BOUND_DIR
-enum class BoundDir {UP,DOWN,LEFT,RIGHT,FRONT,BACK};//may be extern?
+enum class BoundDir {UP,DOWN,LEFT,RIGHT,FRONT,BACK,NONE};//may be extern?
 #endif
 
 #endif
@@ -193,8 +193,17 @@ enum class SrcCodingMethod { JPEG_HUFF, HUFFMAN_CODE, UNARY_CODE};
 #endif
 
 
+#ifndef CODING_METHOD
+#define CODING_METHOD
+enum  class CodingMethodNames{CODING_JPEG, CODING_MTC, CODING_PQI, CODING_JPEG_DEGRADE, CODING_OTHER, NO_CODING};
+#endif
 
 
+#ifndef BLENDING_METHOD
+#define BLENDING_METHOD
+enum class BlendingMethod {SHORTEST_PATH_BLENDING, GRADIENT_BLENDING, GRAPHCUT_BLENDING,NO_BLENDING};
+enum class BlendingLocation{ FORWARD_BLENDING, POST_BLENDING_RIGHT, POST_BLENDING_LOW, CUSTOM_BLENDING};
+#endif
 
 
 }
