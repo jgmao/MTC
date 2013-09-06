@@ -17,7 +17,9 @@ template<typename T, size_t cn> CubePlus_<T,cn>::CubePlus_(const Cube& c, const 
 
 template<typename T, size_t cn> CubePlus_<T,cn>::CubePlus_(const Tensor<T,cn>& t):Cube(t.offset(),t.size())
 {
+    //cout<<"about t "<<t.offset()<<endl;
 	content = t;
+	//cout<<"offset inside cubeplus "<<this->offset()<<endl;
 }
 
 template<typename T, size_t cn> CubePlus_<T,cn>::CubePlus_(const Tensor<T,cn>& t, const Tensor<T,cn>& extra):Cube(t.offset(),t.size())

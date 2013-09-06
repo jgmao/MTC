@@ -1,6 +1,9 @@
 #ifndef CODER_DEF_H
 #define CODER_DEF_H
 
+#ifndef RECORD_EVERYTHING
+#define RECORD_EVERYTHING
+#endif
 
 #ifndef CODING_MODE
 #define CODING_MODE

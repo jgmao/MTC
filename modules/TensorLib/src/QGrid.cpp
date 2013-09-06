@@ -209,7 +209,7 @@ vector<Point3i> QGrid<T,cn>::BoundaryMatching(QNode<T,cn>& qNode, MatchingMethod
 	Tensor<double,cn> tempMap;
    vector<Point3i> sideMatchAddr;
   fstream logfile;
-  logfile.open(".\\matching.txt",ios::app);
+  logfile.open("./temp/matching.txt",ios::app);
 
 	if (qNode.offset().x ==416 && qNode.offset().y==352)
 		tempMap = Tensor<double,cn>(rst.size());
@@ -424,9 +424,9 @@ vector<Point3i> QGrid<T,cn>::BoundaryMatching(QNode<T,cn>& qNode, MatchingMethod
 					    localN= candUp_norm.size().volumn()+candLeft_norm.size().volumn();
 
 					    //target.debugtrigger=false;
-					    localdiff= localdiff/localN;
-              localdiff/=65025;//normalize by 255^2
-                                            if (matching_method == MatchingMethod::MATCHING_MSE_CONSTRAINT)
+					    //localdiff= localdiff/localN;
+	      localdiff/=65025;//normalize by 255^2
+					    if (matching_method == MatchingMethod::MATCHING_MSE_CONSTRAINT)
 					    {
 						    //double delta = ((Vt0 + Vt1)/2 - (Vb0+Vb1)/2);
 						    //VV.Print();

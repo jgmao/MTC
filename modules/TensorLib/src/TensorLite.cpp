@@ -546,15 +546,19 @@ template <class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::GetBlockRef(const Cube&
 	AssertRange(roi.offset(),roi.size());
 	Rect r = roi.toRect();
 	Tensor<T,cn> rst = this->Mat::operator()(r);
+	rst.SetFileName(this->cFileName);
+	rst.SetOffset(roi.offset()+this->offset());
   return rst;
+
 }
 
 template <class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::GetBlockRef(const Cube& roi) const
 {
 	AssertRange(roi.offset(),roi.size());
 	Rect r = roi.toRect();
-
 	Tensor<T,cn> rst = this->Mat::operator()(r);
+	rst.SetFileName(this->cFileName);
+	rst.SetOffset(roi.offset()+this->offset());
   return rst;
 }
 
@@ -658,6 +662,7 @@ template<class T, size_t cn> void Tensor<T,cn>::SaveBlock(const string& cFileNam
 
 template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::Crop(const Point3i& pos, const Size3& sz) const
 {
+  //cout<<"pos"<<pos<<"sz"<<sz<<endl;
   return this-> GetBlockRef(Cube(pos,sz)).Clone();
 }
 /* 20130815

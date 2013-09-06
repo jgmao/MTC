@@ -479,7 +479,8 @@ namespace metric
     Tensor<double,1> rstMat(tempsz,0);//gj20130120 set inital value to 1 for productive pooling
     //set 0 for addictive pooling
     //rstMat.Print();
-
+    cout<<subWinSizeLv<<endl;
+    cout<<subWinStepLv<<endl;
     for (index = 0; index < (int)pyrA.size(); index++)
       {
         int lvl=0;
@@ -516,8 +517,8 @@ namespace metric
         //cout<<"subWinStepLv: ";
         //subWinStepLv.Print();
 
-        pyrA[index].Print("pa");
-        pyrB[index].Print("pb");
+        //pyrA[index].Print("pa");
+        //pyrB[index].Print("pb");
         mu_A[index] = pyrA[index].LocalMean(gaussKernel,subWinStepLv);
         if (debug)
                 mu_A[index].Print("mua");
@@ -645,8 +646,8 @@ namespace metric
           }
         sigma2_A[index] = pyrA[index].LocalVariance(mu_A[index],gaussKernel,subWinStepLv);
         sigma2_B[index] = pyrB[index].LocalVariance(mu_B[index],gaussKernel,subWinStepLv);
-        sigma2_A[index].Print();
-        sigma2_B[index].Print();
+        //sigma2_A[index].Print();
+        //sigma2_B[index].Print();
         if (debug&&index==12)
           {
             auto temp2 = (sigma2_A[index].Real()*sigma2_B[index].Real()).Sqrt() + C1;
@@ -680,16 +681,21 @@ namespace metric
             pyrB[index](Cube(0,1,0,sz.height,sz.width-1,sz.depth)),
             subWinSizeLv-Size3(0,1,0), subWinStepLv);
         //C01[index].Print();
-        pyrA[index].size().Print();
-        pyrB[index].size().Print();
-        sz.Print();
+        //pyrA[index].size().Print();
+        //pyrB[index].size().Print();
+        //sz.Print();
         C10[index] = ComputeCrossTerm(pyrA[index](Cube(0,0,0,sz.height-1,sz.width,sz.depth)),
             pyrA[index](Cube(1,0,0,sz.height-1,sz.width,sz.depth)),
             pyrB[index](Cube(0,0,0,sz.height-1,sz.width,sz.depth)),
             pyrB[index](Cube(1,0,0,sz.height-1,sz.width,sz.depth)),
             subWinSizeLv-Size3(1,0,0), subWinStepLv);
         //C10[index].Print();
+        cout<<index<<endl;
 
+        cout<<"L "<<L[index].size()<<endl;
+        cout<<"C "<<C[index].size()<<endl;
+        cout<<"C01 "<<C01[index].size()<<endl;
+        cout<<"C10 "<<C10[index].size()<<endl;
         Tensor<double,1> tempRstMat;
         if (stsim2_modifer == MetricModifier::STSIM2_TUNE)
           {

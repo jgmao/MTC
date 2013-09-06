@@ -248,7 +248,11 @@ void MTC::DummyCoding(void)
    //save rsts to a video
     cv::VideoWriter writer;
     cv::VideoCapture cap("./everything/rst_%04d.bmp");
+#if CV_MINOR_VERSION < 6
     writer.open("rst.avi",CV_FOURCC('Y','U','V','9'),1,Size(rst.size().width,rst.size().height),true);
+#else
+    writer.open("rst.avi",cv::VideoWriter::fourcc('Y','U','V','9'),1,Size(rst.size().width,rst.size().height),true);
+#endif
     cv::Mat frame;
     cv::Mat frame2;
     for(;;)
@@ -572,16 +576,20 @@ void MTC::UpdateLog(void)
 
 #endif
   candPosLog.close();
-
+  logfile.close();
   //copy matching and ssim_terms to folder
   string topath = path+count_exp+"_"+PID+"_matching.txt";
   //wstring wstemp(topath.begin(),topath.end());
-  boost::filesystem::copy_file("matching.txt", topath);
+  boost::filesystem::copy_file("./temp/matching.txt", topath);
   //CopyFile(L"matching.txt",wstemp.c_str(),0);
+  ifstream my_file("./temp/ssim_terms.txt");
+  if (my_file.good())
+  {
   topath = path+count_exp+"_"+PID+"_ssim_terms.txt";
   //wstemp = wstring(topath.begin(),topath.end());
-  boost::filesystem::copy_file("ssim_terms.txt",topath);
+  boost::filesystem::copy_file("./temp/ssim_terms.txt",topath);
   //CopyFile(L"ssim_terms.txt",wstemp.c_str(),0);
+   }
 }
 Tensor<MTC::T,MTC::cn>& MTC::LoadPreDefLighting(void)
 {
@@ -879,9 +887,12 @@ QTree<MTC::T,MTC::cn>& MTC::CodingCore(QTree<T,cn>& qTree)
 				{
 					if (postBlendType == PostBlendingType::POST_BLENDING_ONLINE&&this->mode == CodingMode::CODING_MODE_MTC)
 					{
+
 						PBSet::iterator it = pbSet.find(PBRecord(qTree.offset(),BoundDir::LEFT));
 						if (it!=pbSet.end()&&it->second.height <= qTree.size().height)
 						{
+						  cout<<"offset is: "<<qTree.offset()<<endl;
+						  cout<<"pb offset is: "<<it->first.offset<<"which  points to: "<<it->second.offset()<<endl;
 							PostBlending(it->first,it->second);//pb for different size may goes wrong!
 							pbSet.erase(it->first	,it->second);
 							//rst_with_seam.Display(1000,1);
@@ -2105,7 +2116,7 @@ bool MTC::TexturePrediction(QTree<T,cn>& qNode, int qLevel)
   {
     tempAccept = false;
   }
-  else if (qNode.size().height <= 16 && qNode.size().width <= 16)//force to set min blk size 32 
+  else if (qNode.size().height <= 8 && qNode.size().width <= 8)//force to set min blk size 32
 	{
 		tempAccept =false;
 	}
@@ -2572,7 +2583,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
         string PID = boost::lexical_cast<string>(getpid());
 #endif
 
-      debugfile.open("ssim_terms.txt",ios::out);
+      debugfile.open("./temp/ssim_terms.txt",ios::out);
       debugfile<<"org mean"<<org.Mean()[0]<<"\t"<<"org var"<<org.Var()[0]<<endl;
       debugfile.close();
     }
@@ -2580,7 +2591,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
     #else
 #     ifdef RECORD_EVERYTHING
       string extra_path = "./everything/";
-      _mkdir(extra_path.c_str());
+      mkdir(extra_path.c_str());
       char posstr[20];
       sprintf(posstr,"_%d_(%d_%d)",qNode.size().height,qNode.offset().x,qNode.offset().y);
       QNode<double,1> orgtemp;
@@ -2882,7 +2893,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
         string PID = boost::lexical_cast<string>(getpid());
 #endif
 
-        debugfile.open("ssim_terms.txt",ios::app);
+        debugfile.open("./temp/ssim_terms.txt",ios::app);
         debugfile<<" -------------"<<i<<"th candidate-----------------"<<endl;
         debugfile<<"candid mean\t"<<candid.Mean()[0]<<"\t"<<"candid var\t"<<candid.Var()[0]<<endl;
         debugfile.close();
@@ -3627,6 +3638,9 @@ void MTC::UpdatePBSet(const QNode<T,cn>& qNode, Point3i matchPos )
 void MTC::UpdatePBSet(const QNode<T,cn>& qNode, const QNode<T,cn>& candid )//the second part of pbSet store the actual canndidate post bourdary location and size
 {
 	Point3i matchPos = candid.offset();
+	//cout<<"matchpos is: "<<matchPos<<endl;
+	//cout<<"candid is: "<<candid.offset()<<endl;
+	//cout<<"candid bound are: " <<candid.rightBound.offset()<<", "<<candid.lowBound.offset()<<endl;
 	//pbq.push(Cube());
 	// the new TB block coincide with existing record, erase it
 	pbSet.erase(PBRecord(qNode.offset(),BoundDir::LEFT),Cube(matchPos+Point3i(0,qNode.size().width,0), qNode.rightBound.size() - Size3(qNode.overlap().height*2,0,0)));
@@ -3635,12 +3649,18 @@ void MTC::UpdatePBSet(const QNode<T,cn>& qNode, const QNode<T,cn>& candid )//the
   //01052013 take the entire boundary will be usefull for post PLC. 
   //05152013 not only extend the long boudnary, but also take extra short bournday
   //05152013 for example a 4x16 boundary will store the extra 6x26 boundary?????
-  Tensor<double,1> candExt = candid.GetExtendTensor();
-  CubePlus temp(CubePlus(candid.rightBound.Crop(Point3i(candid.overlap().height,0,0),qNode.rightBound.size()-Size3(qNode.overlap().height*2,0,0))));
+  //Tensor<double,1> candExt = candid.GetExtendTensor();
+  Tensor<double,1> aRecord = candid.rightBound.Crop(Point3i(candid.overlap().height,0,0),qNode.rightBound.size()-Size3(qNode.overlap().height*2,0,0));
+  //cout<<"crop "<<candid.rightBound.Crop(Point3i(candid.overlap().height,0,0),qNode.rightBound.size()-Size3(qNode.overlap().height*2,0,0)).offset()<<endl;
+  //cout<<"a record "<<aRecord.offset()<<aRecord.size()<<endl;
+  CubePlus temp(aRecord);
+  //cout<<"record building 1: "<<temp.offset()<<", "<<temp.size()<<endl;
 //  temp.SetExtraContent(candExt.Crop(Point3i(candid.overlap().height-1,candExt.size().width-candid.overlap().width-1,0),  qNode.rightBound.size()+Size3(2-qNode.overlap().height*2,2,0)));
 	pbSet.insert(pair<PBRecord,CubePlus>(PBRecord(qNode.offset()+Point3i(0,qNode.size().width,0),BoundDir::LEFT),temp/*CubePlus(candid.rightBound.Crop(Point3i(qNode.overlap().height,0,0),candid.rightBound.size()-Size3(qNode.overlap().height*2,0,0)))*/));
-	temp = CubePlus(candid.lowBound.Crop(Point3i(0,candid.overlap().width,0),qNode.lowBound.size()-Size3(0,qNode.overlap().width*2,0)));
+	Tensor<double,1> bRecord = candid.lowBound.Crop(Point3i(0,candid.overlap().width,0),qNode.lowBound.size()-Size3(0,qNode.overlap().width*2,0));
+	temp = CubePlus(bRecord);
   //temp.SetExtraContent(candExt.Crop(Point3i(candExt.size().height-candid.overlap().height-1, candid.overlap().width-1,0),qNode.lowBound.size()+Size3(2,2-qNode.overlap().width*2,0)));
+  //cout<<"record building 2: "<<temp.offset()<<", "<<temp.size()<<endl;
   pbSet.insert(pair<PBRecord,CubePlus>(PBRecord(qNode.offset()+Point3i(qNode.size().height,0,0),BoundDir::UP),temp/*CubePlus(candid.lowBound.Crop(Point3i(0,qNode.overlap().width,0),candid.lowBound.size()-Size3(0,qNode.overlap().width*2,0)))*/));
 }
 
@@ -4043,6 +4063,7 @@ void MTC::PostBlending(const PBRecord& rec, CubePlus& roi)
     }
   }
   //changeFrom = changeTo.Clone();
+    cout<<roi.offset()<<roi.GetContent().size()<<endl;
   rst.Ref(Cube(roi.offset() - Point3i(1,1,0),roi.GetContent().size()+Point3i(2,2,0)),changeFrom);
   if (lightCorrectionType == LightingCorrectionType::POISSON_LC)
   {
@@ -4722,11 +4743,11 @@ void MTC::UpdateParameters(void)
 		stat.tpBlockNum.push_back(0);
 		stat.tpBits.push_back(0);
 	}
-	path = ".\\";
+	path = "./temp/";
 	path+=boost::lexical_cast<string>(tt->tm_year+1900);//year start with 1900
 	path+=boost::lexical_cast<string>(month[tt->tm_mon]);
 	path+=boost::lexical_cast<string>(tt->tm_mday);
-	path += "\\";
+	path += "/";
 	//if (postBlendType != POST_BLENDING_ONLINE && lightCorrectionType != NO_LIGHTING_CORRECTION||lightCorrectionType!=POISSON_LC)
 	//	CV_Error(CV_StsError,"cannot do lighting correction without online post blending.");
 	std::cout<<"done 3.7\n";
@@ -4737,16 +4758,18 @@ void MTC::UpdateParameters(void)
 	ifstream ifile(path+"log.txt");
 	if (ifile) {
 		ifile>>count_exp;
+		cout<<"experiment count: "<<count_exp<<endl;
 		ifile.close();
 		count_exp=boost::lexical_cast<string>(boost::lexical_cast<int>(count_exp)+1);
 		logfile.open(path+"log.txt",ios::out|ios::in);
 		logfile.seekg(0,ios::beg);
 		logfile.write(count_exp.c_str(),count_exp.length());
 		logfile.close();
-		logfile.open(path+"log.txt",ios::app);
+		logfile.open(path+"log.txt",ios::out|ios::app);
+		logfile.seekg(0,ios::end);
 		logfile<<endl<<"No."<<count_exp<<endl;
 		logfile<<"PID: "<<getpid()<<endl;
-	//	logfile.close();
+		//logfile.close();
 	// The file exists, and is open for input
 		std::cout<<"done 3.76\n";
 	}
@@ -4789,7 +4812,7 @@ void MTC::UpdateParameters(void)
 	prefix += "_";
 
 	string::size_type idx = cFileName.find_last_of(".");
-	string::size_type idx2 = cFileName.find_last_of("\\");
+	string::size_type idx2 = cFileName.find_last_of("/");
 	baseName = cFileName.substr(0,idx).substr(idx2+1,idx-idx2);
 	//edgeEnsemble.Load(baseName+"_aca.tiff");
 	//edgeEnsemble.Display(1);
@@ -4850,13 +4873,13 @@ void MTC::UpdateParameters(void)
 	//}
 	//fh.close();
   fstream matchingfile;
-  matchingfile.open(".\\matching.txt",ios::out);
+  matchingfile.open("./temp/matching.txt",ios::out);
   matchingfile<<"starting recording matching .....\n";
   matchingfile.close();
   #ifdef RECORD_EVERYTHING
     system("rm -rf ./everything");
     //std::remove("./everything");
-    _mkdir("./everything");
+    mkdir("./everything",0755);
     ofstream everything;
     everything.open("./everything/everything.txt",ios::out);
     everything.close();
