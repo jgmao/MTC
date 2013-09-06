@@ -4,11 +4,11 @@
 #set(MTC_METRIC_DIR ${MTC_MODULES_DIR}/Metric)
 
 message("tensor dir is: ${MTC_TENSOR_DIR}")
-include_directories(${MTC_RUNNER_DIR}/include ${MTC_TENSORLIB_DIR}/include ${MTC_UTILITY_DIR}/include ${MTC_METRIC_DIR}/include)
-set(com_link ${MTC_RUNNER_DIR}/src ${MTC_TENSORLIB_DIR} ${MTC_METRIC_DIR} ${MTC_UTILITY_DIR})
+include_directories(${MTC_RUNNER_DIR}/include ${MTC_TENSORLIB_DIR}/include ${MTC_UTILITY_DIR}/include ${MTC_METRIC_DIR}/include ${MTC_MTC_DIR}/include ${MTC_LIGHTING_DIR}/include)
+set(com_link ${MTC_RUNNER_DIR}/src ${MTC_METRIC_DIR} ${MTC_MTC_DIR})
 
 
-set(PROGRAMS gpussim testTensor main)
+set(PROGRAMS main)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Debug/lib)
@@ -23,11 +23,11 @@ else()
 endif()
  
 add_library(Tester src/Tester.cpp)
-target_link_libraries(Tester ${OpenCV_LIBS} TensorLite Size3 Cube Steerable algorithms util LRI Granulate)
+target_link_libraries(Tester ${OpenCV_LIBS} TensorLib TensorExtend util MTC LightingLib jpeg Metric ${Boost_LIBRARIES})
 
 foreach(program ${PROGRAMS})
   add_executable(${program} src/${program}.cpp)
-  target_link_libraries(${program} ${OpenCV_LIBS} Cube Size3 Tester TensorLite Steerable LRI algorithms util LRI Granulate Metric)
+  target_link_libraries(${program} ${OpenCV_LIBS} Tester TensorLib TensorExtend util MTC LightingLib jpeg Metric ${Boost_LIBRARIES})
  # install(TARGETS ${PROGRAMS}
 #	RUNTIME DESTINATION ${MTC_SOURCE_DIR}/bin
 #	LIBRARY DESTINATION ${MTC_SOURCE_DIR}/lib

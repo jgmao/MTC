@@ -23,7 +23,7 @@ vector<Tensor<double,1>>& LightingVerify::estimateLight(vector<Tensor<double,1>>
 {
   for (Tensor<double,1>& A : images)
   {
-    Tensor<double,1> temp= lt.ComputeTPSS(A,0.001);
+    Tensor<double,1> temp= lighting::ComputeTPSS(A,0.001);
     rst.push_back(temp.Clone());
   }
   return rst;
@@ -31,7 +31,7 @@ vector<Tensor<double,1>>& LightingVerify::estimateLight(vector<Tensor<double,1>>
 
 void LightingVerify::estimateLight(Tensor<double,1>& im, Tensor<double,1>& rst, int blksize, int bdsize, int fsize)
 {
-  rst = lt.ComputeTPSS(im,0.001);
+  rst = lighting::ComputeTPSS(im,0.001);
 }
 vector<double>& LightingVerify::doPLC(int blksize, int bdsize, int fsize )
 {

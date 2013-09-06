@@ -41,8 +41,6 @@ enum class JPEGType  : int {		JPEG_BASELINE,
 									JPEG_CUSTOM_TBL};
 #endif
 
-#include <map>
-#include "HuffTree.h"
 //static std::map<int,string> Huffman_DC_Table;
 //static std::map<int,string> Huffman_AC_Table;
 //static HuffTree Huffman_DC_Tree;

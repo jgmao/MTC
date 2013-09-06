@@ -3,7 +3,7 @@
 //#include "QGrid.h"
 
 #include "MyLib.h"
-//#include "TPC.h"
+#include "MTC.h"
 //#include "CubePlus.h"
 //#include "HuffTree.h"
 //#include <gtest\gtest.h>
@@ -15,7 +15,7 @@
 using namespace std;
 using namespace tensor;
 using namespace metric;
-
+using namespace mtc;
 class Tester
 {
 public:
@@ -37,7 +37,7 @@ public:
 	void TestFilter2D(void);
 	//void TestKmeans(void);
 	//void TestHuffTree(void);
-	//void TestEncoding(int argc, char* argv[]);
+	void TestEncoding(int argc, char* argv[]);
 	//void Test3DMat(void);
 	//void TestPoisson(void);
   	//void TestCovar(void);

@@ -45,10 +45,40 @@
 //
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-//for use of self implement of JPEG
-//include the order of 8x8 zig-zag 
-namespace mtc{
-extern const int zig_zag_x[] = {0,1,2,1,0,0,1,2,3,4,3,2,1,0,0,1,2,3,4,5,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,7,6,5,4,3,2,1,2,3,4,5,6,7,7,6,5,4,3,4,5,6,7,7,6,5,6,7,7};
-extern const int zig_zag_y[] = {1,0,0,1,2,3,2,1,0,0,1,2,3,4,5,4,3,2,1,0,0,1,2,3,4,5,6,7,6,5,4,3,2,1,0,1,2,3,4,5,6,7,7,6,5,4,3,2,3,4,5,6,7,7,6,5,4,5,6,7,7,6,7};
-}
+#pragma once
+#ifndef HUFFTREE_H
+#define HUFFTREE_H
 
+#include <string>
+using namespace std;
+
+namespace mtc{
+
+  class  TreeNode
+{
+public:
+	int leafvalue;
+
+	TreeNode* left;
+	TreeNode* right;
+public:
+	TreeNode();
+	~TreeNode();
+};
+
+class HuffTree
+{
+public:
+	TreeNode* root;
+	HuffTree(void);
+	~HuffTree(void);
+	void Insert(const string& binary, int value);
+	int Search(TreeNode* pos,const string& binary);//search in stream bits, one bits each time until find or error
+	TreeNode* Search(TreeNode* pos, const char bit);
+private:
+	void Insert(TreeNode* pos, const string& binary, int value);
+
+};
+
+}
+#endif

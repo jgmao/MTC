@@ -24,7 +24,8 @@
 #include "CoderDef.h"
 #include "NTest.h"
 #include <sys/stat.h>
-
+#include <TensorHelper.h>
+#include "HuffTree.h"
 using namespace std;
 namespace mtc{
 

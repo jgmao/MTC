@@ -34,7 +34,7 @@ public:
   EXPORTLIB Mat LightingCorrection(Mat& changeFrom, const Mat& changeTo, const Tensor<double,1>& VQCodebook);
   EXPORTLIB int GetLightingCodeLength() const;
   EXPORTLIB void SetLightingCodeLength(int l);
-  EXPORTLIB Mat ComputeTPSS(const Mat& im, double p) const;//thin plate spline smoothing
+  //EXPORTLIB Mat ComputeTPSS(const Mat& im, double p) const;//thin plate spline smoothing
   EXPORTLIB void RecordLighting(void);
   EXPORTLIB Mat SearchCodeword(const Mat& val, const Mat& VQCodeBook);
   EXPORTLIB vector<Vec<double,1> > GetTagLighting() const;

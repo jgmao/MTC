@@ -1873,7 +1873,7 @@ void MTC::Coding(CodingMode codemode)
 		filenames.push_back(path+prefix+baseName+".tif");
 		filenames.push_back(path+prefix+"seam_"+baseName+".tif");
     string tempfilename = path+"combin_"+prefix+baseName+".tif";
-                mylib::CombineImage(filenames,tempfilename);
+                tensor::CombineImage(filenames,tempfilename);
 	}
 	int lightingbits = 0;
 	if (codemode==CodingMode::CODING_MODE_MTC&&lightCorrectionType==LightingCorrectionType::HAS_LIGHTING_CORRECTION)

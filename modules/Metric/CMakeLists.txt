@@ -15,7 +15,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Debug/lib)
   link_directories(${CMAKE_SOURCE_DIR}/Debug/lib ${common_link_dir})
 else()
-  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Release/lib)
+  set(CMAKE_LIBRARY_:OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Release/lib)
   set(LIB_INSTALL_DIR ${CMAKE_SOURCE_DIR}/Release/lib)
   set(ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Release/lib)
   link_directories(${CMAKE_SOURCE_DIR}/Release/lib ${common_link_dir})
@@ -26,13 +26,19 @@ message("${ARCHIVE_OUTPUT_DIRECTORY}")
 
 
 foreach(program ${PROGRAMS})
-  add_library(${program} src/${program}.cpp)
-  target_link_libraries(${program} ${OpenCV_LIBS} ${Boost_LIBRARIES} TensorLite util)
+  #add_library(${program} src/${program}.cpp)
+  #target_link_libraries(${program} ${OpenCV_LIBS} ${Boost_LIBRARIES} TensorLib util)
+  set(all_src ${all_src} src/${program}.cpp)
   #install(TARGETS ${PROGRAMS}
 #	RUNTIME DESTINATION ${MTC_SOURCE_DIR}/bin
 #	LIBRARY DESTINATION ${MTC_SOURCE_DIR}/lib
 #	ARCHIVE DESTINATION ${MTC_SOURCE_DIR}/lib
 # )
 endforeach(program)
+
+add_library(MetricLib ${all_src}) #cannot be shared libary, boost complain
+target_link_libraries(MetricLib ${OpenCV_LIBS} util ${Boost_LIBRARIES} TensorLib)
+
+
 
 

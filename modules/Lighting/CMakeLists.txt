@@ -35,5 +35,5 @@ foreach(program ${PROGRAMS})
 #	ARCHIVE DESTINATION ${MTC_SOURCE_DIR}/lib
 # )
 endforeach(program)
-add_library(LightingLib SHARED ${all_src})
+add_library(LightingLib ${all_src})
 target_link_libraries(LightingLib ${OpenCV_LIBS} util ${Boost_LIBRARIES} TensorLib)

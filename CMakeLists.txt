@@ -26,11 +26,12 @@ find_package(OpenCV REQUIRED core highgui imgproc gpu ml)# gpufilters gpuarithm 
 else()
 find_package(OpenCV REQUIRED core highgui imgproc gpufilters gpuarithm gpuimgproc ml)
 endif()
-
-set(Boost_USE_STATIC_LIBS ON)
+add_definitions(-DBOOST_ALL_NO_LIB)
+add_definitions( -DBOOST_ALL_DYN_LINK )
+set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
-find_package(Boost 1.54.0 COMPONENTS regex)
+find_package(Boost 1.54.0 COMPONENTS regex system filesystem)
 if(Boost_FOUND)
 message("${Boost_LIBRARIES}")
 endif()
@@ -50,8 +51,8 @@ set(CMAKE_CXX_COMPILER "g++")
 endif()
 message("${CMAKE_CXX_COMPILER}")
 
-set(CMAKE_CXX_FLAGS_DEBUG "-std=c++11 -O0 -g3 -Wall -Wno-unused-variable -Wno-unused-but-set-variable")
-set(CMAKE_CXX_FLAGS_RELEASE   "-std=c++11 -O3  -DNDEBUG -Wall -Wno-unused-variable -Wno-unused-but-set-variable")
+set(CMAKE_CXX_FLAGS_DEBUG "-std=c++11 -O0 -g3 -Wall -Wno-unused-variable -Wno-unused-but-set-variable -fPIC")
+set(CMAKE_CXX_FLAGS_RELEASE   "-std=c++11 -O3  -DNDEBUG -Wall -Wno-unused-variable -Wno-unused-but-set-variable -fPIC")
 
 if( NOT CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Debug CACHE STRING

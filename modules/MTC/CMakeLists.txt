@@ -2,7 +2,7 @@ include_directories(${MTC_TENSORLIB_DIR}/include ${MTC_UTILITY_DIR}/include ${MT
 
 #link_directories(${MTC_TENSOR_DIR}/src)
 set(common_link_dir  ${MTC_TENSORLIB_DIR} ${MTC_MTC_DIR}/src ${MTC_UTILITY_DIR})
-set(PROGRAMS Statistics MTC)
+set(PROGRAMS Statistics HuffTree MTC)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Debug/lib)
@@ -22,8 +22,9 @@ message("${ARCHIVE_OUTPUT_DIRECTORY}")
 
 
 foreach(program ${PROGRAMS})
-  add_library(${program} src/${program}.cpp)
-  target_link_libraries(${program} ${OpenCV_LIBS} ${Boost_LIBRARIES} TensorLib QNode QTree QGrid LightingLib util)
+#  add_library(${program} src/${program}.cpp)
+  set(all_src ${all_src} src/${program}.cpp)
+#  target_link_libraries(${program} ${OpenCV_LIBS} ${Boost_LIBRARIES} TensorLib TensorExtend MetricLib LightingLib util)
   #install(TARGETS ${PROGRAMS}
 #	RUNTIME DESTINATION ${MTC_SOURCE_DIR}/bin
 #	LIBRARY DESTINATION ${MTC_SOURCE_DIR}/lib
@@ -32,3 +33,5 @@ foreach(program ${PROGRAMS})
 endforeach(program)
 
 
+add_library(MTC ${all_src}) #cannot be shared libary, boost complain
+target_link_libraries(MTC ${OpenCV_LIBS} util ${Boost_LIBRARIES} TensorLib TensorExtend MetricLib LightingLib jpeg)

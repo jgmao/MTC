@@ -443,6 +443,68 @@ void Tester::TestGranulateTrain()
 
 }
 
+
+void Tester::TestEncoding(int argc, char* argv[])
+{
+	CV_Assert(argc==2);
+
+
+	cout<<getpid()<<endl;
+
+	MTC mtc;
+	mtc.ParseCfg(*(argv+1));
+	//tpc.SetFootComputeRegion(boost::lexical_cast<int>(*(argv+2)));
+	//tpc.SetFootComputeMethod(boost::lexical_cast<int>(*(argv+3)));
+	//TPC tpc(*(argv+1));
+//	string mode = *(argv+2);
+//	cout<<"done step1\n";
+//	//testing::InitGoogleTest(&argc, argv);
+//	//RUN_ALL_TESTS();
+//	if (string(*(argv+2)) == "TJPG")
+//		tpc.SetCodingMode(CODING_MODE_TJPG);
+//	else if (string(*(argv+2))=="JPEG")
+//		tpc.SetCodingMode(CODING_MODE_JPEG)	;
+//	else if (string(*(argv+2))=="PQI")
+//		tpc.SetCodingMode(CODING_MODE_PQI);
+//	else if (string(*(argv+2))=="TPQI")
+//		tpc.SetCodingMode(CODING_MODE_TPQI);
+//	else if (string(*(argv+2))=="PTP")
+//		tpc.SetCodingMode(CODING_MODE_POST_TP);
+//	else
+//		CV_Error(CV_StsBadFlag,"Wrong coding mode");
+#if NDEBUG
+	mtc.SetTest(false);//test in debug
+#else
+	mtc.SetTest(false);
+#endif
+//	tpc.SetMatchingMethod(MATCHING_MSE);//=
+//	tpc.SetJpegQFactor(50);//=
+//	cout<<"done step 2.5\n";
+//	tpc.SetInitBlockSize(Size3(32,32,1));//=
+//	tpc.SetSTSIMSubWinSize(Size3(16,16,1));//=(20,20,1));//20x20 because the extended block in comparsion STSIM2 is 16+4 (boundary) or 32 +8 (boundary)
+//	tpc.SetSTSIMSubWinStep(Size3(4,4,1));//=if equal to subwin size, means non_overlap, it must be a factor of block size!
+//	tpc.SetQFactor(1.03);//=the threshold for 16x16 block is threshold*qfactor
+//	tpc.SetSTSIMQualigyThrd(0.86);//=
+//	tpc.SetInitQSize(8);//=
+//	tpc.SetOverlapSizeByRatio(Size3_<double>(0.25,0.25,0)); //=
+//	tpc.SetSearchStep(Size3(4,4,1));//=
+//	tpc.SetCandidNum(4); //=
+//	tpc.SetVarThrd(1000);//=
+//	cout<<"done step 2.75\n";
+//	tpc.SetPQIRectType(false);//=
+//	tpc.SetLCType(POISSON_LC);//=
+//	tpc.SetPBType(POST_BLENDING_ONLINE);//=
+//	tpc.SetJpegQTblType(JPEG_ADAPTIVE);//=
+//	tpc.SetMetricModifier(STSIM2_ADT_NAIVE);//=
+//	tpc.SetSTSIM2PoolType(STSIM2_POOL_MIN);//=
+//	tpc.SetPQILFBlockSize(16);//=
+	cout<<"done step 3\n";
+	mtc.UpdateParameters();
+	cout<<"done step 4\n";
+  //tpc.DebugTest();
+  mtc.DummyCoding();
+}
+
 /*
 void Tester::TestKmeans(void)
 {
@@ -502,66 +564,6 @@ void Tester::TestKmeans(void)
 
 
 
-void Tester::TestEncoding(int argc, char* argv[])
-{
-	CV_Assert(argc==2);
-
-
-	cout<<_getpid()<<endl; 
-
-	TPC tpc;
-	tpc.ParseCfg(*(argv+1));
-	//tpc.SetFootComputeRegion(boost::lexical_cast<int>(*(argv+2)));
-	//tpc.SetFootComputeMethod(boost::lexical_cast<int>(*(argv+3)));
-	//TPC tpc(*(argv+1));
-//	string mode = *(argv+2);
-//	cout<<"done step1\n";
-//	//testing::InitGoogleTest(&argc, argv);
-//	//RUN_ALL_TESTS();
-//	if (string(*(argv+2)) == "TJPG")
-//		tpc.SetCodingMode(CODING_MODE_TJPG);
-//	else if (string(*(argv+2))=="JPEG")
-//		tpc.SetCodingMode(CODING_MODE_JPEG)	;
-//	else if (string(*(argv+2))=="PQI")
-//		tpc.SetCodingMode(CODING_MODE_PQI);
-//	else if (string(*(argv+2))=="TPQI")
-//		tpc.SetCodingMode(CODING_MODE_TPQI);
-//	else if (string(*(argv+2))=="PTP")
-//		tpc.SetCodingMode(CODING_MODE_POST_TP);
-//	else
-//		CV_Error(CV_StsBadFlag,"Wrong coding mode");
-#if NDEBUG
-	tpc.SetTest(false);//test in debug
-#else
-	tpc.SetTest(false);
-#endif
-//	tpc.SetMatchingMethod(MATCHING_MSE);//=
-//	tpc.SetJpegQFactor(50);//=
-//	cout<<"done step 2.5\n";
-//	tpc.SetInitBlockSize(Size3(32,32,1));//=
-//	tpc.SetSTSIMSubWinSize(Size3(16,16,1));//=(20,20,1));//20x20 because the extended block in comparsion STSIM2 is 16+4 (boundary) or 32 +8 (boundary)
-//	tpc.SetSTSIMSubWinStep(Size3(4,4,1));//=if equal to subwin size, means non_overlap, it must be a factor of block size!
-//	tpc.SetQFactor(1.03);//=the threshold for 16x16 block is threshold*qfactor
-//	tpc.SetSTSIMQualigyThrd(0.86);//=
-//	tpc.SetInitQSize(8);//=
-//	tpc.SetOverlapSizeByRatio(Size3_<double>(0.25,0.25,0)); //=
-//	tpc.SetSearchStep(Size3(4,4,1));//=
-//	tpc.SetCandidNum(4); //=
-//	tpc.SetVarThrd(1000);//=
-//	cout<<"done step 2.75\n";
-//	tpc.SetPQIRectType(false);//=
-//	tpc.SetLCType(POISSON_LC);//=
-//	tpc.SetPBType(POST_BLENDING_ONLINE);//=
-//	tpc.SetJpegQTblType(JPEG_ADAPTIVE);//=
-//	tpc.SetMetricModifier(STSIM2_ADT_NAIVE);//=
-//	tpc.SetSTSIM2PoolType(STSIM2_POOL_MIN);//=
-//	tpc.SetPQILFBlockSize(16);//=
-	cout<<"done step 3\n";
-	tpc.UpdateParameters();
-	cout<<"done step 4\n";
-  //tpc.DebugTest();
-  tpc.DummyCoding(); 
-}
 void Tester::TestCovar(void)
 {
   //test complex operation

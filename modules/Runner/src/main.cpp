@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 	//test.TestAlgorithms();
 	//test.TestSSIM("/home/guoxin/Projects/MTC/data/texture1.png","/home/guoxin/Projects/MTC/data/texture2.png");
 	//test.TestGranulateGen();
-  test.TestGranulateTrain();
+  //test.TestGranulateTrain();
         //test.TestMetric();
   //test.TestKmeans();
 	//test.TestHuffTree();
@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
   //test.TestQuilting("..\\images\\training\\8064_1_g.tiff","..\\images\\training\\42-17730995_0_d_g.tiff");
   //test.TestEmbedding("..\\images\\training\\8064_1_g.tiff","..\\images\\training\\42-17730995_0_d_g.tiff");
   
-  //test.TestEncoding(argc,argv); 
+  test.TestEncoding(argc,argv);
 	//testing::InitGoogleTest(&argc, argv);
 	//RUN_ALL_TESTS();
 	//test.TestTPC();

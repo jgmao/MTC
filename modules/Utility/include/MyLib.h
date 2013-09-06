@@ -303,8 +303,6 @@ EXPORTLIB cv::Mat toComplex(const cv::Mat& A);
 EXPORTLIB cv::Mat getChannel(const cv::Mat& im, int n);
 EXPORTLIB int combination(int fromNum, int selectNum);
 
-EXPORTLIB void CombineImage(const vector<string>& infilenames, string& outfilename, int step = 5);
-
 //#include "Tensor.h"
 //20130816 enum class FilterBoundary :int {FILTER_BOUND_EXTEND,FILTER_BOUND_SAME, FILTER_BOUND_VALID};
 
