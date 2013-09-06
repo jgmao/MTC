@@ -74,7 +74,7 @@ using namespace cv;
 namespace mylib
 {
 ////test 
-/*20130813 temp disable to seperate from tensorlib
+/*20130813 temp disable to seperate from tensorlib, move this to tensor lib
 template <typename T> Size3_<T> Ceil(const Size3_<T>& sz)
 {
 	return Size3_<T>(std::ceil(sz.height),std::ceil(sz.width),std::ceil(sz.depth));

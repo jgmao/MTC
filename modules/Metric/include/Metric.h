@@ -81,6 +81,7 @@ static const double pi = 3.14159265358979323846;
 #else
 #define EXPORTLIB
 #endif
+
 class Metric
 {
 public:
@@ -147,5 +148,6 @@ protected:
   void loadLambda(string filename, vector<vector<double>>& lambda);
   bool loadClassifier(string filename);
 };
+
 #endif
 }

@@ -2,6 +2,8 @@
 #include <dirent.h>
 #include <sys/stat.h>
 namespace metric{
+
+
 Metric::Metric()
 {
   featureNum = 4;

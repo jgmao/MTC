@@ -309,4 +309,6 @@ namespace tensor{
     return Tensor<T,cn2>(rst);
   }
 }
+
+
 #endif

@@ -1475,6 +1475,8 @@ template class Tensor<float,3>;
 template class Tensor<double,1>;
 template class Tensor<double,2>;
 template class Tensor<double,3>;
+
+
 /*
 #ifdef USE_GPU
 template<> typename Tensor<uchar,1>::BufferGPU Tensor<uchar,1>::gbuf;//declare static buffer

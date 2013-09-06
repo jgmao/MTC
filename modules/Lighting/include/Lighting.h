@@ -34,15 +34,23 @@ public:
   EXPORTLIB Mat LightingCorrection(Mat& changeFrom, const Mat& changeTo, const Tensor<double,1>& VQCodebook);
   EXPORTLIB int GetLightingCodeLength() const;
   EXPORTLIB void SetLightingCodeLength(int l);
-  EXPORTLIB Mat ComputeSAT(const Mat& im) const;//compute sumed-area-table
-  EXPORTLIB Mat ComputeSAT(const Mat& S, const Point3i& sPos, const Point3i& ePos) const;
   EXPORTLIB Mat ComputeTPSS(const Mat& im, double p) const;//thin plate spline smoothing
   EXPORTLIB void RecordLighting(void);
   EXPORTLIB Mat SearchCodeword(const Mat& val, const Mat& VQCodeBook);
+  EXPORTLIB vector<Vec<double,1> > GetTagLighting() const;
+  EXPORTLIB vector<Vec<double,1> > GetCanLighting() const;
   int codeLength;
   vector<double> lightingDCTCoeffStat;
   vector<Vec<double,1> > lightTag;
   vector<Vec<double,1> > lightCan;
+
 };
+
+
+
+EXPORTLIB Mat ComputeTPSS(const Mat& im, double p);
+EXPORTLIB Mat ComputeSAT(const Mat& im);//compute sumed-area-table
+EXPORTLIB Mat ComputeSAT(const Mat& S, const Point3i& sPos, const Point3i& ePos);
+
 }
 #endif // LIGHTING_H

@@ -168,7 +168,7 @@ protected:
   Vec<double,cn> leftFoot;
   Vec<double,cn> upFoot;
   Vec<double,cn> antiFoot;
-  Lighting lt;
+
 	Point3i footPos;
 	string quanBit;
 	int bits;
@@ -181,7 +181,7 @@ protected:
 	value_type leftNodeFoot;
   vector<pair<Point3i,FootItem>> feet;
 public:
-
+ Lighting lt;
 public: ///change it for debug use,!!!!! change it back for future
 	Tensor<T,cn> leftBound, upBound, lowBound, rightBound;
 	vector<Tensor<T,cn>*> bounds;

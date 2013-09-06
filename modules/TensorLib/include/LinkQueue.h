@@ -61,7 +61,7 @@ class LinkStruct
 public:
    std::mutex mymutex;
   LinkStruct(){};
-  ~LinkStruct(){};
+  virtual ~LinkStruct(){};
   virtual int getLength()=0;
   virtual void push(double d,const cv::Point3i pos)=0;
   virtual void pop(void)=0;

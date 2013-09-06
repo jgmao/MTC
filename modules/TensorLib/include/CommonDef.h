@@ -160,7 +160,7 @@ enum class FeaturePoolType :int {FEATURE_POOL_AVE,FEATURE_POOL_MIN,FEATURE_POOL_
 
 #ifndef BOUND_DIR
 #define BOUND_DIR
-enum class BoundDir {UP,DOWN,LEFT,RIGHT,FRONT,BACK,NONE};//may be extern?
+enum class BoundDir :int {UP,DOWN,LEFT,RIGHT,FRONT,BACK,NONE};//may be extern?
 #endif
 
 #endif
@@ -172,37 +172,65 @@ struct FootItem
     int bits;
     std::string bitstring;
 };
+class ComparePoint3i //class used for map<Point3i, FootItem> ordering
+{
+public:
+  EXPORTLIB bool operator() (const cv::Point3i& a, const cv::Point3i& b) const
+  {
+    //if (x.z < y.z)
+    //  return true;
+
+    if (a.x < b.x)
+      return true;
+    else if (a.x == b.x)
+    {
+      if (a.y < b.y)
+        return true;
+      else
+        return false;
+    }
+    else
+      return false;
+
+  };
+
+};
 #endif
 
 #ifndef DIRECTION
 #define DIRECTION
 
-enum class Directions	 {DIRECTION_VERTICAL,
+enum class Directions	 : int {DIRECTION_VERTICAL,
 									DIRECTION_HORIZONTAL,
 									DIRECTION_CENTER,
 									DIRECTION_OTHER};
 
-enum class CornerPos {CORNER_NW,
+enum class CornerPos: int {CORNER_NW,
 							  CORNER_SE};
 #endif
 
 #ifndef SOURCE_CODING_METHOD
 #define SOURCE_CODING_METHOD
-enum class SrcCodingMethod { JPEG_HUFF, HUFFMAN_CODE, UNARY_CODE};
+enum class SrcCodingMethod : int { JPEG_HUFF, HUFFMAN_CODE, UNARY_CODE};
 
 #endif
 
 
 #ifndef CODING_METHOD
 #define CODING_METHOD
-enum  class CodingMethodNames{CODING_JPEG, CODING_MTC, CODING_PQI, CODING_JPEG_DEGRADE, CODING_OTHER, NO_CODING};
+enum  class CodingMethodNames : int {CODING_JPEG, CODING_MTC, CODING_PQI, CODING_JPEG_DEGRADE, CODING_OTHER, NO_CODING};
 #endif
 
 
 #ifndef BLENDING_METHOD
 #define BLENDING_METHOD
-enum class BlendingMethod {SHORTEST_PATH_BLENDING, GRADIENT_BLENDING, GRAPHCUT_BLENDING,NO_BLENDING};
-enum class BlendingLocation{ FORWARD_BLENDING, POST_BLENDING_RIGHT, POST_BLENDING_LOW, CUSTOM_BLENDING};
+enum class BlendingMethod : int {SHORTEST_PATH_BLENDING, GRADIENT_BLENDING, GRAPHCUT_BLENDING,NO_BLENDING};
+enum class BlendingLocation : int { FORWARD_BLENDING, POST_BLENDING_RIGHT, POST_BLENDING_LOW, CUSTOM_BLENDING};
+#endif
+
+#ifndef SIDE_MATCHING_METHOD
+#define SIDE_MATCHING_METHOD
+enum class MatchingMethod : int { MATCHING_MSE, MATCHING_SAT, MATCHING_VAR, MATCHING_SAD, MATCHING_MSE_CONSTRAINT,MATCHING_HIERARCHY, MATCHING_DIRECT};
 #endif
 
 

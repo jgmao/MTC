@@ -56,13 +56,14 @@ template<class T, size_t cn> class QTree : public QNode<T,cn>
 public:
 	typedef typename std::vector<QTree<T,cn> >::iterator qiter;
 	typedef typename std::vector<QTree<T,cn> >::const_iterator citer;
+  typedef Vec<T,cn> data_type;
 	EXPORTLIB QTree(void);
 	EXPORTLIB ~QTree(void);
 	EXPORTLIB QTree(const cv::Mat& mt);
 	EXPORTLIB QTree(const Tensor<T,cn>& ts);
 	EXPORTLIB QTree(const QTree& qt);
 	EXPORTLIB QTree(string cFileName);
-	EXPORTLIB QTree(const Size3& sz, const Vec<T,cn>& val= Vec<T,cn>::all(0));
+	EXPORTLIB QTree(const Size3& sz, const Vec<T,cn>& val=data_type::all(0));
 	EXPORTLIB QTree& operator= (const QTree& qt);
   EXPORTLIB QTree(const QNode<T,cn>& nd);
 	//template<class T2> operator QTree<T2,cn>() const;

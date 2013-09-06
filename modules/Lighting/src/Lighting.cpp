@@ -272,20 +272,7 @@ Mat Lighting::SearchCodeword(const Mat& val, const Mat& VQCodeBook)
 
 
 
-Mat Lighting::ComputeTPSS(const Mat& im, double p) const
-{
-  CV_Assert(im.channels()==1);//only implement gray scale
 
-  Tensor<double,1> G(im);
-  ThinPlateSpline tps;
-  for (int t=0; t<G.size().depth; t++)
-  {
-    Mat temp = G.GetFrame(t);
-    tps.load(temp);
-    G.SetFrame(t,tps.solve(p));
-  }
-  return G;
-}
 int Lighting::GetLightingCodeLength(void) const
 {
 	return this->codeLength;
@@ -308,24 +295,49 @@ void Lighting::RecordLighting(void)
   lightfile.close();
 }
 
-Mat Lighting::ComputeSAT(const Mat& im) const
+vector<Vec<double,1> > Lighting::GetTagLighting() const
+{
+  return this->lightTag;
+}
+vector<Vec<double,1> > Lighting::GetCanLighting() const
+{
+  return this->lightCan;
+}
+
+Mat ComputeTPSS(const Mat& im, double p)
+{
+  CV_Assert(im.channels()==1);//only implement gray scale
+
+  Tensor<double,1> G(im);
+  ThinPlateSpline tps;
+  for (int t=0; t<G.size().depth; t++)
+  {
+    Mat temp = G.GetFrame(t);
+    tps.load(temp);
+    G.SetFrame(t,tps.solve(p));
+  }
+  return G;
+}
+
+Mat ComputeSAT(const Mat& im)
 {
   //2D only
   CV_Assert(im.channels()==1);
   Tensor<double,1> temp(im);
   Tensor<double,1> S = temp.ExtendHalfBoundary();
-  
+
   Point3i pos(im.size().height-1, im.size().width-1,0);
-  
-  S = this->ComputeSAT(S,Point3i(0,0,0),pos);
+
+  S = ComputeSAT(S,Point3i(0,0,0),pos);
 //  for ( int i=1; i< this->tsSize.height+1; i++)
 //    for (int j=1; j<this->tsSize.width+1; j++)
 //    {
 //      S(i,j,0)=S(i-1,j,0)+S(i,j-1,0)-S(i-1,j-1,0)+S(i,j,0);
-//    } 
+//    }
   return S;
 }
-Mat Lighting::ComputeSAT(const Mat& S, const Point3i& sPos, const Point3i& ePos) const
+
+Mat ComputeSAT(const Mat& S, const Point3i& sPos, const Point3i& ePos)
 {
   //remember S is extended boundary by 1 to the left and up (zeros)
   Mat SAT=S;

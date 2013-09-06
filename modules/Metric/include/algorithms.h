@@ -52,7 +52,7 @@ namespace metric{
                          int param4 = (int)Stsim2PoolType::STSIM2_POOL_MIN,
                          int param5 = (int)MetricModifier::STSIM2_BASELINE, cv::Mat& param6 = cv::Mat());
 */
-  EXPORTLIB double Compare(const Mat& tsA, const Mat& tsB, CompareCriteria criteria, const Size3& subWinSize, const Size3& subWinStep,
+  EXPORTLIB double Compare(const Mat& tsA, const Mat& tsB, CompareCriteria criteria, const Size3& subWinSize=Size3(16,16,1), const Size3& subWinStep=Size3(16,16,1),
                          Printable_t param1=Printable_t(0),
                          Printable_t param2=Printable_t(0), Printable_t param3=Printable_t(0),
                          Printable_t param4=Printable_t(0), Printable_t param5=Printable_t(0),
@@ -63,5 +63,6 @@ namespace metric{
   EXPORTLIB double ComputeMahalanobis(const Mat& tsA, const Mat& tsB, Size3 subWinSize, Size3 subWinStep, const Mat& iMcovar, FilterBoundary boundary_cut = FilterBoundary::FILTER_BOUND_HALF);
   EXPORTLIB Tensor<double,2> ComputeRho(const Mat& im11, const Mat& im12, const Size3& subWinSize, const Size3& subWinStep);
   EXPORTLIB Tensor<double,1> ComputeCrossTerm(const Mat& im11, const Mat& im12, const Mat& im21, const Mat& im22, const Size3& subWinSize, const Size3& subWinStep);
+
 }
 #endif
