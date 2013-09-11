@@ -1163,6 +1163,8 @@ template <class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::ExtendBoundary(Size3 ex
 {
 	Tensor<T,cn> rst(size()+(extSz*2),val);
 	rst.tsOffset = Point3i(extSz.height,extSz.width,extSz.depth);
+  //cout<<"20130909 extsz :";extSz.Print();
+  //cout<<"20130909 rstsz :";rst.size().Print();
 	rst.SetBlock(rst.tsOffset,*this);
 	//rst.SetSubWinSize(subWinSize);
 	//rst.SetSubWinStep(subWinStep);
@@ -1182,10 +1184,19 @@ Tensor<T,cn> Tensor<T,cn>::ExtendHalfBoundary(Size3 extSz, typename Tensor<T,cn>
 	//rst.SetSubWinStep(subWinStep);
 	return rst;
 }
-
 template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::LocalMean(const Mat& ker,const Size3& subWinStep) const
 {
-	return Filter2D(ker).SubSample(subWinStep);
+//! 20130910 implement sliding window with steps
+  Size3 sz(this->tsSize.height / subWinStep.height, this->tsSize.width/subWinStep.width, this->tsSize.depth/subWinStep.depth);
+  Tensor<T,cn> rst(sz);
+  Cube roi(0,0,0,subWinStep.height, subWinStep.width, subWinStep.depth);
+  for (unsigned int i=0; roi.x<this->tsSize.width;  ++i, roi.x+=subWinStep.width)
+    for (unsigned int j=0; roi.y<this->tsSize.width; ++j, roi.y+=subWinStep.width)
+    {
+        rst(i,j,0)=(T)ker.dot(this->GetBlockRef(roi));
+    }
+  return rst;
+	//return Filter2D(ker).SubSample(subWinStep);
 }
 
 template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::LocalMean(const Size3& subWinSize,const Size3& subWinStep) const

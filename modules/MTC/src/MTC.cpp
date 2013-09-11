@@ -2155,6 +2155,7 @@ bool MTC::TexturePrediction(QTree<T,cn>& qNode, int qLevel)
       this->causalMap.SaveBlock("cmap.tif");
 		}
    /* RetrieveFoot(qNode,fLevel);*/
+    //cout<<"begin matching....\n";
 		vector<cv::Point3i> matchCandid(candidNum,Point3i(-1,-1,-1));
 		matchCandid = BoundaryMatching(qNode,matching_method,mseThrd);
 		
@@ -2929,16 +2930,18 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
         }
         else
         {
-          Tensor<T,cn> orgPd = orgExt.ExtendBoundary((qNode.size()+qNode.overlap()*2)/2);
-          Tensor<T,cn> canPd = candidExt.ExtendBoundary((qNode.size()+qNode.overlap()*2)/2);
-          temp = metric::Compare(orgPd,canPd,criteria,this->subSize, this->subStep,3,4,(int)FilterBoundary::FILTER_BOUND_HALF/*true*/,(int)stsim2PoolType,(int)metricModifier);
+          //! from 20130909 I decide to use core block (does not include boundary) to compute STSIM
+          //! no padding is used too. 
+          Tensor<T,cn> orgPd = orgExt.Crop((orgExt.size()/5).Point3(),orgExt.size()/5*4+Size3(0,0,1));
+          Tensor<T,cn> canPd = orgExt.Crop((orgExt.size()/5).Point3(),orgExt.size()/5*4+Size3(0,0,1));
+          temp = metric::Compare(orgPd,canPd,criteria,this->subSize, this->subStep,3,4,(int)FilterBoundary::FILTER_BOUND_FULL/*true*/,(int)stsim2PoolType,(int)metricModifier);
         }
         //temp = org.Compare(candid,criteria,3,4,FILTER_BOUND_FULL/*true*/,stsim2PoolType,metricModifier);
         if (temp>1)//do it again when something goes wrong 
         {
-          candid.Print("cand",true);
-          org.Print("org",true);
-          candid.debugtrigger=true;
+          //candid.Print("cand",true);
+          //org.Print("org",true);
+          //candid.debugtrigger=true;
           temp = metric::Compare(org, candid,criteria,this->subSize, this->subStep,3,4,(int)FilterBoundary::FILTER_BOUND_FULL/*true*/,(int)stsim2PoolType,(int)metricModifier);
         }
 #ifdef METRIC_PARALLEL

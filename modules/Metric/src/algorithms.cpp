@@ -408,6 +408,7 @@ namespace metric
     spB.buildSCFpyr(B,nLevel,nDir,1,downsample);//B = ts is candExt
     vector<Tensor<double,2>>& pyrA = spA.getSpaceDomainPyr();
     vector<Tensor<double,2>>& pyrB = spB.getSpaceDomainPyr();
+    
     if ( boundary_cut == FilterBoundary::FILTER_BOUND_HALF)//modify Dec 27 2011, not cut half but cut half + boundary
       {
         for (unsigned int i = 0; i< pyrA.size(); i++)
@@ -479,8 +480,8 @@ namespace metric
     Tensor<double,1> rstMat(tempsz,0);//gj20130120 set inital value to 1 for productive pooling
     //set 0 for addictive pooling
     //rstMat.Print();
-    cout<<subWinSizeLv<<endl;
-    cout<<subWinStepLv<<endl;
+//    cout<<subWinSizeLv<<endl;
+//    cout<<subWinStepLv<<endl;
     for (index = 0; index < (int)pyrA.size(); index++)
       {
         int lvl=0;
@@ -519,6 +520,9 @@ namespace metric
 
         //pyrA[index].Print("pa");
         //pyrB[index].Print("pb");
+        //! 20130910 before localMean
+        //char tempc;
+        //cin>>tempc;
         mu_A[index] = pyrA[index].LocalMean(gaussKernel,subWinStepLv);
         if (debug)
                 mu_A[index].Print("mua");
@@ -681,21 +685,21 @@ namespace metric
             pyrB[index](Cube(0,1,0,sz.height,sz.width-1,sz.depth)),
             subWinSizeLv-Size3(0,1,0), subWinStepLv);
         //C01[index].Print();
-        //pyrA[index].size().Print();
+        //cout<<"pyrA[idx].size ";pyrA[index].size().Print();
         //pyrB[index].size().Print();
-        //sz.Print();
+        //cout<<"sz ";sz.Print();
         C10[index] = ComputeCrossTerm(pyrA[index](Cube(0,0,0,sz.height-1,sz.width,sz.depth)),
             pyrA[index](Cube(1,0,0,sz.height-1,sz.width,sz.depth)),
             pyrB[index](Cube(0,0,0,sz.height-1,sz.width,sz.depth)),
             pyrB[index](Cube(1,0,0,sz.height-1,sz.width,sz.depth)),
             subWinSizeLv-Size3(1,0,0), subWinStepLv);
         //C10[index].Print();
-        cout<<index<<endl;
 
-        cout<<"L "<<L[index].size()<<endl;
-        cout<<"C "<<C[index].size()<<endl;
-        cout<<"C01 "<<C01[index].size()<<endl;
-        cout<<"C10 "<<C10[index].size()<<endl;
+        //cout<<"L "<<L[index].size()<<endl;
+        //cout<<"C "<<C[index].size()<<endl;
+        //cout<<"C01 "<<C01[index].size()<<endl;
+        //cout<<"C10 "<<C10[index].size()<<endl;
+ 
         Tensor<double,1> tempRstMat;
         if (stsim2_modifer == MetricModifier::STSIM2_TUNE)
           {

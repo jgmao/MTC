@@ -47,7 +47,7 @@ message("${EIGEN3_INCLUDE_DIR}" )
 if("${OS}" MATCHES "MacOSX")
 set(CMAKE_CXX_COMPILER "/opt/local/bin/g++")
 else()
-set(CMAKE_CXX_COMPILER "g++")
+set(CMAKE_CXX_COMPILER "clang++")
 endif()
 message("${CMAKE_CXX_COMPILER}")
 
