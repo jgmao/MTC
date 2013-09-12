@@ -84,14 +84,15 @@ namespace tensor{
 
 #ifndef BUFFERGPU
 #define BUFFERGPU
-extern class BufferGPU// genearal structure
+class BufferGPU// genearal structure
 {
 public:
   cv::gpu::GpuMat gI1,gI2; //input
   cv::gpu::GpuMat t1,t2; //intermediate
+  cv::gpu::GpuMat gs; //rst
   std::vector<cv::gpu::GpuMat> v;
   cv::gpu::Stream stream;
-}gbuf;
+};
 
 #endif
 // 20130816 only define the Marcors and constants used in TensorLib

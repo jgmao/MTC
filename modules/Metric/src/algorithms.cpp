@@ -470,6 +470,8 @@ namespace metric
     cv::Mat temp;
     Size3 subWinStepLv = subWinStep;//include PLC boundary
     Size3 subWinSizeLv = subWinSize;//include PLC boundary
+
+  //  cout<<subWinStepLv<<endl;
     //if (boundary_cut == FILTER_BOUND_VALID)
     //{
     //  subWinSizeLv = subWinSizeLv + subWinSizeLv/2; //2*overlap + size
@@ -529,6 +531,7 @@ namespace metric
         mu_B[index] = pyrB[index].LocalMean(gaussKernel,subWinStepLv);
         if (debug)
                 mu_B[index].Print("mub");
+
         //mu_A[index] = pyrA[index].LocalMean(flatKel,subWinStepLv);    //Dec 30 2012, use flat (usuall) average
         //mu_B[index] = pyrB[index].LocalMean(flatKel,subWinStepLv);    //Dec 30 2012, use flat (usuall) average
         /* if (sz.height==32)
@@ -537,7 +540,10 @@ namespace metric
       Tensor<double,2>(mu_B[index]).Print();
     }*/
         if (stsim2_modifer == MetricModifier::STSIM2_BASELINE||stsim2_modifer==MetricModifier::STSIM2_TUNE)
-          L[index] = (mu_A[index].Abs() * mu_B[index].Abs() *2 + C0).Real() / (mu_A[index]*mu_A[index].Conjugate() + mu_B[index]*mu_B[index].Conjugate() + C0).Real();
+        {
+          //L[index] = (mu_A[index].Abs() * mu_B[index].Abs() *2 + C0).Real() / (mu_A[index]*mu_A[index].Conjugate() + mu_B[index]*mu_B[index].Conjugate() + C0).Real();
+          L[index] = ((mu_A[index] * mu_B[index]).Abs() *2 + C0).Real() / (mu_A[index].Square() + mu_B[index].Square() + C0).Real();
+        }
         else if (stsim2_modifer == MetricModifier::STSIM2_NEW_L1)
           {
 
@@ -694,11 +700,13 @@ namespace metric
             pyrB[index](Cube(1,0,0,sz.height-1,sz.width,sz.depth)),
             subWinSizeLv-Size3(1,0,0), subWinStepLv);
         //C10[index].Print();
-
-        //cout<<"L "<<L[index].size()<<endl;
-        //cout<<"C "<<C[index].size()<<endl;
-        //cout<<"C01 "<<C01[index].size()<<endl;
-        //cout<<"C10 "<<C10[index].size()<<endl;
+        //cout<<"size "<<tsA.size()<<endl;
+//        cout<<"sub "<<subWinSizeLv<<endl;
+//        cout<<"step "<<subWinStepLv<<endl;
+//        cout<<"L "<<L[index].size()<<endl;
+//        cout<<"C "<<C[index].size()<<endl;
+//        cout<<"C01 "<<C01[index].size()<<endl;
+//        cout<<"C10 "<<C10[index].size()<<endl;
  
         Tensor<double,1> tempRstMat;
         if (stsim2_modifer == MetricModifier::STSIM2_TUNE)
@@ -1181,10 +1189,8 @@ namespace metric
         else
           {
             tempSubSize = subWinSize;
-            if (modifier== (int)MetricModifier::STSIM3_LSE)
-              tempSubStep = tempSubSize;
-            else
-              tempSubStep = Size3(subWinSize.height/4,subWinSize.width/4,1);/*subWinStep;*///20130521 use 1/4 of subwinSize as the step size in order to do blk + LU boundary
+            tempSubStep = tempSubSize;
+            //!20130912 do not exam boundary  tempSubStep = Size3(subWinSize.height/4,subWinSize.width/4,1);/*subWinStep;*///20130521 use 1/4 of subwinSize as the step size in order to do blk + LU boundary
           }
 
 

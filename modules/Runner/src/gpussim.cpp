@@ -412,7 +412,7 @@ Scalar getMSSIM_GPU_optimized( const Mat& i1, const Mat& i2, BufferMSSIM& b)
         gauss->apply(b.I2_2, b.sigma2_2, stream);
         gpu::subtract(b.sigma2_2, b.mu2_2, b.sigma2_2, gpu::GpuMat(), -1, stream);
         //b.sigma2_2 -= b.mu2_2;
-
+s
         gauss->apply(b.I1_I2, b.sigma12, stream);
         gpu::subtract(b.sigma12, b.mu1_mu2, b.sigma12, gpu::GpuMat(), -1, stream);
         //b.sigma12 -= b.mu1_mu2;

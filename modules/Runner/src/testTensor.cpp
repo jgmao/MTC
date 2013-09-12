@@ -33,7 +33,50 @@ int main(void)
   Tensor<double,1> ts2("/home/guoxin/Projects/MTC/data/texture2.png");
   cout<<ComputeMSE(ts,ts2)<<endl;
   ts2.Print("t2",true);
+
+  //test LocalMean
+  Mat flatker = Mat::ones(Size(16,16),CV_64F)/256;
+  //verify local mean
+  BufferGPU gbuf;
+  Size3 subWin(16,16,1);
+  auto mu1 = ts.LocalMean(flatker,subWin);
+  auto mu2 = ts.LocalMeanGPU(flatker,gbuf,subWin);
+  (mu1-mu2).Print();
+  mu1.Print();
+  auto var1 = ts.LocalVariance(mu1,flatker,subWin);
+  auto var2 = ts.LocalVarianceGPU(mu2,flatker,gbuf,subWin);
+  var1.Print();
+  var2.Print();
+  (var1-var2).Print();
+//  mylib::DisplayMat(flatker);
+  int TIMES=10000;
+     time = (double)getTickCount();
+  for (int i=0; i< TIMES; i++)
+    {
+  Tensor<double,1> mu=ts.LocalMean(flatker,Size3(16,16,1));
+  ts.LocalVariance(mu,flatker,Size3(16,16,1));
+    }
+  time = 1000*((double)getTickCount() - time)/getTickFrequency();
+     time /= TIMES;
+ cout << "Time of CPU (averaged for " << TIMES << " runs): " << time << " milliseconds."<<endl;
+
+
+time = (double)getTickCount();
+for (int i=0; i< TIMES; i++)
+{
+Tensor<double,1> mu=ts.LocalMeanGPU(flatker,gbuf,Size3(16,16,1));
+ts.LocalVarianceGPU(mu,flatker,gbuf,Size3(16,16,1));
+}
+time = 1000*((double)getTickCount() - time)/getTickFrequency();
+ time /= TIMES;
+cout << "Time of GPU (averaged for " << TIMES << " runs): " << time << " milliseconds."<<endl;
+
+
+
   return 0;
+
+
+
 }
 
 
