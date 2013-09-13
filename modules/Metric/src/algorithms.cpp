@@ -702,7 +702,7 @@ namespace metric
             pyrB[index](Cube(1,0,0,sz.height-1,sz.width,sz.depth)),
             subWinSizeLv-Size3(1,0,0), subWinStepLv);
         //C10[index].Print();
-        //cout<<"size "<<tsA.size()<<endl;
+//        cout<<"size "<<tsA.size()<<endl;
 //        cout<<"sub "<<subWinSizeLv<<endl;
 //        cout<<"step "<<subWinStepLv<<endl;
 //        cout<<"L "<<L[index].size()<<endl;

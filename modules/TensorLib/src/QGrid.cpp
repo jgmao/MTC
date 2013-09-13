@@ -409,9 +409,14 @@ vector<Point3i> QGrid<T,cn>::BoundaryMatching(QNode<T,cn>& qNode, MatchingMethod
 #endif
 	      if (matching_method ==  MatchingMethod::MATCHING_MSE || matching_method== MatchingMethod::MATCHING_MSE_CONSTRAINT)
 					    {  //diff+= (T1_low.Compare(lowBD,COMPARE_CRITERIA_MSE)+T1_Lap.Compare(filterBD,COMPARE_CRITERIA_MSE));
-						    localdiff = metric::Compare(tarUp_norm,candUp_norm,CompareCriteria::COMPARE_CRITERIA_MSE) +
+			    //! 20130913
+			    //tarUp_norm.Print();
+				  //candUp_norm.Print();
+					//tarLeft_norm.Print();
+					//candLeft_norm.Print();
+			    localdiff = metric::Compare(tarUp_norm,candUp_norm,CompareCriteria::COMPARE_CRITERIA_MSE) +
 			   metric::Compare(tarLeft_norm, candLeft_norm, CompareCriteria::COMPARE_CRITERIA_MSE);
-
+			   // cout<<"mse="<<localdiff<<endl;
                 //else if (matching_method == MATCHING_MSE_CONSTRAINT) //	diff+= qNdoe.GetBoundary(i).Compare(target,COMPARE_CRITERIA_MSE_CONSTRAINT);
               }
               else if (matching_method == MatchingMethod::MATCHING_SAD)

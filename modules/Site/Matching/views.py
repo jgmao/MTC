@@ -217,4 +217,4 @@ def show_result(request):
        print re.findall(r'^rst_(\d+)',r)[0]
        results[ int(re.findall(r'^rst_(\d+)',r)[0])] = "everything/"+ r
     file = getpage(request,results,item_per_page)
-    return render(request,'result.html',{'file':file})
+    return render(request,'Matching/result.html',{'file':file})

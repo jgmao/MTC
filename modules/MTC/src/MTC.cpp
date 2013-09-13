@@ -2272,6 +2272,8 @@ bool MTC::TexturePrediction(QTree<T,cn>& qNode, int qLevel)
 				//correct the lighting of the target, include the boundary(up, down, left, right)
 				QNode<T,cn> tar2 = QNode<T,cn>(rst,qNode.size(),qNode.offset(),qNode.overlap()).Clone();
 				QNode<T,cn> cand2 = GetValidCandidSimple(matchCandid[index],qNode);	
+				cout<<"matchCandid"<<matchCandid[index]<<endl;
+				//cand2.Display();
         QNode<T,cn> cand2Copy = cand2.Clone();
         QNode<T,cn> org2 = QNode<T,cn>(ensemble,qNode.size(),qNode.offset(),qNode.overlap());
         if (qNode.size().height==DEBUG_SIZE&&qNode.offset().x==DEBUG_X && qNode.offset().y==DEBUG_Y)
@@ -2326,9 +2328,11 @@ bool MTC::TexturePrediction(QTree<T,cn>& qNode, int qLevel)
           //maybe store the uncorrected extended version of boundary here before do PLC
           //this is the border + 1 pixel surrounded
           auto footEntry = RetrieveFoot(org2,fLevel); //the block used as the key to RetrieveFoots, otherwise the initial value of foots will be wrong
-          //cand2.GetExtendTensor().Print();
+
+	 // cand2.GetExtendTensor().Display();
+		//! PLC only apply to block+LU boundary
 					cand2.PoissonLightingCorrection(/*org2 does not available at decoder*/org2,ensemble,rst,qNode.overlap(),footComputeRegion, footComputeMethod,this->initQSize);
-          //cand2.GetExtendTensor().Print(); 
+	 // cand2.GetExtendTensor().Display();
 				  if (footEntry==FootTable.end())
           {
             UpdateFoots(tar2,cand2);
@@ -2562,16 +2566,19 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
     //else
 			//org = ensemble.Crop(qNode.offset(),qNode.size());
 			org = QNode<T,cn>(ensemble,qNode.size(),qNode.offset(),qNode.overlap());
+			//org.Display();
     if (lightCorrectionType == LightingCorrectionType::POISSON_LC)
     {
       tpss = lighting::ComputeTPSS(org,0.01);
     }
+    //org.Display();
 		//org = QNode<T,cn>(ensemble,qNode.size(),qNode.offset(),qNode.overlap());
 #ifdef RECORD_EVERYTHING
     string extra_path = "./everything/";
     //_mkdir(extra_path.c_str());
     char posstr[20];
     sprintf(posstr,"_%d_(%d_%d)",qNode.size().height,qNode.offset().x,qNode.offset().y);
+    //org.Print();
     org.GetExtendTensor(1,1,0,0)./*Crop(Point3i(org.size()/4),org.size()+org.size()/4).*/SaveBlock(extra_path+"org"+string(posstr)+".png");
     everything<<"org size "<<qNode.size().height<<" with LU:("<<org.offset().x<<","<<org.offset().y<<") matches:"<<endl;
    // org.GetExtendTensor(1,1,0,0).Crop(Point3i(org.size()/4),org.size()+org.size()/4).Display();
@@ -2638,8 +2645,8 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
 
 
        //if (criteria == COMPARE_CRITERIA_SSIM ||criteria == COMPARE_CRITERIA_MAHALANOBIS||criteria==COMPARE_CRITERIA_LRI)
-                        if (lightCorrectionType == LightingCorrectionType::POISSON_LC)
-      {
+       //!20130913                 if (lightCorrectionType == LightingCorrectionType::POISSON_LC)
+      //!20130913{
 				//candid= QNode<T,cn>(rst,qNode.size(),matchCandid[i]+qNode.overlap().Point3(),qNode.overlap());
 				if (metricModifier==MetricModifier::STSIM2_ADT_NAIVE)
 				{
@@ -2763,10 +2770,10 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
 					//}
 				//}
 
-			}
-			else
-				//candid = rst.Crop(matchCandid[i] + qNode.overlap().Point3(), qNode.size());
-				candid = QNode<T,cn>(rst,qNode.size(),matchCandid[i] + qNode.overlap().Point3(),qNode.overlap());
+			//! 20130913 }
+			//! 20130913 else
+			//candid = rst.Crop(matchCandid[i] + qNode.overlap().Point3(), qNode.size());
+			//! 20130913 candid = QNode<T,cn>(rst,qNode.size(),matchCandid[i] + qNode.overlap().Point3(),qNode.overlap());
 			//if (qNode.size().height==16) //16x16	
 			//{
 			//	org.SetSubWinSize(this->stsimSubWinSize/2);
@@ -2841,6 +2848,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
         #ifdef RECORD_EVERYTHING
         //save candidate after PLC
         candid.GetExtendTensor(1,1,0,0)/*20130605.Crop(Point3i(org.size()/4),org.size()+org.size()/4)*/.SaveBlock(extra_path+"cand_plc"+string(posstr)+string(idxstr)+".png");
+        //candid.GetExtendTensor(1,1,1,1).SaveBlock(extra_path+"cand_full_plc"+string(posstr)+string(idxstr)+".png");
         #endif
         if (footEntry==FootTable.end())
           UpdateFoots(org, candid);
@@ -2921,6 +2929,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
         //Tensor<T,cn> canPd = candid.ExtendBoundary(Size3(org.size().height/2,org.size().width/2,0));
         //Tensor<T,cn> orgPd=org.GetExtendTensor(1,1,0,0).Crop(Point3i(org.size()/4),org.size()+org.size()/4).ExtendBoundary((qNode.size()+qNode.overlap())/2);
         //Tensor<T,cn> canPd=candid.GetExtendTensor(1,1,0,0).Crop(Point3i(org.size()/4),org.size()+org.size()/4).ExtendBoundary((qNode.size()+qNode.overlap())/2);
+          //candidExt.Display();
         if (metricModifier==MetricModifier::STSIM3_LSE)
         {
           //Metric mc;
@@ -2932,6 +2941,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
         {
           //! from 20130909 I decide to use core block (does not include boundary) to compute STSIM
           //! no padding is used too. 
+           // cout<<"orgExt size="<<orgExt.size()<<endl;
           Tensor<T,cn> orgPd = orgExt.Crop((orgExt.size()/5).Point3(),orgExt.size()/5*4+Size3(0,0,1));
           Tensor<T,cn> canPd = candidExt.Crop((orgExt.size()/5).Point3(),orgExt.size()/5*4+Size3(0,0,1));
           //orgPd.Print("orgPd");
@@ -3159,7 +3169,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
       //}
 
     }
-    else
+    else //increase foot number and try again
     {
       if (level<1)//((qNode.size().height>>level)>8)
       {

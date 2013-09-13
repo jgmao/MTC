@@ -778,6 +778,7 @@ int QNode<T,cn>::UnaryCoding(int index)
 template<class T, size_t cn>
 vector<vector<int>>& QNode<T,cn>::Quilting(QNode<T,cn>& ts) //quilting must be rechecked / rewrite to debug!! 03032013
 {
+  //ts.GetExtendTensor().Display();
 	QNode<T,cn>::Matrix3Di path;
 	path = FindPath(ts);
 	seam = Blending(path,ts);
@@ -945,7 +946,7 @@ vector<vector<int>> QNode<T,cn>::Blending(Matrix3Di path,QNode<T,cn>& ts, int cr
 			else
 				mask = tempMat;
 			
-			cv::multiply(bounds[s]->GetFrame(0),mask,temp); // keep the left and up as rst
+			cv::multiply(bounds[s]->GetFrameRef(0),mask,temp); // keep the left and up as rst
 			cv::subtract(1,tempMat,tempMat);
 			if (cn==3)
 			{
@@ -957,8 +958,9 @@ vector<vector<int>> QNode<T,cn>::Blending(Matrix3Di path,QNode<T,cn>& ts, int cr
 			}
 			else
 				mask = tempMat;
-			cv::multiply(ts.bounds[s]->GetFrame(0),mask,bounds[s]->GetFrame(0)); // change right and below as the predicted
-			cv::add(bounds[s]->GetFrame(0),temp,bounds[s]->GetFrame(0));
+			//! 20130913 use GetFrameRef to change the bound actually, if use GetFrame , the bound is unchanged.
+			cv::multiply(ts.bounds[s]->GetFrame(0),mask,bounds[s]->GetFrameRef(0)); // change right and below as the predicted
+			cv::add(bounds[s]->GetFrameRef(0),temp,bounds[s]->GetFrameRef(0));
 			vector<vector<int>>& tempBoundary=*iter;
 			if (s==1 || this->offset().x == 0)
 			{

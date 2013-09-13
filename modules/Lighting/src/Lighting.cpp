@@ -308,7 +308,7 @@ Mat ComputeTPSS(const Mat& im, double p)
 {
   CV_Assert(im.channels()==1);//only implement gray scale
 
-  Tensor<double,1> G(im);
+  Tensor<double,1> G(im.clone());
   ThinPlateSpline tps;
   for (int t=0; t<G.size().depth; t++)
   {
