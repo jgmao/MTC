@@ -58,8 +58,8 @@ namespace tensor{
   //typedef uchar uchar;
   #ifndef DEBUG_SYMBOL
   #define DEBUG_SYMBOL
-  #define DEBUG_X 64//27*32
-  #define DEBUG_Y 64//
+  #define DEBUG_X 16//27*32
+  #define DEBUG_Y 32//
   #define DEBUG_DISP_X -128
   #define DEBUG_DISP_Y 0
   #define DEBUG_SIZE -16

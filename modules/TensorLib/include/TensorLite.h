@@ -117,8 +117,8 @@ namespace tensor{
     EXPORTLIB Tensor<T,cn>(void);
     EXPORTLIB ~Tensor<T,cn>(void);
     EXPORTLIB Tensor<T,cn>(int height, int width, int depth=1, c_ref_type val = value_type::all(0));
-    EXPORTLIB Tensor<T,cn>(const Size3& size, c_ref_type val) ;
-    EXPORTLIB Tensor<T,cn>(const Size3& size);
+    EXPORTLIB Tensor<T,cn>(const Size3& size, c_ref_type val=value_type::all(0)) ;
+    //EXPORTLIB Tensor<T,cn>(const Size3& size);
     EXPORTLIB Tensor<T,cn>(const Tensor<T,cn>& ts);
     EXPORTLIB Tensor<T,cn>(const Mat& mt);
     EXPORTLIB Tensor<T,cn>(const string cFileName);

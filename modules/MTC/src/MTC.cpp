@@ -2926,15 +2926,17 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
           //Metric mc;
           Tensor<T,cn> orgPLC = orgExt.Crop((orgExt.size()/5).Point3(),orgExt.size()/5*4+Size3(0,0,1));
           Tensor<T,cn> candPLC = candidExt.Crop((candidExt.size()/5).Point3(),candidExt.size()/5*4+Size3(0,0,1));
-          temp = metric::Compare(orgPLC, candPLC,criteria,this->subSize, this->subStep, 3,4,(int)FilterBoundary::FILTER_BOUND_FULL,(int)stsim2PoolType,(int)metricModifier);
+          temp = metric::Compare(orgPLC, candPLC,criteria,this->subSize, this->subStep, 3,4,(int)FilterBoundary::FILTER_BOUND_FULL,(int)stsim2PoolType,(int)metricModifier,0,debugsignal);
         }
         else
         {
           //! from 20130909 I decide to use core block (does not include boundary) to compute STSIM
           //! no padding is used too. 
           Tensor<T,cn> orgPd = orgExt.Crop((orgExt.size()/5).Point3(),orgExt.size()/5*4+Size3(0,0,1));
-          Tensor<T,cn> canPd = orgExt.Crop((orgExt.size()/5).Point3(),orgExt.size()/5*4+Size3(0,0,1));
-          temp = metric::Compare(orgPd,canPd,criteria,this->subSize, this->subStep,3,4,(int)FilterBoundary::FILTER_BOUND_FULL/*true*/,(int)stsim2PoolType,(int)metricModifier);
+          Tensor<T,cn> canPd = candidExt.Crop((orgExt.size()/5).Point3(),orgExt.size()/5*4+Size3(0,0,1));
+          //orgPd.Print("orgPd");
+          //canPd.Print("canPd");
+          temp = metric::Compare(orgPd,canPd,criteria,this->subSize, this->subStep,3,4,(int)FilterBoundary::FILTER_BOUND_FULL/*true*/,(int)stsim2PoolType,(int)metricModifier,0,debugsignal);
           //cout<<"20130912 i="<<i<<", temp"<<temp<<endl;
         }
         //temp = org.Compare(candid,criteria,3,4,FILTER_BOUND_FULL/*true*/,stsim2PoolType,metricModifier);
@@ -2943,7 +2945,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
           //candid.Print("cand",true);
           //org.Print("org",true);
           //candid.debugtrigger=true;
-          temp = metric::Compare(org, candid,criteria,this->subSize, this->subStep,3,4,(int)FilterBoundary::FILTER_BOUND_FULL/*true*/,(int)stsim2PoolType,(int)metricModifier);
+          temp = metric::Compare(org, candid,criteria,this->subSize, this->subStep,3,4,(int)FilterBoundary::FILTER_BOUND_FULL/*true*/,(int)stsim2PoolType,(int)metricModifier,0,debugsignal);
         }
 #ifdef METRIC_PARALLEL
         *tempdist = temp;

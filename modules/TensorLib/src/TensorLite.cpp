@@ -30,24 +30,24 @@ template<class T, size_t cn> Tensor<T,cn>::Tensor(int height, int width, int dep
 
 template<class T, size_t cn> Tensor<T,cn>::Tensor(const Size3& size, const Vec<T,cn>& val): Mat()
 {
-	*this = Mat(size, CV_MAKETYPE(DataType<T>::depth,cn),Scalar(val));
+	*this = Mat(size, CV_MAKETYPE(DataType<T>::depth,cn),val);
 	this->tsSize = size;
 	this->cFileName = "unknown";
 	this->tsOffset = Point3i();
 	this->mxFrame = Mat(size.height,size.width,CV_MAKETYPE(DataType<T>::depth,cn));
 	this->debugtrigger=false;
 }
-template<class T, size_t cn> Tensor<T,cn>::Tensor(const Size3& size):Mat()
-{
-	*this = Mat(size, CV_MAKETYPE(DataType<T>::depth,cn));
-	this->tsSize = size;
-	this->cFileName = "unknown";
-	this->tsOffset = Point3i();
-	this->mxFrame = Mat(size.height,size.width,CV_MAKETYPE(DataType<T>::depth,cn));
-	//subWinSize = Size3();
-	//subWinStep = Size3();
-	this->debugtrigger=false;
-}
+//template<class T, size_t cn> Tensor<T,cn>::Tensor(const Size3& size):Mat()
+//{
+//	*this = Mat(size, CV_MAKETYPE(DataType<T>::depth,cn));
+//	this->tsSize = size;
+//	this->cFileName = "unknown";
+//	this->tsOffset = Point3i();
+//	this->mxFrame = Mat(size.height,size.width,CV_MAKETYPE(DataType<T>::depth,cn));
+//	//subWinSize = Size3();
+//	//subWinStep = Size3();
+//	this->debugtrigger=false;
+//}
 template<class T, size_t cn> Tensor<T,cn>::Tensor(const Tensor<T,cn>& ts): Mat(ts)
 {
 	this->tsSize = ts.tsSize;
@@ -1296,11 +1296,12 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::LocalVariance( const Ten
     //! 20130911 implement sliding window with steps
     Size3 sz(this->tsSize.height / subWinStep.height, this->tsSize.width/subWinStep.width, this->tsSize.depth/subWinStep.depth);
     Tensor<T,cn> rst(sz);
+    // rst.Print("rst init");
     //Cube roi(0,0,0,subWinStep.height, subWinStep.width, subWinStep.depth);
     Rect roi(0,0,ker.size().width,ker.size().height);
     //Tensor<T,cn> conj =(*this) * this->Conjugate();
     Tensor<T,cn> conj = this->Square();
-    //conj always real, so no need to split
+    //conj.Print("conj");
     vector<Mat> mats;
     cv::split(conj,mats);
 
@@ -1314,6 +1315,8 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::LocalVariance( const Ten
     }
    //auto temp2 =  ((*this)*(this->Conjugate())).Filter2D(ker).SubSample(subWinStep)- (mu*mu.Conjugate());
    auto temp = rst - mu.Square();
+   //mu.Square().Print("mu2");
+   //temp.Print("temp");
    //cout<<(temp-temp2).Abs().Sum()[0]<<endl;//verify
   return temp.Abs();
 }
@@ -1322,6 +1325,7 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::LocalVarianceGPU( const 
     //! 20130911 implement sliding window with steps
     Size3 sz(this->tsSize.height / subWinStep.height, this->tsSize.width/subWinStep.width, this->tsSize.depth/subWinStep.depth);
     Tensor<T,cn> rst(sz);
+
     this->SquareGPU(gbuf);
     gpu::Stream stream;
     gpu::split(gbuf.gs,gbuf.v,stream);
@@ -1334,6 +1338,7 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::LocalVarianceGPU( const 
           gpu::multiply(gbuf.v[0](roi),gbuf.gI1,gbuf.gs,1,-1,stream);
           Scalar temp = gpu::sum(gbuf.gs,gbuf.t1);
           rst(i,j,0)[0]=(T)temp[0];
+          //rst(i,j,0)[1]=0;
       }
       roi.x=0;//reset to left
     }

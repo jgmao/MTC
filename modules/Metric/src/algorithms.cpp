@@ -287,7 +287,7 @@ namespace metric
       {
         //    string PID = boost::lexical_cast<string>(_getpid());
 
-        debugfile.open("/home/guoxin/Projects/MTC/ssim_terms.txt",ios::app);
+        debugfile.open("/home/guoxin/Projects/MTC/temp/ssim_terms.txt",ios::app);
         debugfile.precision(3);
         //debugfile.width(10);
         debugfile<<"=========inter-band========="<<endl;
@@ -376,7 +376,7 @@ namespace metric
       {
         //    string PID = boost::lexical_cast<string>(_getpid());
 
-        debugfile.open("/home/guoxin/Projects/MTC/ssim_terms.txt",ios::out);
+        debugfile.open("/home/guoxin/Projects/MTC/temp/ssim_terms.txt",ios::app|ios::out);
         debugfile.precision(3);
         //debugfile.width(10);
         debugfile<<"=========inter-band========="<<endl;
@@ -649,26 +649,28 @@ namespace metric
         //for the complex number, it will be a covariance mx instead of var
         //which one is better should be studied.
         //use gaussian kernel (traditional)
-        if (debug&&index==12)
+        if (debug&&index==2)
           {
-            pyrA[index].Print("A");
-            pyrB[index].Print("B");
+            //pyrA[index].Print("A");
+            //pyrB[index].Print("B");
+            //mu_A[index].Print("muA");
+            //mu_B[index].Print("muB");
           }
         sigma2_A[index] = pyrA[index].LocalVariance(mu_A[index],gaussKernel,subWinStepLv);
         sigma2_B[index] = pyrB[index].LocalVariance(mu_B[index],gaussKernel,subWinStepLv);
-        //sigma2_A[index].Print();
-        //sigma2_B[index].Print();
-        if (debug&&index==12)
-          {
-            auto temp2 = (sigma2_A[index].Real()*sigma2_B[index].Real()).Sqrt() + C1;
-            for (int ii=0; ii< rstMat.size().height; ii++)
-              for (int jj=0; jj<rstMat.size().width; jj++)
-                {
-                  //double m = std::numeric_limits<double>::min();
-                  //double temp = (sigma2_A[index](ii,jj,0)[0]*sigma2_B[index](ii,jj,0)[0]+C1);
-                  cout<<left<<index<<"\t"<<temp2(ii,jj,0)[0]<<endl;
-                }
-          }
+//        if (debug&&index==2)
+//          {
+//            sigma2_A[index].Print();
+//            sigma2_B[index].Print();
+////            auto temp2 = (sigma2_A[index].Real()*sigma2_B[index].Real()).Sqrt() + C1;
+////            for (int ii=0; ii< rstMat.size().height; ii++)
+////              for (int jj=0; jj<rstMat.size().width; jj++)
+////                {
+////                  //double m = std::numeric_limits<double>::min();
+////                  //double temp = (sigma2_A[index](ii,jj,0)[0]*sigma2_B[index](ii,jj,0)[0]+C1);
+////                  cout<<left<<index<<"\t"<<temp2(ii,jj,0)[0]<<endl;
+////                }
+//          }
         //use flat kernel Dec 30 2012
         //sigma2_A[index] = pyrA[index].LocalVariance(mu_A[index],flatKel,subWinStepLv);
         //sigma2_B[index] = pyrB[index].LocalVariance(mu_B[index],flatKel,subWinStepLv);
@@ -678,13 +680,13 @@ namespace metric
         C[index] = ((sigma2_A[index].Real()*sigma2_B[index].Real()).Sqrt()*2 + C1)/(sigma2_A[index]+sigma2_B[index] +C1).Real();
 
 
-        if(debug&&index==2)
-          {
-            ((sigma2_A[index].Real()*sigma2_B[index].Real()).Sqrt()*2 + C1).Real().Print("num");
-            (sigma2_A[index]+sigma2_B[index] +C1).Real().Print("denum");
-            (((sigma2_A[index].Real()*sigma2_B[index].Real()).Sqrt()*2 + C1)/(sigma2_A[index]+sigma2_B[index] +C1).Real()).Print();
-            //C[index].Print();
-          }
+//        if(debug&&index==2)
+//          {
+//            ((sigma2_A[index].Real()*sigma2_B[index].Real()).Sqrt()*2 + C1).Real().Print("num");
+//            (sigma2_A[index]+sigma2_B[index] +C1).Real().Print("denum");
+//            (((sigma2_A[index].Real()*sigma2_B[index].Real()).Sqrt()*2 + C1)/(sigma2_A[index]+sigma2_B[index] +C1).Real()).Print();
+//            //C[index].Print();
+//          }
         C01[index] = ComputeCrossTerm(pyrA[index](Cube(0,0,0,sz.height,sz.width-1,sz.depth)),
             pyrA[index](Cube(0,1,0,sz.height,sz.width-1,sz.depth)),
             pyrB[index](Cube(0,0,0,sz.height,sz.width-1,sz.depth)),
@@ -771,7 +773,7 @@ namespace metric
       rstMatBackup.Print();
     if (debug)
       {
-        debugfile<<"STSIM-1 score"<<"\t\t\t\t\t"<<rstMatBackup.Min()[0]/*diabled when using product pooling/index*/<<endl;
+        debugfile<<"STSIM-1 score"<<"\t\t\t\t\t"<<rstMatBackup.Min()[0]/index/*diabled when using product pooling/index*/<<endl;
         debugfile<<"====== cross band ======="<<endl;
         debugfile<<"Band A"<<"\t"<<"Band B"<<"\t"<<"C00"<<endl;
       }

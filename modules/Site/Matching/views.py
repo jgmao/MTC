@@ -43,7 +43,7 @@ def show_image(request):
             else:
                 dict[mykey]=[file]
     
-    return render(request,'show_image.html',{'item':dict.items[0],})
+    return render(request,'Matching/show_image.html',{'item':dict.items[0],})
 
 def matching(request,x,y,size):
     global files
@@ -64,7 +64,7 @@ def matching(request,x,y,size):
     w=100
     h=100
     item_per_page = 5
-    os.chdir(settings.ROOT_DIR+"../Tester/everything")
+    os.chdir(settings.ROOT_DIR+"../../everything")
     log = glob.glob("*.txt")
     f = open(log[0])
     if request.method=='POST': #search particular block, display it, may display patches around it
@@ -181,7 +181,7 @@ def matching(request,x,y,size):
         #    out_files = paginator.page(1)
         #except EmptyPage:
         #    out_files = paginator.page(paginator.num_pages)
-    return render(request,'matching.html',{'form':form,'files':out_files, 'plcs':out_plcs, 'scores':out_scores,'light':out_light,'positions':out_pos,'jump':jumpto})
+    return render(request,'Matching/matching.html',{'form':form,'files':out_files, 'plcs':out_plcs, 'scores':out_scores,'light':out_light,'positions':out_pos,'jump':jumpto})
 
 def getpage(request, list, perpage):
     paginator = Paginator(list,perpage)
@@ -209,7 +209,7 @@ def gotopage(request,list,pno):
 
 def show_result(request):
     item_per_page =1 
-    os.chdir(settings.ROOT_DIR+"../Tester/everything")
+    os.chdir(settings.ROOT_DIR+"../../everything")
     g= glob.glob("*rst*.bmp")
     results = [None] * (len(g))
     print len(results)

@@ -59,7 +59,6 @@ int main(int argc, char* argv[])
   //test.TestDistortion("..\\images\\test.tiff");
   //test.TestQuilting("..\\images\\training\\8064_1_g.tiff","..\\images\\training\\42-17730995_0_d_g.tiff");
   //test.TestEmbedding("..\\images\\training\\8064_1_g.tiff","..\\images\\training\\42-17730995_0_d_g.tiff");
-  
   test.TestEncoding(argc,argv);
 	//testing::InitGoogleTest(&argc, argv);
 	//RUN_ALL_TESTS();

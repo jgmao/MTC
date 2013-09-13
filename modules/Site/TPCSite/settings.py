@@ -70,6 +70,7 @@ STATICFILES_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     os.path.join(ROOT_DIR,'../../data/totest'),
+    os.path.join(ROOT_DIR,'../../'),
     #os.path.join(ROOT_DIR,'../../texture/totest/'),
     #os.path.join('','H:/texture/totest/'),
     #'H:/TPC/Tester/',
