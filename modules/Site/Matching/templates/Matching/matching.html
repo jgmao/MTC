@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block title %}
-Matching 
+Matching
 {% endblock %}
 
 {% block content %}
@@ -39,17 +39,19 @@ I jump to {{jump}}
 </div>
 <table border="1">
 {% for matches in files %}
-<tr> <th>No. {{forloop.counter0}} <a name="{{forloop.counter0}}"> {% get_map_val_from_list positions forloop.counter0 "org" %} </th> </tr> 
-<tr> 
+<tr>
+<th>No. {{forloop.counter0}} <a name="{{forloop.counter0}}"> {% get_map_val_from_list positions forloop.counter0 "org" %} </th>
+</tr>
+<tr>
   <th>
 <!-- original image and position -->
-    <img src="{{STATIC_URL}}{{matches.org}}"> 
+    <img src="{{STATIC_URL}}{{matches.org}}">
   </th>
 <!-- candidate position -->
     {% for idx,p in positions|valueof:forloop.counter0 %}
         {% if idx != 'org' %}
             <td>
-               {{p}} 
+               {{p}}
             </td>
         {% endif %}
     {% endfor %}
@@ -76,7 +78,7 @@ I jump to {{jump}}
     {% endfor %}
 </tr>
 <!-- show candidate without plc -->
-<tr> 
+<tr>
     <th> Cand </th>
     {% for idx,image in matches.items %}
     {% if idx != 'org' %}
@@ -95,7 +97,7 @@ I jump to {{jump}}
         {{s}}
         </td>
         {% endif %}
-    {% endfor %} 
+    {% endfor %}
 </tr>
 
 {% endfor %}

@@ -173,7 +173,8 @@ public:
 private:
 	void CodingMTC(QTree<T,cn> &qNode, int qLevel=0); //this is online coding
 	bool IsAcceptPredict(QNode<T,cn>& qNode,  CompareCriteria criteria, double param1, double param2 = 4);
-	int IsAcceptPredict(const vector<Point3i>& matchCandid,  QTree<T,cn>& qNode,MetricModifier metricModifier, int level=0);//=COMPARE_CRITERIA_SSIM, double param1=3, double param2 = 4);
+	int IsAcceptPredict(const vector<Point3i>& matchCandid,  QTree<T,cn>& qNode,MetricModifier metricModifier, int level=-1);//! 20130913 level -1 means no start with 0 foot , no LC
+	//=COMPARE_CRITERIA_SSIM, double param1=3, double param2 = 4);
 	void TreatAcceptedInterp(QTree<T,cn> &qNode, int qLevel);
 	int TreatRectSplit(QTree<T,cn>& qNode, int qLevel);
 	void PostBlending(const vector<TPrecord>& tprecs);
