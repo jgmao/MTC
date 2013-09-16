@@ -2521,7 +2521,6 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
   if (metricModifier == MetricModifier::MAHALANOBIS_DIST)
     distance = INT_MAX;
   int index = -1;
-
 #ifndef METRIC_PARALLEL
   QNode<T,cn> candid;
   QNode<T,cn> org;
@@ -2823,72 +2822,75 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
                 candid.GetExtendTensor(1,1,0,0)/*20130605.Crop(Point3i(org.size()/4),org.size()+org.size()/4)*/.SaveBlock(extra_path+"cand"+string(posstr)+string(idxstr)+".png");
 #endif
 
-	      if (lightCorrectionType == LightingCorrectionType::HAS_LIGHTING_CORRECTION)
-		candidExt.LightingCorrection(orgExt,false);//do lighting correction before stsim2
-	      else if (lightCorrectionType == LightingCorrectionType::POISSON_LC)
+	  if (lightCorrectionType == LightingCorrectionType::HAS_LIGHTING_CORRECTION)
+		  candidExt.LightingCorrection(orgExt,false);//do lighting correction before stsim2
+	  else if (lightCorrectionType == LightingCorrectionType::POISSON_LC)
 		{
-
 		  //need to do foot recording here
 		  //yes, update foot values, here, use a dynamic table to record each computed foot
 		  // (x,y) value, bit
-
-
-		  footEntry = RetrieveFoot(org,level);//this and compute foot, and footEntry  can be done outside loop, only once
-		  if (level>=0) //no PLC if level <0
+	    //for (int ll=-1; ll<2; ll++)
+		  //{
+		    //QNode<T,cn> tempCand = candid.Clone(); //!20130916 can clone foot information?
+		    footEntry = RetrieveFoot(org,level);//this and compute foot, and footEntry  can be done outside loop, only once
+		    if (level>=0) //no PLC if level <0
 		    {
-		    candid.PoissonLightingCorrection(org/*change to tar??,no*/,ensemble, rst,qNode.overlap(), footComputeRegion, footComputeMethod,this->initQSize);
+		      candid.PoissonLightingCorrection(org/*change to tar??,no*/,ensemble, rst,qNode.overlap(), footComputeRegion, footComputeMethod,this->initQSize);
 		    }
-		  // candid.GetExtendTensor(1,1,1,1).Display();
-		  Tensor<T,cn> candTPSS = lighting::ComputeTPSS(candid, 0.01); //after correction
-		  //vector<Tensor<T,cn>> templight;
-		  /* templight.push_back(org);
-	templight.push_back(candid);
-	templight.push_back(tpss);
-	templight.push_back(candTPSS);
-	candTPSS.DisplayAll(templight,2,2);*/
-#       ifdef METRIC_PARALLEL
-		  *lightdist = metric::ComputePSNR(tpss, candTPSS);
-#       else
-		  ldist[i] = metric::ComputePSNR(tpss, candTPSS);
-#       endif
-                  /*double lightPSNRBeforePLC = tpss.ComputePSNR(candTPSSBefore);
-        if (lightPSNRBeforePLC>lightPSNR)
-          lightPSNR = lightPSNRBeforePLC;*/
-#ifdef RECORD_EVERYTHING
-                  //save candidate after PLC
-                  candid.GetExtendTensor(1,1,0,0)/*20130605.Crop(Point3i(org.size()/4),org.size()+org.size()/4)*/.SaveBlock(extra_path+"cand_plc"+string(posstr)+string(idxstr)+"_("+to_string(level+1)+").png");
-                  //candid.GetExtendTensor(1,1,1,1).SaveBlock(extra_path+"cand_full_plc"+string(posstr)+string(idxstr)+".png");
-#endif
-                  if (footEntry==FootTable.end())
-                    UpdateFoots(org, candid);
-                  if (debugsignal==true)
-                    {
-                      char str[20];
-                      sprintf(str,"cand_PLC_%d",i);
-                      candid.GetExtendTensor().Print(string(str),true);//should change
-                      //57org.GetExtendTensor().Print("org_after_PLC",true);//shoube be the same as before_PLC
-                    }
-                  //candid.Display();
-                  //org.Display();
-                  if (criteria == CompareCriteria::COMPARE_CRITERIA_LRI)
-                    {
-                      candidExt = candid.GetExtendTensor(1,1,0,0).GetBlock(Cube(qNode.overlap().Point3(),qNode.size()+qNode.overlap()));
-                      orgExt = org.GetExtendTensor(1,1,0,0).GetBlock(Cube(qNode.overlap().Point3(),qNode.size()+qNode.overlap()));
-                    }
-                  else
-                    {
-                      Size3 bsize = candid.size();
-                      // candidExt = candid.GetExtendTensor(0,1,1,1,1);
-                      //candidExt.SetBlock((bsize/4).Point3(), candid.GetExtendTensor(1,1,1,1).GetBlock(Cube((bsize/4).Point3(),bsize+bsize/2)));// zero padding
-                      //20130606 only take U,L border+blk
-                      candidExt = candid.GetExtendTensor(1,1,0,0);
-                      orgExt = org.GetExtendTensor(1,1,0,0);//.Crop(qNode.overlap().Point3(),qNode.size()+qNode.overlap());
-                      //orgExt = org.GetExtendTensor(0,1,1,1,1).Crop((bsize/4).Point3(),bsize+qNode.overlap());
-                      // orgExt.SetBlock((bsize/4).Point3(),org.GetExtendTensor(1,1,1,1).GetBlock(Cube((bsize/4).Point3(),bsize+bsize/2)));
-                    }
-                  //	candidExt.Print();
-                  //temp = orgExt.Compare(candidExt,criteria,param1,param2,true,stsim2PoolType);
-                }
+		    // candid.GetExtendTensor(1,1,1,1).Display();
+		    Tensor<T,cn> candTPSS = lighting::ComputeTPSS(candid, 0.01); //after correction
+		    //vector<Tensor<T,cn>> templight;
+		    /* templight.push_back(org);
+	      templight.push_back(candid);
+	      templight.push_back(tpss);
+	      templight.push_back(candTPSS);
+	      candTPSS.DisplayAll(templight,2,2);*/
+	#ifdef METRIC_PARALLEL
+	*lightdist = metric::ComputePSNR(tpss, candTPSS);
+	#else
+	ldist[i] = metric::ComputePSNR(tpss, candTPSS);
+	#endif
+	/*double lightPSNRBeforePLC = tpss.ComputePSNR(candTPSSBefore);
+	if (lightPSNRBeforePLC>lightPSNR)
+	lightPSNR = lightPSNRBeforePLC;*/
+	#ifdef RECORD_EVERYTHING
+	//save candidate after PLC
+	candid.GetExtendTensor(1,1,0,0)/*20130605.Crop(Point3i(org.size()/4),org.size()+org.size()/4)*/.SaveBlock(extra_path+"cand_plc"+string(posstr)+string(idxstr)+"_("+to_string(level+1)+").png");
+	//candid.GetExtendTensor(1,1,1,1).SaveBlock(extra_path+"cand_full_plc"+string(posstr)+string(idxstr)+".png");
+	#endif
+	if (footEntry==FootTable.end()&&level>=0)
+	  UpdateFoots(org, candid);
+
+        if (debugsignal==true)
+        {
+          char str[20];
+          sprintf(str,"cand_PLC_%d",i);
+          candid.GetExtendTensor().Print(string(str),true);//should change
+          //57org.GetExtendTensor().Print("org_after_PLC",true);//shoube be the same as before_PLC
+        }
+        //candid.Display();
+        //org.Display();
+        if (criteria == CompareCriteria::COMPARE_CRITERIA_LRI)
+        {
+          candidExt = candid.GetExtendTensor(1,1,0,0).GetBlock(Cube(qNode.overlap().Point3(),qNode.size()+qNode.overlap()));
+          orgExt = org.GetExtendTensor(1,1,0,0).GetBlock(Cube(qNode.overlap().Point3(),qNode.size()+qNode.overlap()));
+        }
+        else
+        {
+          Size3 bsize = candid.size();
+          // candidExt = candid.GetExtendTensor(0,1,1,1,1);
+          //candidExt.SetBlock((bsize/4).Point3(), candid.GetExtendTensor(1,1,1,1).GetBlock(Cube((bsize/4).Point3(),bsize+bsize/2)));// zero padding
+          //20130606 only take U,L border+blk
+          candidExt = candid.GetExtendTensor(1,1,0,0);
+          orgExt = org.GetExtendTensor(1,1,0,0);//.Crop(qNode.overlap().Point3(),qNode.size()+qNode.overlap());
+          //orgExt = org.GetExtendTensor(0,1,1,1,1).Crop((bsize/4).Point3(),bsize+qNode.overlap());
+          // orgExt.SetBlock((bsize/4).Point3(),org.GetExtendTensor(1,1,1,1).GetBlock(Cube((bsize/4).Point3(),bsize+bsize/2)));
+        }
+        //	candidExt.Print();
+        //temp = orgExt.Compare(candidExt,criteria,param1,param2,true,stsim2PoolType);              }
+        //}//for levels
+    }//if PLC
+
               //else
               /*
       Tensor<T,cn> orgPadding(orgExt.size());
@@ -2903,102 +2905,101 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
         candPadding.Display();
       }
         */
-              if (debugsignal)
+          if (debugsignal)
+          {
+            #ifdef WIN32
+            string PID = boost::lexical_cast<string>(_getpid());
+            #else
+            string PID = boost::lexical_cast<string>(getpid());
+            #endif
+            debugfile.open("./temp/ssim_terms.txt",ios::app);
+            debugfile<<" -------------"<<i<<"th candidate-----------------"<<endl;
+            debugfile<<"candid mean\t"<<candid.Mean()[0]<<"\t"<<"candid var\t"<<candid.Var()[0]<<endl;
+            debugfile.close();
+            candidExt.debugtrigger=true;
+          }
+          //  std::thread tt(&orgExt.Compare,candidExt,criteria,param1,param2,true,stsim2PoolType,metricModifier, this->iMahaCovar);
+          //zero padding
+          if (metricModifier == MetricModifier::SE_MSE||metricModifier ==MetricModifier::STSIM2_SE_MSE)
+            {
+              Tensor<T,cn> candidBd = candidExt(Cube(qNode.overlap().Point3(),qNode.size()+qNode.overlap()*2));
+              Tensor<T,cn> orgBd = orgExt(Cube(qNode.overlap().Point3(),qNode.size()+qNode.overlap()*2));
+              temp = metric::Compare(orgBd, candidBd,criteria,this->subSize, this->subStep, (int)metricModifier, qNode.size().height,qNode.overlap().height);
+              //compute PSNR
+              temp = 10*log10(double(N)*65025.0/temp);
+              //temp = double(qNode.size().height*qNode.overlap().width+qNode.size().width*qNode.overlap().height)/temp;
+            }
+          else if (criteria == CompareCriteria::COMPARE_CRITERIA_SSIM)
+            {
+              //20130516 since PLC only take care of L,U boundary + blk, SSIM cannot compare block with boundary
+              //temp = orgExt.Compare(candidExt,criteria,3,4,FILTER_BOUND_VALID/*true*/,stsim2PoolType,metricModifier);
+              //temp = orgExt.Compare(candidExt,criteria,3,4,FILTER_BOUND_HALF/*true*/,stsim2PoolType,metricModifier);
+              //20130516 try take original
+              //Tensor<T,cn> orgPd=org.ExtendBoundary(Size3(org.size().height/2, org.size().width/2,0));
+              //Tensor<T,cn> canPd = candid.ExtendBoundary(Size3(org.size().height/2,org.size().width/2,0));
+              //Tensor<T,cn> orgPd=org.GetExtendTensor(1,1,0,0).Crop(Point3i(org.size()/4),org.size()+org.size()/4).ExtendBoundary((qNode.size()+qNode.overlap())/2);
+              //Tensor<T,cn> canPd=candid.GetExtendTensor(1,1,0,0).Crop(Point3i(org.size()/4),org.size()+org.size()/4).ExtendBoundary((qNode.size()+qNode.overlap())/2);
+              //candidExt.Display();
+              if (metricModifier==MetricModifier::STSIM3_LSE)
                 {
-#ifdef WIN32
-                  string PID = boost::lexical_cast<string>(_getpid());
-#else
-                  string PID = boost::lexical_cast<string>(getpid());
-#endif
-
-                  debugfile.open("./temp/ssim_terms.txt",ios::app);
-                  debugfile<<" -------------"<<i<<"th candidate-----------------"<<endl;
-                  debugfile<<"candid mean\t"<<candid.Mean()[0]<<"\t"<<"candid var\t"<<candid.Var()[0]<<endl;
-                  debugfile.close();
-                  candidExt.debugtrigger=true;
-                }
-              //  std::thread tt(&orgExt.Compare,candidExt,criteria,param1,param2,true,stsim2PoolType,metricModifier, this->iMahaCovar);
-              //zero padding
-              if (metricModifier == MetricModifier::SE_MSE||metricModifier ==MetricModifier::STSIM2_SE_MSE)
-                {
-                  Tensor<T,cn> candidBd = candidExt(Cube(qNode.overlap().Point3(),qNode.size()+qNode.overlap()*2));
-                  Tensor<T,cn> orgBd = orgExt(Cube(qNode.overlap().Point3(),qNode.size()+qNode.overlap()*2));
-                  temp = metric::Compare(orgBd, candidBd,criteria,this->subSize, this->subStep, (int)metricModifier, qNode.size().height,qNode.overlap().height);
-                  //compute PSNR
-                  temp = 10*log10(double(N)*65025.0/temp);
-                  //temp = double(qNode.size().height*qNode.overlap().width+qNode.size().width*qNode.overlap().height)/temp;
-                }
-              else if (criteria == CompareCriteria::COMPARE_CRITERIA_SSIM)
-                {
-                  //20130516 since PLC only take care of L,U boundary + blk, SSIM cannot compare block with boundary
-                  //temp = orgExt.Compare(candidExt,criteria,3,4,FILTER_BOUND_VALID/*true*/,stsim2PoolType,metricModifier);
-                  //temp = orgExt.Compare(candidExt,criteria,3,4,FILTER_BOUND_HALF/*true*/,stsim2PoolType,metricModifier);
-                  //20130516 try take original
-                  //Tensor<T,cn> orgPd=org.ExtendBoundary(Size3(org.size().height/2, org.size().width/2,0));
-                  //Tensor<T,cn> canPd = candid.ExtendBoundary(Size3(org.size().height/2,org.size().width/2,0));
-                  //Tensor<T,cn> orgPd=org.GetExtendTensor(1,1,0,0).Crop(Point3i(org.size()/4),org.size()+org.size()/4).ExtendBoundary((qNode.size()+qNode.overlap())/2);
-                  //Tensor<T,cn> canPd=candid.GetExtendTensor(1,1,0,0).Crop(Point3i(org.size()/4),org.size()+org.size()/4).ExtendBoundary((qNode.size()+qNode.overlap())/2);
-                  //candidExt.Display();
-                  if (metricModifier==MetricModifier::STSIM3_LSE)
-                    {
-                      //Metric mc;
-                      Tensor<T,cn> orgPLC = orgExt.Crop((orgExt.size()/5).Point3(),orgExt.size()/5*4+Size3(0,0,1));
-                      Tensor<T,cn> candPLC = candidExt.Crop((candidExt.size()/5).Point3(),candidExt.size()/5*4+Size3(0,0,1));
-                      temp = metric::Compare(orgPLC, candPLC,criteria,this->subSize, this->subStep, 3,4,(int)FilterBoundary::FILTER_BOUND_FULL,(int)stsim2PoolType,(int)metricModifier,0,debugsignal);
-                    }
-                  else
-                    {
-                      //! from 20130909 I decide to use core block (does not include boundary) to compute STSIM
-                      //! no padding is used too.
-                      // cout<<"orgExt size="<<orgExt.size()<<endl;
-                      Tensor<T,cn> orgPd = orgExt.Crop((orgExt.size()/5).Point3(),orgExt.size()/5*4+Size3(0,0,1));
-                      Tensor<T,cn> canPd = candidExt.Crop((orgExt.size()/5).Point3(),orgExt.size()/5*4+Size3(0,0,1));
-                      //orgPd.Print("orgPd");
-                      //canPd.Print("canPd");
-                      temp = metric::Compare(orgPd,canPd,criteria,this->subSize, this->subStep,3,4,(int)FilterBoundary::FILTER_BOUND_FULL/*true*/,(int)stsim2PoolType,(int)metricModifier,0,debugsignal);
-                      //cout<<"20130912 i="<<i<<", temp"<<temp<<endl;
-                    }
-                  //temp = org.Compare(candid,criteria,3,4,FILTER_BOUND_FULL/*true*/,stsim2PoolType,metricModifier);
-                  if (temp>1)//do it again when something goes wrong
-                    {
-                      //candid.Print("cand",true);
-                      //org.Print("org",true);
-                      //candid.debugtrigger=true;
-                      temp = metric::Compare(org, candid,criteria,this->subSize, this->subStep,3,4,(int)FilterBoundary::FILTER_BOUND_FULL/*true*/,(int)stsim2PoolType,(int)metricModifier,0,debugsignal);
-                    }
-#ifdef METRIC_PARALLEL
-                  *tempdist = temp;
-#else
-                  vdist[i]=temp;
-#endif
-                }
-              else if (criteria == CompareCriteria::COMPARE_CRITERIA_SVM)
-                {
-                  if (orgExt.size().height<=32)//only do 32x32
-                    temp = 0;
-                  else
-                    {
-                      temp= metric::Compare(orgExt.GetBlock(Cube(8,8,0,48,48,1)), candidExt.GetBlock(Cube(8,8,0,48,48,1)),criteria);
-                    }
+                  //Metric mc;
+                  Tensor<T,cn> orgPLC = orgExt.Crop((orgExt.size()/5).Point3(),orgExt.size()/5*4+Size3(0,0,1));
+                  Tensor<T,cn> candPLC = candidExt.Crop((candidExt.size()/5).Point3(),candidExt.size()/5*4+Size3(0,0,1));
+                  temp = metric::Compare(orgPLC, candPLC,criteria,this->subSize, this->subStep, 3,4,(int)FilterBoundary::FILTER_BOUND_FULL,(int)stsim2PoolType,(int)metricModifier,0,debugsignal);
                 }
               else
-                temp = metric::Compare(orgExt, candidExt,criteria);
-              //temp = orgPadding.Compare(candPadding,criteria,param1,param2,true,stsim2PoolType,metricModifier, this->iMahaCovar);
-              if (debugsignal)
                 {
-                  std::cout<<"cand"<<i<<"_PLC score:"<<temp<<endl;
-                  scorefile<<"cand"<<i<<"_PLC score:"<<temp<<endl;
-
+                  //! from 20130909 I decide to use core block (does not include boundary) to compute STSIM
+                  //! no padding is used too.
+                  // cout<<"orgExt size="<<orgExt.size()<<endl;
+                  Tensor<T,cn> orgPd = orgExt.Crop((orgExt.size()/5).Point3(),orgExt.size()/5*4+Size3(0,0,1));
+                  Tensor<T,cn> canPd = candidExt.Crop((orgExt.size()/5).Point3(),orgExt.size()/5*4+Size3(0,0,1));
+                  //orgPd.Print("orgPd");
+                  //canPd.Print("canPd");
+                  temp = metric::Compare(orgPd,canPd,criteria,this->subSize, this->subStep,3,4,(int)FilterBoundary::FILTER_BOUND_FULL/*true*/,(int)stsim2PoolType,(int)metricModifier,0,debugsignal);
+                  //cout<<"20130912 i="<<i<<", temp"<<temp<<endl;
                 }
-              if (((temp > distance)&&(criteria != CompareCriteria::COMPARE_CRITERIA_MAHALANOBIS)) ||((temp<distance)&&(criteria == CompareCriteria::COMPARE_CRITERIA_MAHALANOBIS)))
+              //temp = org.Compare(candid,criteria,3,4,FILTER_BOUND_FULL/*true*/,stsim2PoolType,metricModifier);
+              if (temp>1)//do it again when something goes wrong
                 {
-                  distance = temp;
-                  index = i;
-                  bits_stream_for_PLC_foot = candid.GetBits();
-                  bits_for_PLC_foot = bits_stream_for_PLC_foot.length();
+                  //candid.Print("cand",true);
+                  //org.Print("org",true);
+                  //candid.debugtrigger=true;
+                  temp = metric::Compare(org, candid,criteria,this->subSize, this->subStep,3,4,(int)FilterBoundary::FILTER_BOUND_FULL/*true*/,(int)stsim2PoolType,(int)metricModifier,0,debugsignal);
                 }
-              //print all candidates
+#ifdef METRIC_PARALLEL
+              *tempdist = temp;
+#else
               vdist[i]=temp;
+#endif
+            }
+          else if (criteria == CompareCriteria::COMPARE_CRITERIA_SVM)
+            {
+              if (orgExt.size().height<=32)//only do 32x32
+                temp = 0;
+              else
+                {
+                  temp= metric::Compare(orgExt.GetBlock(Cube(8,8,0,48,48,1)), candidExt.GetBlock(Cube(8,8,0,48,48,1)),criteria);
+                }
+            }
+          else
+            temp = metric::Compare(orgExt, candidExt,criteria);
+          //temp = orgPadding.Compare(candPadding,criteria,param1,param2,true,stsim2PoolType,metricModifier, this->iMahaCovar);
+          if (debugsignal)
+            {
+              std::cout<<"cand"<<i<<"_PLC score:"<<temp<<endl;
+              scorefile<<"cand"<<i<<"_PLC score:"<<temp<<endl;
+
+            }
+          if (((temp > distance)&&(criteria != CompareCriteria::COMPARE_CRITERIA_MAHALANOBIS)) ||((temp<distance)&&(criteria == CompareCriteria::COMPARE_CRITERIA_MAHALANOBIS)))
+            {
+              distance = temp;
+              index = i;
+              bits_stream_for_PLC_foot = candid.GetBits();
+              bits_for_PLC_foot = bits_stream_for_PLC_foot.length();
+            }
+          //print all candidates
+          vdist[i]=temp;
 #ifdef METRIC_PARALLEL
             },i,vdist.begin()+i,ldist.begin()+i));
 #endif
@@ -3007,6 +3008,9 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
       for (auto& t:threads)
         t.join();
 #endif
+
+
+
       //if ( distance >= this->qualityThrd)
       //adaptive quality
       //if (criteria == COMPARE_CRITERIA_SVM && qNode.size().height==32)
@@ -3026,13 +3030,14 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
       //  qNode.DisplayAll(dummy,5,2);
       //}
 #   ifdef RECORD_EVERYTHING
-      for (int j=0; j<matchCandid.size();j++)
+      for (unsigned int j=0; j<matchCandid.size();j++)
         {
           everything<<"candid "<<j<<" with LU: ("<<matchCandid[j].x+qNode.overlap().height<<","<<matchCandid[j].y+qNode.overlap().width<<"), "<<"flevel: "<<level<<" light: "<<ldist[j]<<" , score: "<<vdist[j]<<endl;
         }
       everything.close();
 #   endif
       int accepted = -1;
+
 
 #   ifdef METRIC_PARALLEL
       distance = vdist[0];
@@ -3095,7 +3100,14 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
           //  if (abs(distance) < this->qualityThrd )
           //    accepted = index;
           //}
-          /*else*/ if(qNode.size().height ==blockSize.height && distance >= this->qualityThrd*thresholdAdaptor*lightAdaptor) //good
+
+          //! 20130916 compute var
+          double orgvar = org.Var()[0];
+          if (orgvar < 50)//incease threaold
+            thresholdAdaptor*=1.02;
+          if (level<0 && orgvar < 200) //herustic set use PLC for smooth region
+            accepted = -1;
+          else if(qNode.size().height ==blockSize.height && distance >= this->qualityThrd*thresholdAdaptor*lightAdaptor) //good
             accepted = index; //return index;
           else if (distance >= this->qualityThrd * this->qfactor*thresholdAdaptor*lightAdaptor)//increase the quality in small block
             accepted = index;//return index;
@@ -3169,7 +3181,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
           candPosLog<<"Tar: ("<<qNode.offset().x<<","<<qNode.offset().y<<") ==== Best Cand_"<<accepted<<": ("<<matchCandid[accepted].x+qNode.overlap().height<<","<<matchCandid[accepted].y+qNode.overlap().width<<") ====== Score: "<<distance<<endl;
           //if (criteria == COMPARE_CRITERIA_SSIM)
           //{
-          for (int i=0; i<matchCandid.size();i++)
+          for (int i=0; i<(int)matchCandid.size();i++)
             {
               if (i!=accepted)
                 candPosLog<<"      >>>>>>>> Cand_"<<i<<": ("<<matchCandid[i].x+qNode.overlap().height<<","<<matchCandid[i].y+qNode.overlap().width<<") ====== Score: "<<vdist[i]<<endl;
@@ -4118,105 +4130,105 @@ void MTC::PostBlending(const PBRecord& rec, CubePlus& roi)
       rst_with_seam.SetBlock(refBound[0].offset(),tempBound);
     }
   //do relighting on the blk
-  //
-  // rst.Ref(Cube(rec.offset - Point3i(1,1,0) - sz.Point3(), Size3(2,2,0) + Size3(bsize,bsize,1)),changeTo);//this is PLC with blk only
-  // //actual candidate location
+  //!enable relighting
+   rst.Ref(Cube(rec.offset - Point3i(1,1,0) - sz.Point3(), Size3(2,2,0) + Size3(bsize,bsize,1)),changeTo);//this is PLC with blk only
+   //actual candidate location
 
-  // rst.Ref(Cube(roi.offset() - Point3i(1,1,0) - sz.Point3(), Size3(2,2,0) + Size3(bsize,bsize,1)),changeFrom);
-  // if (rec.direction == LEFT||rec.direction==RIGHT)
-  // {
-  //   //fill the last row of changeTo as the last row of JPEG boundary
-  //   for (int i=0; i<changeTo.size().width; i++)
-  //   {
-  //     changeTo(changeTo.size().height-1,i,0) = changeTo(changeTo.size().height-2,i,0);
-  //     //changeFrom(changeTo.size().height-1,i,0) = changeTo(changeTo.size().height-2,i,0);
-  //   }
-  //   //fill the last col as the post boundary
-  //   //for (int i=1; i<changeFrom.size().height-1; i++)
-  //   //{
-  //   //  changeFrom(i,changeFrom.size().width-1,0) = roi.GetContent()(i-1,0,0);
-  //   //}
-  // }
-  // else
-  // {
-  //    //fill the last col of changeTo as the last row of JPEG boundary
-  //   for (int i=0; i<changeTo.size().height; i++)
-  //   {
-  //     changeTo(i,changeTo.size().width-1,0) = changeTo(i,changeTo.size().width-2,0);
-  //     //changeFrom(i,changeTo.size().width-1,0) = changeTo(i,changeTo.size().width-2,0);
-  //   }
-  //   //fill the last row as the post boundary
-  //   //for (int i=1; i<changeFrom.size().width-1; i++)
-  //   //{
-  //   //  changeFrom(changeFrom.size().height-1,i,0) = roi.GetContent()(0,i-1,0);
-  //   //}
-  // }
+   rst.Ref(Cube(roi.offset() - Point3i(1,1,0) - sz.Point3(), Size3(2,2,0) + Size3(bsize,bsize,1)),changeFrom);
+   if (rec.direction == BoundDir::LEFT||rec.direction==BoundDir::RIGHT)
+   {
+     //fill the last row of changeTo as the last row of JPEG boundary
+     for (int i=0; i<changeTo.size().width; i++)
+     {
+       changeTo(changeTo.size().height-1,i,0) = changeTo(changeTo.size().height-2,i,0);
+       //changeFrom(changeTo.size().height-1,i,0) = changeTo(changeTo.size().height-2,i,0);
+     }
+     //fill the last col as the post boundary
+     //for (int i=1; i<changeFrom.size().height-1; i++)
+     //{
+     //  changeFrom(i,changeFrom.size().width-1,0) = roi.GetContent()(i-1,0,0);
+     //}
+   }
+   else
+   {
+      //fill the last col of changeTo as the last row of JPEG boundary
+     for (int i=0; i<changeTo.size().height; i++)
+     {
+       changeTo(i,changeTo.size().width-1,0) = changeTo(i,changeTo.size().width-2,0);
+       //changeFrom(i,changeTo.size().width-1,0) = changeTo(i,changeTo.size().width-2,0);
+     }
+     //fill the last row as the post boundary
+     //for (int i=1; i<changeFrom.size().width-1; i++)
+     //{
+     //  changeFrom(changeFrom.size().height-1,i,0) = roi.GetContent()(0,i-1,0);
+     //}
+   }
 
-  // //change 20130616 the boundary will keep the same as target for pb
-  // //changeFrom = Tensor<T,cn>(changeTo.size(),0);
-  // //changeFrom.SetBlock(Point3i(1,1,0),changeTo.Crop(Point3i(1,1,0),changeTo.size()-Size3(2,2,0)));
-  // //changeFrom = changeTo.Clone();
-  //
-  // //changeFrom.SetBlock(Point3i(1,1,0),roi.GetContent());
-  // //changeFrom.SetBlock(Point3i(1,1,0)+ sz.Point3(), roi.GetContent()); //plc of blk+pb together
-  // //changeTo.Print("changeTo",true);
-  // //changeFrom.Print("changetFrom",true);
+   //change 20130616 the boundary will keep the same as target for pb
+   //changeFrom = Tensor<T,cn>(changeTo.size(),0);
+   //changeFrom.SetBlock(Point3i(1,1,0),changeTo.Crop(Point3i(1,1,0),changeTo.size()-Size3(2,2,0)));
+   //changeFrom = changeTo.Clone();
 
-  // /*
-  //// rst.Display();
-  // int bsize = max(roi.size().height,roi.size().width);
-  // int osize = min(roi.size().height,roi.size().width);
-  // int extSize = bsize+2*osize;
-  // if (rec.direction == LEFT)
-  // {
-  //   rst.Ref(Cube(rec.offset-Point3i(0,bsize,0)-Point3i(1,1,0),Size3(roi.size().height+1,roi.size().height+roi.size().width+1,roi.size().depth)),tempRef);
-  //   //tempRef.Print();
-  //   tempTarget = Tensor<T,cn>(Size3(roi.size().height+1,roi.size().height+roi.size().width+1,roi.size().depth));
-  //   //tempTarget.Print();
-  //   tempTarget.SetBlock(rst.Crop(rec.offset-Point3i(0,bsize,0)-Point3i(1,1,0),Size3(bsize+1,bsize+1,1)));
-  //   //tempTarget.Print();
-  //   tempTarget.SetBlock(Point3i(0,bsize+1,0),roi.GetExtraContent().GetBlock(Cube(Point3i(osize-1,0,0),Size3(bsize+1,osize,1))).Clone());
-  //  // tempTarget.Print();
-  //  // tempRef.Print();
-  // }
-  // else if (rec.direction == UP)
-  // {
-  //   rst.Ref(Cube(rec.offset-Point3i(bsize,0,0)-Point3i(1,1,0),Size3(roi.size().height+roi.size().width+1,roi.width+1,roi.size().depth)),tempRef);
-  //   tempTarget = Tensor<T,cn>(Size3(roi.size().height+roi.size().width+1,roi.width+1,roi.size().depth));
-  //   tempTarget.SetBlock(rst.Crop(rec.offset-Point3i(bsize,0,0)-Point3i(1,1,0),Size3(bsize+1,bsize+1,1)));
-  //   tempTarget.SetBlock(Point3i(bsize+1,0,0),roi.GetExtraContent().GetBlock(Cube(Point3i(0,osize-1,0),Size3(osize,bsize+1,1))).Clone());
-  //  // if (roi.GetExtraContent().size().height==0)
-  // //  {
-  //  //   cout<<"\n==== PB record error ======"<<rec.offset.x<<", "<<rec.offset.y<<endl;
-  //  //   roi.GetExtraContent().Print();
-  //   //}
-  // }
-  // */
-  // //do PLC before blernding
-  // if (lightCorrectionType == POISSON_LC)
-  // {
-  //   Tensor<T,cn> postPLCRst = PostPLC(changeFrom,changeTo);//from xxx change to xxx
-  //   //rst.SetBlock(rec.offset - sz.Point3(), postPLCRst.Crop(Point3i(1,1,0),Size3(bsize,bsize,1))); //use for plc of blk + pb together
-  //   rst.SetBlock(rec.offset-sz.Point3(), postPLCRst.Crop(Point3i(1,1,0),Size3(bsize,bsize,1)));
-  //   /*
-  //   if (rec.direction==UP)
-  //   {
-  //     rst.SetBlock(rec.offset-Point3i(bsize,0,0),postPLCRst.Crop(Point3i(1,1,0),Size3(bsize,bsize,1)));
-  //     tagBound[0].SetBlock(postPLCRst.Crop(Point3i(1+bsize,1,0),refBound[0].size()));
-  //   }
-  //   else if (rec.direction == LEFT)
-  //   {
-  //     rst.SetBlock(rec.offset-Point3i(0,bsize,0),postPLCRst.Crop(Point3i(1,1,0),Size3(bsize,bsize,1)));
-  //     tagBound[0].SetBlock(postPLCRst.Crop(Point3i(1,1+bsize,0),refBound[0].size()));
-  //   }
-  //   */
-  //   //pred_postLC.SetBlock(tempRef.offset(),postPLCRst.Crop(Point3i(1,1,0),Size3(bsize,bsize,1)));
-  //   //tagBound[0] = postPLCRst.Crop(Point3i(1,1,0),tagBound[0].size());
-  //   //tagBound[0] = postPLCRst.Crop(Point3i(1,1,0)+sz.Point3(),roi.size());
-  //   rst_with_seam.SetBlock(rec.offset-sz.Point3(),postPLCRst.Crop(Point3i(1,1,0),Size3(bsize,bsize,1)).CvtColor<3>(CV_GRAY2RGB));
-  //   pred_postLC.SetBlock(rec.offset-sz.Point3(),postPLCRst.Crop(Point3i(1,1,0),Size3(bsize,bsize,1)));
-  // }
-  //
+   //changeFrom.SetBlock(Point3i(1,1,0),roi.GetContent());
+   //changeFrom.SetBlock(Point3i(1,1,0)+ sz.Point3(), roi.GetContent()); //plc of blk+pb together
+   //changeTo.Print("changeTo",true);
+   //changeFrom.Print("changetFrom",true);
+
+   /*
+  // rst.Display();
+   int bsize = max(roi.size().height,roi.size().width);
+   int osize = min(roi.size().height,roi.size().width);
+   int extSize = bsize+2*osize;
+   if (rec.direction == LEFT)
+   {
+     rst.Ref(Cube(rec.offset-Point3i(0,bsize,0)-Point3i(1,1,0),Size3(roi.size().height+1,roi.size().height+roi.size().width+1,roi.size().depth)),tempRef);
+     //tempRef.Print();
+     tempTarget = Tensor<T,cn>(Size3(roi.size().height+1,roi.size().height+roi.size().width+1,roi.size().depth));
+     //tempTarget.Print();
+     tempTarget.SetBlock(rst.Crop(rec.offset-Point3i(0,bsize,0)-Point3i(1,1,0),Size3(bsize+1,bsize+1,1)));
+     //tempTarget.Print();
+     tempTarget.SetBlock(Point3i(0,bsize+1,0),roi.GetExtraContent().GetBlock(Cube(Point3i(osize-1,0,0),Size3(bsize+1,osize,1))).Clone());
+    // tempTarget.Print();
+    // tempRef.Print();
+   }
+   else if (rec.direction == UP)
+   {
+     rst.Ref(Cube(rec.offset-Point3i(bsize,0,0)-Point3i(1,1,0),Size3(roi.size().height+roi.size().width+1,roi.width+1,roi.size().depth)),tempRef);
+     tempTarget = Tensor<T,cn>(Size3(roi.size().height+roi.size().width+1,roi.width+1,roi.size().depth));
+     tempTarget.SetBlock(rst.Crop(rec.offset-Point3i(bsize,0,0)-Point3i(1,1,0),Size3(bsize+1,bsize+1,1)));
+     tempTarget.SetBlock(Point3i(bsize+1,0,0),roi.GetExtraContent().GetBlock(Cube(Point3i(0,osize-1,0),Size3(osize,bsize+1,1))).Clone());
+    // if (roi.GetExtraContent().size().height==0)
+   //  {
+    //   cout<<"\n==== PB record error ======"<<rec.offset.x<<", "<<rec.offset.y<<endl;
+    //   roi.GetExtraContent().Print();
+     //}
+   }
+   */
+   //do PLC before blernding
+   if (lightCorrectionType == LightingCorrectionType::POISSON_LC)
+   {
+     Tensor<T,cn> postPLCRst = PostPLC(changeFrom,changeTo);//from xxx change to xxx
+     //rst.SetBlock(rec.offset - sz.Point3(), postPLCRst.Crop(Point3i(1,1,0),Size3(bsize,bsize,1))); //use for plc of blk + pb together
+     rst.SetBlock(rec.offset-sz.Point3(), postPLCRst.Crop(Point3i(1,1,0),Size3(bsize,bsize,1)));
+     /*
+     if (rec.direction==UP)
+     {
+       rst.SetBlock(rec.offset-Point3i(bsize,0,0),postPLCRst.Crop(Point3i(1,1,0),Size3(bsize,bsize,1)));
+       tagBound[0].SetBlock(postPLCRst.Crop(Point3i(1+bsize,1,0),refBound[0].size()));
+     }
+     else if (rec.direction == LEFT)
+     {
+       rst.SetBlock(rec.offset-Point3i(0,bsize,0),postPLCRst.Crop(Point3i(1,1,0),Size3(bsize,bsize,1)));
+       tagBound[0].SetBlock(postPLCRst.Crop(Point3i(1,1+bsize,0),refBound[0].size()));
+     }
+     */
+     //pred_postLC.SetBlock(tempRef.offset(),postPLCRst.Crop(Point3i(1,1,0),Size3(bsize,bsize,1)));
+     //tagBound[0] = postPLCRst.Crop(Point3i(1,1,0),tagBound[0].size());
+     //tagBound[0] = postPLCRst.Crop(Point3i(1,1,0)+sz.Point3(),roi.size());
+     rst_with_seam.SetBlock(rec.offset-sz.Point3(),postPLCRst.Crop(Point3i(1,1,0),Size3(bsize,bsize,1)).CvtColor<3>(COLOR_GRAY2RGB));
+     pred_postLC.SetBlock(rec.offset-sz.Point3(),postPLCRst.Crop(Point3i(1,1,0),Size3(bsize,bsize,1)));
+   }
+
 }
 
 Tensor<MTC::T,MTC::cn> MTC::PostPLC(Tensor<T,cn>& changeFrom, Tensor<T,cn>& changeTo)
@@ -4924,7 +4936,7 @@ void MTC::UpdateParameters(void)
       file.close();
       Tensor<double,1> dummy;
       lse_weight = Mat(value.size(),1,CV_64F);
-      for (int i=0; i< value.size(); i++)
+      for (unsigned int i=0; i< value.size(); i++)
         {
           lse_weight.at<double>(i,0) = std::stod(value[i]);
         }
@@ -5284,6 +5296,8 @@ void MTC::ScanLine(string& line)
             temp = MatchingMethod::MATCHING_MSE_CONSTRAINT;
           else if (value=="MATCHING_HIERARCHY")
             temp = MatchingMethod::MATCHING_HIERARCHY;
+          else if (value=="MATCHING_OPENCV")
+            temp = MatchingMethod::MATCHING_OPENCV;
           else
             CV_Error(CV_StsBadFlag,"wrong parameter"+option+":"+value);
           this->SetMatchingMethod(temp);
@@ -5438,7 +5452,7 @@ void MTC::ScanLine(string& line)
     {
       vector<int> vals;
       string tempstr="";
-      int idx=start+1;
+      unsigned int idx=start+1;
       do
         {
           if (value.compare(idx,1,",")==0||value.compare(idx,1,")")==0)

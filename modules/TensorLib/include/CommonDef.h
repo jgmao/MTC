@@ -15,8 +15,8 @@
 // Redistribution and use only in binary forms with or without modification,
 // are permitted provided that the following conditions are met:
 //
-//	 * The user is a member of research group under the direction of Prof. 
-//	   Thrasos Pappas in Northwestern University, IL or Prof. David Neuhoff in 
+//	 * The user is a member of research group under the direction of Prof.
+//	   Thrasos Pappas in Northwestern University, IL or Prof. David Neuhoff in
 //	   University of Michigan.
 
 //	 * The redistribution is not used for commercial applications.
@@ -39,7 +39,7 @@
 // or tort (including negligence or otherwise) arising in any way out of
 // the use of this software, even if advised of the possibility of such damage.
 //
-// By technical support and documentaion is provided by the copyright holders as will 
+// By technical support and documentaion is provided by the copyright holders as will
 // in the Wiki site: https://sites.google.com/site/tensorlib/
 //
 //
@@ -231,7 +231,7 @@ enum class BlendingLocation : int { FORWARD_BLENDING, POST_BLENDING_RIGHT, POST_
 
 #ifndef SIDE_MATCHING_METHOD
 #define SIDE_MATCHING_METHOD
-enum class MatchingMethod : int { MATCHING_MSE, MATCHING_SAT, MATCHING_VAR, MATCHING_SAD, MATCHING_MSE_CONSTRAINT,MATCHING_HIERARCHY, MATCHING_DIRECT};
+enum class MatchingMethod : int { MATCHING_MSE, MATCHING_SAT, MATCHING_VAR, MATCHING_SAD, MATCHING_MSE_CONSTRAINT,MATCHING_HIERARCHY, MATCHING_DIRECT, MATCHING_OPENCV};
 #endif
 
 
