@@ -93,6 +93,8 @@ namespace metric
   {
     typedef vector<Tensor<double,2> > vT;
     Steerable sp;
+
+    cout<<compute00<<endl;
     Tensor<double,2> tc = Tensor<double,1>(ts).ToComplex();
     if (boundary_cut == FilterBoundary::FILTER_BOUND_EXTEND) //zero padding and then cut center
     {
@@ -100,9 +102,16 @@ namespace metric
     }
     sp.buildSCFpyr(tc,nLevel,nDir,1,subsample);
     //! instead of use Space domain, use freq domain
-    //vT& pyr = sp.getSpaceDomainPyr();
-    vT& pyr = sp.getPyr();
+    vT& pyr = sp.getSpaceDomainPyr();
+    //vT& pyr = sp.getPyr();
     cout<<"subband size : "<<pyr.size()<<endl;
+    cout<<"Lv1 Size: "<<pyr[0].size()<<endl;
+    cout<<"Lv2 Size: "<<pyr[1].size()<<endl;
+    cout<<"Lv3 Size: "<<pyr[2].size()<<endl;
+    cout<<"LP Size: "<<pyr[3].size()<<endl;
+    cout<<"HP Size: "<<pyr[4].size()<<endl;
+    cout<<"win size"<<subWinSize<<endl;
+    cout<<"step size"<<subWinStep<<endl;
     //cout<<"size is: "<<ts.size()<<endl;
     //cout<<"print extended size: ";
     //tc.size().Print();
@@ -185,7 +194,9 @@ namespace metric
         // pyr[index].Print("pyr",true);
         mu[index] = pyr[index].LocalMean(flatKel1,subWinStepLv);
         //check mu
-        // mu[index].Print();
+        cout<<"lv size"<<subWinSizeLv;
+        cout<<"lv step"<<subWinStepLv;
+        mu[index].Print();
         sigma2[index] = pyr[index].LocalVariance(mu[index]*scalar,flatKel2,subWinStepLv).Sqrt();//take the sqrt to get std
         //is rho01 rho10 a good choice?????? YES 20130722
         rho01[index] = ComputeRho(pyr[index](Cube(0,0,0,sz.height,sz.width-1,sz.depth)),
@@ -200,32 +211,33 @@ namespace metric
         statistics[index+3*bands] = rho10[index].Clone();
 
       }
-    if (compute00){
-        index = 0;
-        for (int dr = 0; dr < nDir; dr++)
-          for (int lv = 0; lv < nLevel-1; lv++)
-            {
-              rho00[index] = ComputeRho( pyr[ lv*nDir + dr], pyr[ (lv+1)*nDir + dr],
-                  subWinSizeLv,subWinStepLv);
-              //cout<<index<<endl;
-              index++;
-            }
+
+//    if (compute00){
+//        index = 0;
+//        for (int dr = 0; dr < nDir; dr++)
+//          for (int lv = 0; lv < nLevel-1; lv++)
+//            {
+//              rho00[index] = ComputeRho( pyr[ lv*nDir + dr], pyr[ (lv+1)*nDir + dr],
+//                  subWinSizeLv,subWinStepLv);
+//              //cout<<index<<endl;
+//              index++;
+//            }
 
 
-        for (int lv=0; lv< nLevel; lv++)
-          for (int dr = 0; dr < nDir-1; dr++)
-            for ( int p = dr+1; p < nDir; p++)
-              {
-                rho00[index] = ComputeRho(pyr[lv*nDir + dr],pyr[lv*nDir + p],
-                    subWinSizeLv, subWinStepLv);
-               // cout<<index<<endl;
-                index++;
-              }
-        for (index=0; index<crossbandNum; index++)
-          {
-            statistics.push_back(rho00[index].Clone());
-          }
-    }
+//        for (int lv=0; lv< nLevel; lv++)
+//          for (int dr = 0; dr < nDir-1; dr++)
+//            for ( int p = dr+1; p < nDir; p++)
+//              {
+//                rho00[index] = ComputeRho(pyr[lv*nDir + dr],pyr[lv*nDir + p],
+//                    subWinSizeLv, subWinStepLv);
+//               // cout<<index<<endl;
+//                index++;
+//              }
+//        for (index=0; index<crossbandNum; index++)
+//          {
+//            statistics.push_back(rho00[index].Clone());
+//          }
+//    }
 
     cout<<"size of feature for window size: ";
     subWinSize.Print();
@@ -408,7 +420,7 @@ namespace metric
     spB.buildSCFpyr(B,nLevel,nDir,1,downsample);//B = ts is candExt
     vector<Tensor<double,2>>& pyrA = spA.getSpaceDomainPyr();
     vector<Tensor<double,2>>& pyrB = spB.getSpaceDomainPyr();
-    
+
     if ( boundary_cut == FilterBoundary::FILTER_BOUND_HALF)//modify Dec 27 2011, not cut half but cut half + boundary
       {
         for (unsigned int i = 0; i< pyrA.size(); i++)
@@ -709,7 +721,7 @@ namespace metric
 //        cout<<"C "<<C[index].size()<<endl;
 //        cout<<"C01 "<<C01[index].size()<<endl;
 //        cout<<"C10 "<<C10[index].size()<<endl;
- 
+
         Tensor<double,1> tempRstMat;
         if (stsim2_modifer == MetricModifier::STSIM2_TUNE)
           {

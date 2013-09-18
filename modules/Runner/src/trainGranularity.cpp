@@ -11,10 +11,12 @@ int main(void)
 {
 
   Metric mc;
-  //mc.subwinSize = Size3(16,16,1);
-  //mc.subwinStep = Size3(16,16,1);
-  string scorefilepath = "../../Site/grantest_output.txt";
-  mc.searchPath = "../../../data/totest/gran/";
+  mc.subwinSize = Size3(16,16,1);
+  mc.subwinStep = Size3(16,16,1);
+  string scorefilepath = "/modules/Site/grantest_output.txt";
+  mc.searchPath = "/data/totest/gran/";
+  mc.subsample = true;
+  mc.changeWin = false;
   mc.trainGranularity(mc.searchPath,scorefilepath);
 
   return 0;

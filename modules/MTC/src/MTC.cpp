@@ -3102,10 +3102,11 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
           //}
 
           //! 20130916 compute var
+          //cout<<this->qfactor<<endl;
           double orgvar = org.Var()[0];
-          if (orgvar < 50)//incease threaold
+          if (orgvar > 10 && orgvar <200)//incease threaold
             thresholdAdaptor*=1.02;
-          if (level<0 && orgvar < 200) //herustic set use PLC for smooth region
+          if (level<0 && orgvar < 100) //herustic set use PLC for smooth region
             accepted = -1;
           else if(qNode.size().height ==blockSize.height && distance >= this->qualityThrd*thresholdAdaptor*lightAdaptor) //good
             accepted = index; //return index;
@@ -3171,11 +3172,13 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
               if (footEntry==FootTable.end()) // make sure read the updated entry when only 1 candidate available
                 //footEntry = RetrieveFoots(org);
                 footEntry = RetrieveFoot(qNode,level);
+              if (level>=0){
               stat.outputBit+=footEntry->second.bitstring;//bits_stream_for_PLC_foot;
               stat.plcBitLength+=footEntry->second.bitstring.length();
               this->totalBits += footEntry->second.bitstring.length();
               this->outputfile<<footEntry->second.bitstring;
               qNode.bitcount.SetFootBit(footEntry->second.bitstring);
+              }
             }
 
           candPosLog<<"Tar: ("<<qNode.offset().x<<","<<qNode.offset().y<<") ==== Best Cand_"<<accepted<<": ("<<matchCandid[accepted].x+qNode.overlap().height<<","<<matchCandid[accepted].y+qNode.overlap().width<<") ====== Score: "<<distance<<endl;
@@ -5298,6 +5301,8 @@ void MTC::ScanLine(string& line)
             temp = MatchingMethod::MATCHING_HIERARCHY;
           else if (value=="MATCHING_OPENCV")
             temp = MatchingMethod::MATCHING_OPENCV;
+          else if (value=="MATCHING_DIRECT")
+            temp = MatchingMethod::MATCHING_DIRECT;
           else
             CV_Error(CV_StsBadFlag,"wrong parameter"+option+":"+value);
           this->SetMatchingMethod(temp);

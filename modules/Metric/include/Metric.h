@@ -8,6 +8,8 @@
 #include <regex>
 #if (CV_MINOR_VERSION > 5)
 #include <opencv2/ml.hpp>
+#include <opencv2/features2d.hpp>
+#include <opencv2/nonfree.hpp>
 #endif
 #include <Granulate.h>
 namespace metric{
@@ -100,13 +102,13 @@ public:
   Mat getFeature(const Mat& f, int subband, int feature);
   Mat& estimateML(const Mat& f, int subband, int feature,vector<vector<Mat_<double>>>& gamma, vector<vector<double>>& lambda);
   Mat& computeLLR(const Mat& f, Mat& llr, int subband, int feature, vector<vector<Mat_<double>>>& gamma0, vector<vector<Mat_<double>>>& gamma1, vector<vector<double>>& lambda0, vector<vector<double>>& lambda1);
-  Mat& makeDec(const Mat& LLR, Mat& dec, double thred = 0, int flag=0); 
+  Mat& makeDec(const Mat& LLR, Mat& dec, double thred = 0, int flag=0);
   void trainMetric(string path, string searchPattern, string searchExt);
   void trainMetirc(string path,string scorefilepath="");
   void trainGranularity(string path, string scorefilepath="", FeaturePoolType pooltype = FeaturePoolType::FEATURE_POOL_MIN);
   void loadParams(void);
   float predict(const Mat& f);
-  
+
   Size3 subwinSize,subwinStep;
   string searchPattern, searchExt,searchPath;
   int featureNum;

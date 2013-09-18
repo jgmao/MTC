@@ -12,7 +12,7 @@ Metric::Metric()
   Nor = 4;
   Nsc = 3;
   gamma0 = vector<vector<Mat_<double> > >(Nor*Nsc+2,vector<Mat_<double>>(featureNum));
-  gamma1 = vector<vector<Mat_<double> > >(Nor*Nsc+2,vector<Mat_<double>>(featureNum));  
+  gamma1 = vector<vector<Mat_<double> > >(Nor*Nsc+2,vector<Mat_<double>>(featureNum));
   lambda1 = vector<vector<double> >(Nor*Nsc+2,vector<double>(featureNum));
   lambda0 = vector<vector<double> >(Nor*Nsc+2,vector<double>(featureNum));
   subsample = false;
@@ -322,7 +322,7 @@ int Metric::computeStats(string path, string searchPattern, string searchExt)
   //by product compute number of coeffients (in case downsampling)
   for (auto t : stats[0])
   {
-    coeffNum += t.size().area(); 
+    coeffNum += t.size().area();
     coeff_in_band.push_back( t.size().area() );
   }
   llr = Mat(pairNum,coeffNum,CV_64F);
@@ -340,7 +340,7 @@ int Metric::computeStats(string path, string searchPattern, string searchExt)
    coeff_in_band.clear();
   for (auto t : stats[0])
   {
-    coeffNum += t.size().area(); 
+    coeffNum += t.size().area();
     coeff_in_band.push_back( t.size().area() );
   }
   llr = Mat(pairNum,coeffNum,CV_64F);
@@ -353,7 +353,8 @@ int Metric::computeStats(const Tensor<double,1>& im, FeaturePoolType pooltype)
   pairNum=1;
   coeffNum=0;
   stats = vector<vector<Tensor<double,2>>>(1);
-  stats[0] = ComputeStatistics(im, subwinSize,subwinStep,this->subsample,changeWin,3,1,FilterBoundary::FILTER_BOUND_EXTEND,pooltype,true);
+  cout<<subwinSize<<subwinStep<<endl;
+  stats[0] = ComputeStatistics(im, subwinSize,subwinStep,this->subsample,changeWin,3,1,FilterBoundary::FILTER_BOUND_EXTEND,pooltype);
   coeffNum=0;
   coeff_in_band.clear();
   for (auto t : stats[0])
@@ -417,7 +418,7 @@ int Metric::computeFeatures(string searchPattern, string searchExt)
       }
       for (unsigned int k=0; k<stats[i].size(); k++)
       {
-        
+
         roi = Rect(k*2,posCount*coeff_in_band[k],2,coeff_in_band[k]);
 
         count+=coeff_in_band[k];
@@ -430,7 +431,7 @@ int Metric::computeFeatures(string searchPattern, string searchExt)
         count+=coeff_in_band[k];
       }
       //mylib::DisplayMat(pf->operator()(Rect(0,posCount*9,2,9)),"frow",true);
-     
+
       paircount++;
     }
   }
@@ -462,7 +463,7 @@ int Metric::computeFeatures(string searchPattern, string searchExt)
   //  int count=0;
   //  for (int k=0; k< c.size(); k++)
   //  {
-  //    int fidx = k%(Nsc*Nor+2); 
+  //    int fidx = k%(Nsc*Nor+2);
   //    count = k/(Nsc*Nor+2)*diffClusterFeature.size()*c[k].size().area();
   //    for (int i=0; i< c[k].size().height; i++)
   //      for (int j=0; j<c[k].size().width;j++)
@@ -523,8 +524,8 @@ int Metric::computeFeatures(const vector<vector<Tensor<double,2>>>& stats)
       //dem.Print();
       //web.Print();
       Mat abstemp = web.Abs().GetFrameRef(0).clone();
-      //normailze 
- 
+      //normailze
+
      // mylib::DisplayMat(abstemp);
      // Mat exptemp;
       //mylib::DisplayMat(temp);
@@ -536,7 +537,7 @@ int Metric::computeFeatures(const vector<vector<Tensor<double,2>>>& stats)
       //mylib::DisplayMat(exptemp);
       exptemp=exptemp+1;
       cv::divide(2.0,exptemp,tt[0]);
-      tt[0] = 2 - tt[0]; 
+      tt[0] = 2 - tt[0];
       cv::merge(tt,logit);
       //mylib::DisplayMat(logit);
       //mylib::DisplayMat(temp);
@@ -544,7 +545,7 @@ int Metric::computeFeatures(const vector<vector<Tensor<double,2>>>& stats)
       //temp = exptemp/(exptemp+1);
       //Mat logis = 1 - abs(temp);
       //mylib::DisplayMat(temp);
-     /*/ // try simple div only 
+     /*/ // try simple div only
       //mylib::DisplayMat(temp);
       //normalize each feature
       //if (k/(Nsc*Nor+2)==0)//means max 255
@@ -553,13 +554,13 @@ int Metric::computeFeatures(const vector<vector<Tensor<double,2>>>& stats)
       //  temp = temp/16384;
       //for rho term, which are crosscoefficient , is range from 0 ~ 1 no need to normalize
      // mylib::DisplayMat(temp);
-      
+
       //abs
       //tt[0]=logis;
       //tt[1]=cv::Mat::zeros(temp.size(),temp.type());//cv::abs(tt[1]);
       //satruation
-      //cv::threshold(tt[0],tt[0],1,1,cv::THRESH_TRUNC); 
-      //cv::threshold(tt[1],tt[1],1,1,cv::THRESH_TRUNC); 
+      //cv::threshold(tt[0],tt[0],1,1,cv::THRESH_TRUNC);
+      //cv::threshold(tt[1],tt[1],1,1,cv::THRESH_TRUNC);
       //cv::merge(tt,temp);
       //mylib::DisplayMat(temp);
       //inverse
@@ -574,7 +575,7 @@ int Metric::computeFeatures(const vector<vector<Tensor<double,2>>>& stats)
           .copyTo(f(roi));
      //mylib::DisplayMat(f,"f",true);
    }
-  
+
    return 1;
 }
 
@@ -582,7 +583,7 @@ Mat Metric::getFeature(const Mat& f, int subband, int feature)
 {
   int fnum = ((Nsc*Nor+2)*feature + subband)*2;
   //int fnum = stats[0][(Nor*Nsc+2)*feature+subband].size().area();//get the featurenum in band
-   
+
   Rect roi(fnum,0,2,f.size().height);
   return f(roi);
 }
@@ -759,7 +760,7 @@ void Metric::trainMetric(string path, string searchPattern, string searchExt)
   loadLambda("lambda1",lambda1);
   //mylib::DisplayMat(llr,"llr",true);
   makeDec(llr,dec,log(1.0),DEC_FLAG_SOFT);
-  
+
   label = -1*cv::Mat::ones(pairNum,1,CV_32F);
   label(Rect(0,0,1,sameCount))=1;
   params.svm_type = SVM::NU_SVR;
@@ -779,7 +780,7 @@ void Metric::trainMetric(string path, string searchPattern, string searchExt)
 
     lb.at<float>(i,0) = s2.predict(floatdec.row(i));
   }
- 
+
   cv::compare(lb,0,lb,CV_CMP_GE);
   lb.convertTo(lb,CV_32F);
   lb = lb/255*2.0 -1.0;
@@ -794,7 +795,7 @@ Mat& Metric::computeLLR(const Mat& f, Mat& llr, int subband, int feature, vector
 {
   CV_Assert(f.size().height/coeff_in_band[0]==llr.size().height);
    Mat tempf = getFeature(f,subband,feature);
-   
+
    Mat temp0 = tempf*gamma0[subband][feature];
    Mat temp1 = tempf*gamma1[subband][feature];
    Mat temp;
@@ -818,7 +819,7 @@ Mat& Metric::computeLLR(const Mat& f, Mat& llr, int subband, int feature, vector
       llr.at<double>(sindex,findex) = log(p1/p0);
      // cout<<llr.at<double>(sindex,findex)<<endl;
    }
-  
+
    return llr;
 }
 
@@ -976,10 +977,9 @@ void Metric::trainGranularity(string path, string scorefilepath,FeaturePoolType 
     boost::smatch res;
     boost::regex rx("\\b(.*)_org\\.png");//find everyword end with _org.png
     boost::regex_search(str,res,rx);
-    cout<<"org: "<<res[0]<<", "<<res[1]<<", ";
-    //cout<<"path"<<path<<endl;
+    cout<<"org: "<<res[0]<<", "<<res[1]<<", "<<endl;
+    cout<<"path"<<path<<endl;
     Tensor<double,1> org(string(curpath)+path+"/"+string(res[0]));
-   // org = org.Crop((org.size()/4).Point3(),org.size()/2+Point3i(0,0,1));
     rx.set_expression("\\b(\\d),");
     boost::regex_search(str,res,rx);
     int yesSize = Granulate::sz_idx[std::stoi(res[1])];
@@ -988,40 +988,45 @@ void Metric::trainGranularity(string path, string scorefilepath,FeaturePoolType 
     int xlSize = 128;
     //the order is yes first, then no second
     scores.push_back(1.0);
-    scores.push_back(-1.0);
-    scores.push_back(-2.0);
-
+    //scores.push_back(-1.0);
+    //scores.push_back(-2.0);
     //compute statistics using yesSize
-    this->subwinSize=Size3(yesSize,yesSize,1);
-    this->subwinStep=this->subwinSize;
-    computeStats(org);
-    computeFeatures(stats);
-    features.push_back(f);
-     sizes.push_back(yesSize);
+    //this->subwinSize=Size3(yesSize,yesSize,1);
+    //this->subwinStep=this->subwinSize;
+    //computeStats(org);
+    //computeFeatures(stats);
+    //features.push_back(f);
+    //sizes.push_back(yesSize);
     //cout<<f.size()<<endl;
-    this->subwinSize=Size3(noSize,noSize,1);
-    this->subwinStep=this->subwinSize;
-    computeStats(org);
-    computeFeatures(stats);
-    features.push_back(f);
- sizes.push_back(yesSize);
-    this->subwinSize=Size3(xsSize,xsSize,1);
-    this->subwinStep=this->subwinSize;
-    computeStats(org);
-    computeFeatures(stats);
-    features.push_back(f);
-     sizes.push_back(yesSize);
-    //if (xlSize<=128)
-    //{
-    this->subwinSize=Size3(xlSize,xlSize,1);
-    this->subwinStep=this->subwinSize;
-    computeStats(org);
-    computeFeatures(stats);
-    features.push_back(f);
-    scores.push_back(2.0);
-     sizes.push_back(yesSize);
-    // }
+//    this->subwinSize=Size3(noSize,noSize,1);
+//    this->subwinStep=this->subwinSize;
+//    computeStats(org);
+//    computeFeatures(stats);
+//    features.push_back(f);
+//    sizes.push_back(yesSize);
+//    this->subwinSize=Size3(xsSize,xsSize,1);
+//    this->subwinStep=this->subwinSize;
+//    computeStats(org);
+//    computeFeatures(stats);
+//    features.push_back(f);
+//     sizes.push_back(yesSize);
+//    //if (xlSize<=128)
+//    //{
+//    this->subwinSize=Size3(xlSize,xlSize,1);
+//    this->subwinStep=this->subwinSize;
+//    computeStats(org);
+//    computeFeatures(stats);
+//    features.push_back(f);
+//    scores.push_back(2.0);
+//     sizes.push_back(yesSize);
+//    // }
 
+     this->subwinSize=Size3(16,16,1);
+     this->subwinStep=Size3(16,16,1);
+     computeStats(org);
+     computeFeatures(stats);
+     features.push_back(f);
+     sizes.push_back(yesSize);
     //cout<<f.size()<<endl;
     //mylib::DisplayMat(f);
   }
@@ -1066,7 +1071,6 @@ void Metric::trainGranularity(string path, string scorefilepath,FeaturePoolType 
   mylib::DisplayMat(b,"b",true);
   mylib::DisplayMat(bl,"bl",true);
   mylib::DisplayMat(ms,"ms",true);
-
   ofstream coefffile;
   coefffile.open("./temp/coeff_in_band.txt");
   for (unsigned int i=0; i< coeff_in_band.size();i++)

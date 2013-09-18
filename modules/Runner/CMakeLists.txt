@@ -8,7 +8,7 @@ include_directories(${MTC_RUNNER_DIR}/include ${MTC_TENSORLIB_DIR}/include ${MTC
 set(com_link ${MTC_RUNNER_DIR}/src ${MTC_METRIC_DIR} ${MTC_MTC_DIR})
 
 
-set(PROGRAMS testTensor main)
+set(PROGRAMS testTensor main trainGranularity)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Debug/lib)
@@ -21,7 +21,7 @@ else()
   set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/Release/bin)
         link_directories(${CMAKE_SOURCE_DIR}/Release/lib ${com_link})
 endif()
- 
+
 add_library(Tester src/Tester.cpp)
 target_link_libraries(Tester ${OpenCV_LIBS} TensorLib TensorExtend util MTC LightingLib jpeg Metric ${Boost_LIBRARIES})
 
