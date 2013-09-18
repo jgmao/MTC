@@ -23,11 +23,11 @@ else()
 endif()
 
 add_library(Tester src/Tester.cpp)
-target_link_libraries(Tester ${OpenCV_LIBS} TensorLib TensorExtend util MTC LightingLib jpeg Metric ${Boost_LIBRARIES})
+target_link_libraries(Tester ${OpenCV_LIBS} TensorLib TensorExtend util MTC LightingLib jpeg MetricLib ${Boost_LIBRARIES})
 
 foreach(program ${PROGRAMS})
   add_executable(${program} src/${program}.cpp)
-  target_link_libraries(${program} ${OpenCV_LIBS} Tester TensorLib TensorExtend util MTC LightingLib jpeg Metric ${Boost_LIBRARIES})
+  target_link_libraries(${program} ${OpenCV_LIBS} Tester TensorLib TensorExtend util MTC LightingLib jpeg MetricLib ${Boost_LIBRARIES})
  # install(TARGETS ${PROGRAMS}
 #	RUNTIME DESTINATION ${MTC_SOURCE_DIR}/bin
 #	LIBRARY DESTINATION ${MTC_SOURCE_DIR}/lib

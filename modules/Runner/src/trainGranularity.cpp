@@ -17,6 +17,7 @@ int main(void)
   mc.searchPath = "/data/totest/gran/";
   mc.subsample = true;
   mc.changeWin = false;
+  //cout<<mc.subwinSize<<endl;
   mc.trainGranularity(mc.searchPath,scorefilepath);
 
   return 0;

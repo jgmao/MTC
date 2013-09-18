@@ -353,8 +353,7 @@ int Metric::computeStats(const Tensor<double,1>& im, FeaturePoolType pooltype)
   pairNum=1;
   coeffNum=0;
   stats = vector<vector<Tensor<double,2>>>(1);
-  cout<<subwinSize<<subwinStep<<endl;
-  stats[0] = ComputeStatistics(im, subwinSize,subwinStep,this->subsample,changeWin,3,1,FilterBoundary::FILTER_BOUND_EXTEND,pooltype);
+  stats[0] = ComputeStatistics(im, this->subwinSize,this->subwinStep,this->subsample,changeWin,3,1,FilterBoundary::FILTER_BOUND_EXTEND,pooltype,false);
   coeffNum=0;
   coeff_in_band.clear();
   for (auto t : stats[0])
@@ -954,19 +953,13 @@ void Metric::loadParams(void)
 
 void Metric::trainGranularity(string path, string scorefilepath,FeaturePoolType pooltype)
 {
+  cout<<this->subwinSize<<endl;
   char curpath[FILENAME_MAX];
   GetCurDir(curpath,sizeof(curpath));
   cout<<"reading scorefile: "<<string(curpath)+scorefilepath<<endl;
   ifstream scorefile;
   scorefile.open(string(curpath)+scorefilepath,std::ios::in);
-  //cout<<"is good?"<< scorefile.good()<<endl;
   char temp[1024];
-  //string temp;
-  /*int count=0;
-  while(scorefile.getline(temp,1024))
-    count++;
-  scorefile.close();*/
-  //scorefile.open(path+"/subtestoutput.txt");
   vector<Mat> features;
   vector<double> scores;
   vector<int> sizes;
@@ -983,52 +976,14 @@ void Metric::trainGranularity(string path, string scorefilepath,FeaturePoolType 
     rx.set_expression("\\b(\\d),");
     boost::regex_search(str,res,rx);
     int yesSize = Granulate::sz_idx[std::stoi(res[1])];
-    int noSize = yesSize/2;
-    int xsSize = noSize/2;
-    int xlSize = 128;
-    //the order is yes first, then no second
     scores.push_back(1.0);
-    //scores.push_back(-1.0);
-    //scores.push_back(-2.0);
-    //compute statistics using yesSize
-    //this->subwinSize=Size3(yesSize,yesSize,1);
-    //this->subwinStep=this->subwinSize;
-    //computeStats(org);
-    //computeFeatures(stats);
-    //features.push_back(f);
-    //sizes.push_back(yesSize);
-    //cout<<f.size()<<endl;
-//    this->subwinSize=Size3(noSize,noSize,1);
-//    this->subwinStep=this->subwinSize;
-//    computeStats(org);
-//    computeFeatures(stats);
-//    features.push_back(f);
-//    sizes.push_back(yesSize);
-//    this->subwinSize=Size3(xsSize,xsSize,1);
-//    this->subwinStep=this->subwinSize;
-//    computeStats(org);
-//    computeFeatures(stats);
-//    features.push_back(f);
-//     sizes.push_back(yesSize);
-//    //if (xlSize<=128)
-//    //{
-//    this->subwinSize=Size3(xlSize,xlSize,1);
-//    this->subwinStep=this->subwinSize;
-//    computeStats(org);
-//    computeFeatures(stats);
-//    features.push_back(f);
-//    scores.push_back(2.0);
-//     sizes.push_back(yesSize);
-//    // }
-
-     this->subwinSize=Size3(16,16,1);
-     this->subwinStep=Size3(16,16,1);
-     computeStats(org);
-     computeFeatures(stats);
-     features.push_back(f);
-     sizes.push_back(yesSize);
-    //cout<<f.size()<<endl;
-    //mylib::DisplayMat(f);
+    this->subwinSize=Size3(16,16,1);
+    this->subwinStep=Size3(16,16,1);
+    computeStats(org,FeaturePoolType::FEATURE_POOL_ALL);
+   // cout<<"stat size"<<stats[0].size()<<endl;
+    computeFeatures(stats);
+    features.push_back(f);
+    sizes.push_back(yesSize);
   }
   //after reading done
   //1. ouptut statistcs for viewing
