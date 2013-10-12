@@ -45,6 +45,20 @@ namespace metric{
                              FeaturePoolType pooltype = FeaturePoolType::FEATURE_POOL_ALL,
                              bool compute00=false
                              ) ;
+  EXPORTLIB void ComputeSTSIM2Terms(const Mat& tsA, const Mat& tsB,
+                                    const Size3& subWinSize ,
+                                    const Size3& subWinStep ,
+                                    int nLevel, int nDir,
+                                    bool downsample,
+                                    FilterBoundary boundary_cut ,
+                                    FeaturePoolType stsim2_pool_type ,
+                                    MetricModifier stsim2_modifer,
+                                    vector<Tensor<double,1>>& L,
+                                    vector<Tensor<double,1>>& C,
+                                    vector<Tensor<double,1>>& C01,
+                                    vector<Tensor<double,1>>& C10,
+                                    vector<Tensor<double,1>>& C00,
+                                    bool debug=false);
   // this need SVM Metric implementation EXPORTLIB double ComputeSVMMetric(const Mat& tsA, const Mat& tsB, const Size3& subWinSize, const Size3& subWinStep);
 /*! legacy
   EXPORTLIB double Compare(const Mat& ts, int criteria,

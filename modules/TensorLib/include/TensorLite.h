@@ -155,7 +155,7 @@ namespace tensor{
     EXPORTLIB const Mat GetFrame(int i) const;
 
 		EXPORTLIB Mat GetFrameRef(int i) ;//GetFrameRef is get a reference
-		EXPORTLIB const Mat GetFrameRef(int i) const;
+        EXPORTLIB const Mat GetFrameRef(int i) const;
 
     EXPORTLIB void GetFrameRef(int i, Mat& rst) const;
 
@@ -210,6 +210,8 @@ namespace tensor{
     EXPORTLIB Tensor<T,cn> Square(void) const;
     EXPORTLIB Tensor<T,cn> SquareGPU(BufferGPU& gbuf) const;
     EXPORTLIB Tensor<T,cn>Conjugate(void) const;//@
+//    EXPORTLIB Tensor<T,cn> HorDev(void) const;
+//    EXPORTLIB Tensor<T,cn> VerDev(void) const;
     EXPORTLIB Tensor<T,cn>ExtendBoundary(Size3 extSz = Size3(1,1,0), value_type val = value_type::all(0)) const;
     EXPORTLIB Tensor<T,cn>ExtendHalfBoundary(Size3 extSz = Size3(1,1,0), value_type val = value_type::all(0), bool which_side = 0) const; // which side 0: left and upper 1: right and below
     //20130815 use GPU algorithm here to compute

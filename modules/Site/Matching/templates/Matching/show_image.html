@@ -8,6 +8,7 @@ Show Image
 {% for image in item.values[0] %}
 <td>
 <embed width={{100}} height={{100}}
+    class ="coors"
     src="{{STATIC_URL}}{{image}}" type="image/tiff"
     stretchtofit='1'>
 </td>

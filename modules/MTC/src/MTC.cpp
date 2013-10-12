@@ -3104,9 +3104,10 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
           //! 20130916 compute var
           //cout<<this->qfactor<<endl;
           double orgvar = org.Var()[0];
-          if (orgvar > 10 && orgvar <200)//incease threaold
+          double orgmean = org.Mean()[0];
+          if (orgvar > 10 && orgvar <200 && orgmean>200)//incease threaold
             thresholdAdaptor*=1.02;
-          if (level<0 && orgvar < 100) //herustic set use PLC for smooth region
+          if (level<0 && orgvar < 100 ) //herustic set use PLC for smooth region
             accepted = -1;
           else if(qNode.size().height ==blockSize.height && distance >= this->qualityThrd*thresholdAdaptor*lightAdaptor) //good
             accepted = index; //return index;

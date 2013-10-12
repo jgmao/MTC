@@ -204,7 +204,8 @@ namespace tensor{
     LinkQueue varQueue(100);
     vector<Point3i> varList;
     Tensor<T,cn> target;
-    Tensor<T,cn> candUp, candLeft,cand;
+    Tensor<T,cn> candUp, candLeft;
+    QNode<T,cn> cand;
     Tensor<double,cn> tempMu,tempVar;
     Tensor<double,cn> tempMap;
     vector<Point3i> sideMatchAddr;
@@ -220,6 +221,8 @@ namespace tensor{
     tarLeft = qNode.leftBound;
     // tarUp.Print();
     // tarLeft.Print();
+    Tensor<T,cn> tarDevH, tarDevV;
+    Vec<T,cn> tv;//total variance
     if (matching_method == MatchingMethod::MATCHING_OPENCV)
       {
 
@@ -240,6 +243,7 @@ namespace tensor{
         normalize(matchLeft, matchLeft, 0, 255, NORM_MINMAX, -1, Mat() );
         Tensor<double,1>(matchUp).Display();
         Tensor<double,1>(matchLeft).Display();
+
       }
     else if (matching_method == MatchingMethod::MATCHING_MSE || matching_method ==  MatchingMethod::MATCHING_SAD|| matching_method == MatchingMethod::MATCHING_MSE_CONSTRAINT|| matching_method == MatchingMethod::MATCHING_DIRECT)
       {
@@ -266,7 +270,7 @@ namespace tensor{
         //substract mean before matching, 11212012
         //estimate mean by sliding windows 05232013
         Tensor<T,cn> upMean, leftMean;
-#ifdef SUBSTRACT_BOUND_MEAN
+#if SUBSTRACT_BOUND_MEAN
         ComputeBoundMean(tarUp,tarLeft,qNode.offset(),qNode.size(),qNode.overlap(),upMean,leftMean);
 #else
         upMean = Tensor<T,cn>(tarUp.size(),0);
@@ -290,6 +294,10 @@ namespace tensor{
             TT.SetBlock(Point3i(tarUp.size().width,0,0),tarLeft);
             //Mt = TT.Mean();
             Vt = TT.Var()[0];
+            //compute total variance here
+            tarDevH = qNode.ComputeBoundHorDev();
+            tarDevV = qNode.ComputeBoundVerDev();
+            tv = tarDevH.Pow(2).Sum()+tarDevV.Pow(2).Sum();
           }
 
         //Tensor<T,cn> T0 =  qNode.GetBoundary(0).Crop(Point3i(0,qNode.overlap().width,0),qNode.GetBoundary(0).size()-Size3(0,qNode.overlap().width,0));
@@ -350,6 +358,7 @@ namespace tensor{
                 double localdiff=0.0;//make it local
                 double localN=0.0;
                 queues[p]=new LinkArray();
+                Tensor<T,cn> candDevH, candDevV;
 #ifdef PARALLEL_ENABLED
                 threads.push_back(thread([&](int p, int t, Tensor<T,cn> localTarUp, Tensor<T,cn> localTarLeft, LinkStruct* myqueue ){
                     // cout<<"work in p: "<< p<<","<<  std::this_thread::get_id()<<endl;
@@ -387,7 +396,7 @@ namespace tensor{
                                   //lock_guard<std::mutex> lock(rst_mutex);
                                   //rst.Ref(Cube(Point3i(x,y,t),qNode.leftBound.size()),localCandLeft);
                                   //rst.Ref(Cube(Point3i(x,y+qNode.overlap().width,t),qNode.upBound.size()-Size3(0,qNode.overlap().width,0)),localCandUp);
-#ifdef SUBSTRACT_BOUND_MEAN
+#if SUBSTRACT_BOUND_MEAN
                                   ComputeBoundMean(localCandUp,localCandLeft,qNode.offset(),qNode.size(),qNode.overlap(),candUpMean,candLeftMean);
 #else
                                   candUpMean = Tensor<T,cn>(localCandUp.size(),0);
@@ -399,7 +408,9 @@ namespace tensor{
                                 rst.Ref(Cube(Point3i(x,y,t),qNode.leftBound.size()),candLeft);
                                 rst.Ref(Cube(Point3i(x,y+qNode.overlap().width,t),qNode.upBound.size()-Size3(0,qNode.overlap().width,0)),candUp);
 
-                                rst.Ref(Cube(Point3i(x+qNode.overlap().height,y+qNode.overlap().width,t),qNode.size()),cand);
+                                //! 20131008 use qNode instead of tensor to compute boundary total variance
+                                //rst.Ref(Cube(Point3i(x+qNode.overlap().height,y+qNode.overlap().width,t),qNode.size()),cand);
+                                cand = QNode<T,cn>(rst,qNode.size(),Point3i(x+qNode.overlap().height,y+qNode.overlap().width,t),qNode.overlap());
                                 if (qNode.offset().x == DEBUG_X && qNode.offset().y == DEBUG_Y && qNode.size().height==DEBUG_SIZE)
                                   {
                                     if (x==29&&y==52)
@@ -408,7 +419,7 @@ namespace tensor{
                                         candLeft.Print("cand_left");
                                       }
                                   }
-#ifdef SUBSTRACT_BOUND_MEAN
+#if SUBSTRACT_BOUND_MEAN
                                 ComputeBoundMean(candUp,candLeft,qNode.offset(),qNode.size(),qNode.overlap(),candUpMean,candLeftMean);
 #else
                                 candUpMean = Tensor<T,cn>(candUp.size(),0);
@@ -427,6 +438,9 @@ namespace tensor{
 #endif
                                     //Mb = VV.Mean();
                                     Vb = VV.Var()[0];
+                                    candDevH = cand.ComputeBoundHorDev();
+                                    candDevV = cand.ComputeBoundVerDev();
+                                    tv += candDevH.Pow(2).Sum()+candDevV.Pow(2).Sum();
                                   }
 #ifdef PARALLEL_ENABLED
                                 candUp_norm = localCandUp - candUpMean;
@@ -463,7 +477,9 @@ namespace tensor{
 
 				//target.debugtrigger=false;
 				//localdiff= localdiff/localN;
-				localdiff/=65025;//normalize by 255^2
+                //! 20131008 remove normilzation localdiff/=65025;//normalize by 255^2
+                //! 20131008 use sqrt
+                localdiff = sqrt(localdiff);
 				if (matching_method == MatchingMethod::MATCHING_MSE_CONSTRAINT)
 				  {
 				    //double delta = ((Vt0 + Vt1)/2 - (Vb0+Vb1)/2);
@@ -482,7 +498,6 @@ namespace tensor{
 				    delta > delta_thrd? delta = 1 : delta=delta/delta_thrd;
 				    //d1 > delta_thrd? d1 = 1 : d1 = d1/delta_thrd;
 				    //d0 > delta_thrd? d0 = 1 : d0 = d0/delta_thrd;
-				    lambda = 0.5;
 				    double lambda2 = 0.5;
 				    double masking=0;
 				    if (Mt[0]<50)
@@ -492,21 +507,29 @@ namespace tensor{
 				    else
 				      masking = 1;
 				    //double constraint = lambda*(d0*d0 + d1*d1);//may be constraint by distribution similarity
-				    double constraint = lambda*delta;// + masking*lambda2 ;
-
-				    localdiff = localdiff + constraint ;
-				  }
+                    //!20131008 use other by guoxin double constraint = lambda*delta;// + masking*lambda2 ;
+                   // cout<<"tv="<<tv[0]<<endl;
+                   // cout<<"xyH="<<(2*(tarDevH*candDevH).Sum())[0]<<endl;
+                   // cout<<"xyV="<<(2*(tarDevV*candDevV).Sum())[0]<<endl;
+                   double constraint = sqrt((tv-2*(tarDevH*candDevH).Sum()-2*(tarDevV*candDevV).Sum())[0]);
+                   constraint /= (2*sqrt(2)*256);
+                    //!20131011 retray use variance
+                    localdiff/=256;
+                   // cout<<"constr="<<constraint<<endl;
+           // cout<<"diff="<<localdiff<<endl;
+                    localdiff = 1*localdiff +0.1*delta + 0*constraint ;
+          }
 				/// debug here !!!!!!!!!!!!!
 				//protect shared data here
 #ifdef PARALLEL_ENABLED
 				mymux.lock();
 #endif
-
+//cout<<matching_thrd<<endl;
 
 				if (matching_method == MatchingMethod::MATCHING_DIRECT)
-				  queue->compareInsert(localdiff,cv::Point3i(x,y,t));
+                  queue->compareInsert(localdiff,cv::Point3i(x,y,t));
 				else{
-				    if (localdiff<=matching_thrd)
+                    if (localdiff<=matching_thrd||matching_thrd==0)//0 means accept all
 				      queue->compareInsert(-localdiff,cv::Point3i(x,y,t));
 				  }
 				if (/*myqueue*/queue->getLength()>candidNum&&candidNum>0)

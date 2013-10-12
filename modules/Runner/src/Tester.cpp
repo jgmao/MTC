@@ -886,3 +886,64 @@ void Tester::TestGranulateGen()
   g.readFiles("/home/guoxin/Projects/MTC/data/totest/","tiff");
   g.generateGrid();
 }
+
+void Tester::debugBlock(int x, int y, int sz)
+{
+    if (x<0||y<0||sz<0)
+        return;
+    cout<<"debuging ("<<x<<","<<y<<") size of "<<sz<<endl;
+    string path = "./everything/";
+    cout<<"loading path "<<path<<endl;
+    char posstr[20];
+    sprintf(posstr,"_%d_(%d_%d)",sz,x,y);
+    char patt[20];
+    sprintf(patt,"_%d_\\(%d_%d\\)",sz,x,y);
+    Tensor<double,1> org(path+"org"+posstr+".png");
+    Point3i pos(sz/4,sz/4,0);
+              Size3 bsz(sz,sz,1);
+              org = org.Crop(pos,bsz);
+    vector<Tensor<double,1>> cands,cands_plc;
+    DIR *dir;
+    struct dirent *ent;
+    dir = opendir(path.c_str());
+    boost::regex rx("(cand"+string(patt)+")(.*)");
+    boost::regex rx2("(cand_plc"+string(patt)+")(.*)");
+    cout<<rx<<endl;
+    cout<<rx2<<endl;
+    while ((ent = readdir(dir)) != NULL)
+    {
+      if (!strcmp(ent->d_name,"." )) continue;
+      if (!strcmp(ent->d_name,"..")) continue;
+      string file_name = ent->d_name;
+      cout<<file_name<<endl;
+      boost::smatch res;
+      boost::regex_search(file_name,res,rx);
+      cout<<res[0]<<","<<res[1]<<endl;
+      if (boost::regex_match(file_name,rx))
+      {
+          Tensor<double,1> temp = Tensor<double,1>(path+file_name);
+      cout<<file_name<<endl;
+          cands.push_back(temp.Crop(pos,bsz));
+
+      }
+      boost::regex_search(file_name,res,rx2);
+            cout<<res[0]<<","<<res[1]<<endl;
+            if (boost::regex_match(file_name,rx2))
+            {
+                 cout<<file_name<<endl;
+                Tensor<double,1> temp = Tensor<double,1>(path+file_name);
+                         cands_plc.push_back(temp.Crop(pos,bsz));
+
+            }
+
+    }
+
+    closedir(dir);
+    for (int i=0; i<cands.size();i++)
+    {
+        cout<<"Computing STSIM-2 for candidate "<<i<<endl;
+        metric::ComputeSTSIM2(org,cands[i],Size3(16,16,1),Size3(16,16,1),3,4,false,FilterBoundary::FILTER_BOUND_FULL,FeaturePoolType::FEATURE_POOL_MIN,MetricModifier::STSIM2_NEW_L1,true);
+    }
+
+
+}

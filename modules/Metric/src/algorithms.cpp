@@ -550,6 +550,10 @@ namespace metric
         {
           //L[index] = (mu_A[index].Abs() * mu_B[index].Abs() *2 + C0).Real() / (mu_A[index]*mu_A[index].Conjugate() + mu_B[index]*mu_B[index].Conjugate() + C0).Real();
           L[index] = ((mu_A[index] * mu_B[index]).Abs() *2 + C0).Real() / (mu_A[index].Square() + mu_B[index].Square() + C0).Real();
+          if(debug)
+          {
+              L[index].Print("L");
+          }
         }
         else if (stsim2_modifer == MetricModifier::STSIM2_NEW_L1)
           {
@@ -561,7 +565,7 @@ namespace metric
             L[index] = ((mu_A[index]-mu_B[index])*((mu_A[index]-mu_B[index]).Conjugate())).Real().MaxClip(clipThrd);
             L[index] = Tensor<double,1>(mu_A[index].size(),Vec<double,1>(clipThrd)) - L[index];
             L[index] = L[index]/clipThrd;
-            if(debug&&index==4)
+            if(debug)
               {
                 mu_A[index].Print("mu_A");
                 mu_B[index].Print("mu_B");
@@ -665,10 +669,10 @@ namespace metric
           }
         sigma2_A[index] = pyrA[index].LocalVariance(mu_A[index],gaussKernel,subWinStepLv);
         sigma2_B[index] = pyrB[index].LocalVariance(mu_B[index],gaussKernel,subWinStepLv);
-//        if (debug&&index==2)
-//          {
-//            sigma2_A[index].Print();
-//            sigma2_B[index].Print();
+        if (debug&&index==2)
+          {
+            sigma2_A[index].Print("sigma2_A");
+            sigma2_B[index].Print("sigma2_B");
 ////            auto temp2 = (sigma2_A[index].Real()*sigma2_B[index].Real()).Sqrt() + C1;
 ////            for (int ii=0; ii< rstMat.size().height; ii++)
 ////              for (int jj=0; jj<rstMat.size().width; jj++)
@@ -677,7 +681,7 @@ namespace metric
 ////                  //double temp = (sigma2_A[index](ii,jj,0)[0]*sigma2_B[index](ii,jj,0)[0]+C1);
 ////                  cout<<left<<index<<"\t"<<temp2(ii,jj,0)[0]<<endl;
 ////                }
-//          }
+          }
         //use flat kernel Dec 30 2012
         //sigma2_A[index] = pyrA[index].LocalVariance(mu_A[index],flatKel,subWinStepLv);
         //sigma2_B[index] = pyrB[index].LocalVariance(mu_B[index],flatKel,subWinStepLv);
@@ -687,13 +691,13 @@ namespace metric
         C[index] = ((sigma2_A[index].Real()*sigma2_B[index].Real()).Sqrt()*2 + C1)/(sigma2_A[index]+sigma2_B[index] +C1).Real();
 
 
-//        if(debug&&index==2)
-//          {
+        if(debug)
+          {
 //            ((sigma2_A[index].Real()*sigma2_B[index].Real()).Sqrt()*2 + C1).Real().Print("num");
 //            (sigma2_A[index]+sigma2_B[index] +C1).Real().Print("denum");
 //            (((sigma2_A[index].Real()*sigma2_B[index].Real()).Sqrt()*2 + C1)/(sigma2_A[index]+sigma2_B[index] +C1).Real()).Print();
-//            //C[index].Print();
-//          }
+            C[index].Print("C");
+          }
         C01[index] = ComputeCrossTerm(pyrA[index](Cube(0,0,0,sz.height,sz.width-1,sz.depth)),
             pyrA[index](Cube(0,1,0,sz.height,sz.width-1,sz.depth)),
             pyrB[index](Cube(0,0,0,sz.height,sz.width-1,sz.depth)),
@@ -725,15 +729,16 @@ namespace metric
         else
           tempRstMat=(L[index]*C[index]*C01[index]*C10[index]).Pow(0.25);//change weight for C gj20130120
         //tempRstMat.Print();
-        //if (stsim2_modifer == STSIM2_BASELINE)
-        //  tempRstMat = tempRstMat.Pow(0.25);// ((L[index]*C[index]*C01[index]*C10[index]).Pow(0.25));
-        //else
-        //{//    rstMat += ((L[index]*C[index]*C01[index]*C10[index]).Pow(0.25))*()
-        //   if (index == 12)
-        //	   tempRstMat = tempRstMat.Pow(0.25)*(14.0/3.0);//+= ((L[index]*C[index]*C01[index]*C10[index]).Pow(0.25))*(14.0/3);//(3.5)
-        //   else
-        //     tempRstMat = tempRstMat.Pow(0.25)*(28.0/39.0);// += ((L[index]*C[index]*C01[index]*C10[index]).Pow(0.25))*(28.0/39.0);//;*(42.0/52.0);
-        //}
+        //! 20131010 enable this
+        if (stsim2_modifer == MetricModifier::STSIM2_BASELINE)
+          tempRstMat = tempRstMat;// ((L[index]*C[index]*C01[index]*C10[index]).Pow(0.25));
+        else
+        {//    rstMat += ((L[index]*C[index]*C01[index]*C10[index]).Pow(0.25))*()
+           if (index == 12)
+               tempRstMat = tempRstMat*(14.0/3.0);//+= ((L[index]*C[index]*C01[index]*C10[index]).Pow(0.25))*(14.0/3);//(3.5)
+           else
+             tempRstMat = tempRstMat*(28.0/39.0);// += ((L[index]*C[index]*C01[index]*C10[index]).Pow(0.25))*(28.0/39.0);//;*(42.0/52.0);
+        }
 
         rstMat=rstMat+tempRstMat; //gj20130120 to emphasize every term, use product instead of sum
         /*if (index==12) //lp
@@ -946,7 +951,510 @@ namespace metric
     //Tensor<double,1>(icovar).Print("icovar",true);
     return icovar;
   }
+  void ComputeSTSIM2Terms(const Mat& tsA, const Mat& tsB,
+                                const Size3& subWinSize ,
+                                const Size3& subWinStep ,
+                                int nLevel, int nDir,
+                                bool downsample,
+                                FilterBoundary boundary_cut ,
+                                FeaturePoolType stsim2_pool_type ,
+                                MetricModifier stsim2_modifer,
+                                vector<Tensor<double,1>>& L,
+                                vector<Tensor<double,1>>& C,
+                                vector<Tensor<double,1>>& C01,
+                                vector<Tensor<double,1>>& C10,
+                                vector<Tensor<double,1>>& C00,
+                                bool debug)
 
+  {
+    CV_Assert(tsA.size()==tsB.size());
+    CV_Assert(tsA.channels()==tsB.channels());
+
+    fstream debugfile;
+    if (debug)
+      {
+        //    string PID = boost::lexical_cast<string>(_getpid());
+
+        debugfile.open("/home/guoxin/Projects/MTC/temp/ssim_terms.txt",ios::app|ios::out);
+        debugfile.precision(3);
+        //debugfile.width(10);
+        debugfile<<"=========inter-band========="<<endl;
+        debugfile<<left<<"Band"<<"\t"<<"L"<<"\t"<<"C"<<"\t"<<"C01"<<"\t"<<"C10"<<"\t"<<"Pool"<<endl;
+      }
+
+    double rst=0;
+    const double C0 = 0.001;
+    const double C1 = 0.001;
+    //const double C2 = 0.001;a
+    //const double C3 = 0.001;
+    Steerable spA, spB;
+    Tensor<double,2> A;
+    Tensor<double,2> B;
+    if (tsA.channels()==1)
+      {
+        A = Tensor<double,1>(tsA).ToComplex();
+        B = Tensor<double,1>(tsB).ToComplex();
+      }
+    else
+      {
+        CV_Assert(tsA.channels()==2);
+        A = Tensor<double,2>(tsA);
+        B = Tensor<double,2>(tsB);
+      }
+    //A.Print("A");
+    //B.Print("B");
+    spA.buildSCFpyr(A,nLevel,nDir,1,downsample);//A = this is orgExt
+    spB.buildSCFpyr(B,nLevel,nDir,1,downsample);//B = ts is candExt
+    vector<Tensor<double,2>>& pyrA = spA.getSpaceDomainPyr();
+    vector<Tensor<double,2>>& pyrB = spB.getSpaceDomainPyr();
+
+    if ( boundary_cut == FilterBoundary::FILTER_BOUND_HALF)//modify Dec 27 2011, not cut half but cut half + boundary
+      {
+        for (unsigned int i = 0; i< pyrA.size(); i++)
+          {
+            //pyrA[i].Print();
+            //dec 27 2011, extend the block by size of block size + bounday (below and right)
+            //int hh = subWinSize.height*(int)ceil(float(pyrA[i].size().height)/2.0/float(subWinSize.height));
+            //int ww = subWinSize.width*(int)ceil(float(pyrA[i].size().width)/2.0/float(subWinSize.width));
+            //int dd = subWinSize.depth*(int)ceil(float(pyrA[i].size().depth)/2.0/float(subWinSize.depth));
+            //just half, dec 28 2012
+            int hh = pyrA[i].size().height/2;
+            int ww = pyrA[i].size().width/2;
+            int dd = pyrA[i].size().depth;
+            Cube roi(pyrA[i].size().height/4, pyrA[i].size().width/4, 0, hh,ww,dd);
+            //Cube roi(pyrA[i].size().height/4, pyrA[i].size().width/4, 0, pyrA[i].size().height/2, pyrA[i].size().width/2, pyrA[i].size().depth);
+            pyrA[i] = pyrA[i](roi);//no size changed
+            //pyrA[i].Print();
+            pyrB[i] = pyrB[i](roi);
+            //pyrB[i].Print();
+          }
+      }
+    else if ( boundary_cut == FilterBoundary::FILTER_BOUND_VALID)
+      {
+        for (unsigned int i = 0; i< pyrA.size(); i++)
+          {
+            int hh = pyrA[i].size().height/2 + pyrA[i].size().height/4;
+            int ww = pyrA[i].size().width/2  + pyrA[i].size().width/4;
+            int dd = pyrA[i].size().depth/2  + pyrA[i].size().depth/4;
+            if (dd<1)
+              dd=1;
+            //just half, dec 28 2012
+            //int hh = pyrA[i].size().height/2;
+            //int ww = pyrA[i].size().width/2;
+            //int dd = pyrA[i].size().depth;
+            Cube roi(pyrA[i].size().height/8, pyrA[i].size().width/8, 0, hh,ww,dd); // temporaly use this /8
+            //Cube roi(pyrA[i].size().height/4, pyrA[i].size().width/4, 0, pyrA[i].size().height/2, pyrA[i].size().width/2, pyrA[i].size().depth);
+            pyrA[i] = pyrA[i](roi);//no size changed
+            //pyrA[i].Print();
+            pyrB[i] = pyrB[i](roi);
+            //pyrB[i].Print();
+          }
+      }
+    //pyrA[0].size().Print();
+    //pyrB[0].size().Print();
+    vector<Tensor<double,2>> mu_A(pyrA.size());
+    vector<Tensor<double,2>> mu_B(pyrB.size());
+    vector<Tensor<double,2>> sigma2_A(pyrA.size());
+    vector<Tensor<double,2>> sigma2_B(pyrA.size());
+    L = vector<Tensor<double,1>>(pyrA.size());
+    C =vector<Tensor<double,1>> (pyrB.size());
+    C01 = vector<Tensor<double,1>> (pyrA.size());
+    C10=vector<Tensor<double,1>> (pyrB.size());
+    int crossbandNum = nDir*(nLevel-1) + nLevel* (mylib::combination(nDir,2));
+    C00 = vector<Tensor<double,1>> (crossbandNum);
+    int index = 0;
+    Size3 initSize = pyrA[0].size();
+    Size3 sz = pyrA[0].size();
+    //double weight;// = sz.height*sz.width;
+    cv::Mat temp;
+    Size3 subWinStepLv = subWinStep;//include PLC boundary
+    Size3 subWinSizeLv = subWinSize;//include PLC boundary
+
+  //  cout<<subWinStepLv<<endl;
+    //if (boundary_cut == FILTER_BOUND_VALID)
+    //{
+    //  subWinSizeLv = subWinSizeLv + subWinSizeLv/2; //2*overlap + size
+    //  subWinStepLv = subWinStepLv + subWinStepLv/2;
+    //}
+    //Tensor<double,1> rstMat(pyrA[0].size()/subWinStep - subWinSize+Size3(1,1,1));
+    Size3 tempsz = Size3_<int>(Size3_<double>(pyrA[0].size()-subWinSizeLv)/Size3_<double>(subWinStepLv)) + Size3(1,1,1);
+    Tensor<double,1> rstMat(tempsz,0);//gj20130120 set inital value to 1 for productive pooling
+    //set 0 for addictive pooling
+    //rstMat.Print();
+//    cout<<subWinSizeLv<<endl;
+//    cout<<subWinStepLv<<endl;
+    for (index = 0; index < (int)pyrA.size(); index++)
+      {
+        int lvl=0;
+        if (downsample)
+          {
+            if (index ==(int)pyrA.size()-1) //HP part
+              {
+                lvl = 0;
+              }
+            else
+              {
+                lvl = index/nDir;
+              }
+            subWinSizeLv.height = max(subWinSize.height>>lvl,1);
+            subWinSizeLv.width = max(subWinSize.width>>lvl,1);
+            subWinStepLv.height =max( subWinStep.height>>lvl,1);
+            subWinStepLv.width = max(subWinStep.width>>lvl,1);
+
+            //if (boundary_cut == FILTER_BOUND_VALID)
+            //{
+            //  subWinSizeLv = subWinSizeLv + subWinSizeLv/2; //2*overlap + size
+            //  subWinStepLv = subWinStepLv + subWinStepLv/2;
+            //}
+            sz.height = max(initSize.height>>lvl,1);
+            sz.width = max(initSize.width>>lvl,1);
+            //mylib::DisplayMat(gaussKernel);
+            //weight = subWinSizeLv.volumn();
+          }
+        //cv::Mat flatKel=cv::Mat(subWinSizeLv,pyrA[index][0].type()-((pyrA[index][0].channels()-1)<<CV_CN_SHIFT),Scalar(1.0/weight));
+        cv::Mat gaussKernel = mylib::GenGaussKer(subWinSizeLv.height,double(subWinSizeLv.height)/6.0,CV_64F);
+
+        //pyrA[index].Print("pyrA");
+        // Tensor<double,1>(gaussKernel).Print("gauss");
+        //cout<<"subWinStepLv: ";
+        //subWinStepLv.Print();
+
+        //pyrA[index].Print("pa");
+        //pyrB[index].Print("pb");
+        //! 20130910 before localMean
+        //char tempc;
+        //cin>>tempc;
+        mu_A[index] = pyrA[index].LocalMean(gaussKernel,subWinStepLv);
+        if (debug)
+                mu_A[index].Print("mua");
+        mu_B[index] = pyrB[index].LocalMean(gaussKernel,subWinStepLv);
+        if (debug)
+                mu_B[index].Print("mub");
+
+        //mu_A[index] = pyrA[index].LocalMean(flatKel,subWinStepLv);    //Dec 30 2012, use flat (usuall) average
+        //mu_B[index] = pyrB[index].LocalMean(flatKel,subWinStepLv);    //Dec 30 2012, use flat (usuall) average
+        /* if (sz.height==32)
+    {
+      Tensor<double,2>(mu_A[index]).Print();
+      Tensor<double,2>(mu_B[index]).Print();
+    }*/
+        if (stsim2_modifer == MetricModifier::STSIM2_BASELINE||stsim2_modifer==MetricModifier::STSIM2_TUNE)
+        {
+          //L[index] = (mu_A[index].Abs() * mu_B[index].Abs() *2 + C0).Real() / (mu_A[index]*mu_A[index].Conjugate() + mu_B[index]*mu_B[index].Conjugate() + C0).Real();
+          L[index] = ((mu_A[index] * mu_B[index]).Abs() *2 + C0).Real() / (mu_A[index].Square() + mu_B[index].Square() + C0).Real();
+          if(debug)
+          {
+              L[index].Print("L");
+          }
+        }
+        else if (stsim2_modifer == MetricModifier::STSIM2_NEW_L1)
+          {
+
+            double clipThrd = (mu_A[index].Abs().Sum()/double(mu_A[index].size().volumn()))[0]*0.1;
+            if (clipThrd<4)
+              clipThrd=4;
+            clipThrd = clipThrd*clipThrd;
+            L[index] = ((mu_A[index]-mu_B[index])*((mu_A[index]-mu_B[index]).Conjugate())).Real().MaxClip(clipThrd);
+            L[index] = Tensor<double,1>(mu_A[index].size(),Vec<double,1>(clipThrd)) - L[index];
+            L[index] = L[index]/clipThrd;
+            if(debug)
+              {
+                mu_A[index].Print("mu_A");
+                mu_B[index].Print("mu_B");
+                (mu_A[index]-mu_B[index]).Abs().Real().Print("muA-muB");
+                L[index].Print("L");
+              }
+          }
+        else if (stsim2_modifer ==MetricModifier:: STSIM2_NEW_L2)
+          {
+            //L[index] = (One - (mu_A[index]-mu_B[index]).Abs()/510).Real();
+            //L[index] = Tensor<double,1>(mu_A[index].size(),1)- (mu_A[index]-mu_B[index]).Abs().Real()/510;
+            //L[index].Print();
+            if (index == 12)//DC band only
+              {
+                double clipThrd = (mu_A[index].Abs().Sum()/double(mu_A[index].size().volumn()))[0]*0.1;
+                if (clipThrd<4)
+                  clipThrd=4;
+                //mu_A[index].Print("mu A");
+                //mu_B[index].Print("mu B");
+                clipThrd = clipThrd*clipThrd;
+                L[index] = ((mu_A[index]-mu_B[index])*((mu_A[index]-mu_B[index]).Conjugate())).Real().MaxClip(clipThrd);
+                //L[index] = mu_A[index].AbsDiff(mu_B[index]).Real().MaxClip(clipThrd);
+                //L[index].Print();
+                L[index] = Tensor<double,1>(mu_A[index].size(),Vec<double,1>(clipThrd)) - L[index];
+                //L[index].Print();
+                L[index] = L[index]/clipThrd;
+                //if (debug)
+                //	L[index].Print();
+              }
+            else
+              L[index] = (mu_A[index].Abs() * mu_B[index].Abs() *2 + C0).Real() / (mu_A[index]*mu_A[index].Conjugate() + mu_B[index]*mu_B[index].Conjugate() + C0).Real();
+          }
+        else if (stsim2_modifer ==MetricModifier:: STSIM2_NEW_L3)
+          {
+            if (index >=8 && index <= 12)//DC band only and lower band
+              {
+                double clipThrd =(mu_A[index].Abs().Sum()/double(mu_A[index].size().volumn()))[0]*0.1;
+                if (clipThrd<4)
+                  clipThrd=4;
+                //mu_A[index].Print("mu A");
+                //mu_B[index].Print("mu B");
+                clipThrd = clipThrd*clipThrd;
+                L[index] = ((mu_A[index]-mu_B[index])*((mu_A[index]-mu_B[index]).Conjugate())).Real().MaxClip(clipThrd);
+                //L[index] = mu_A[index].AbsDiff(mu_B[index]).Real().MaxClip(clipThrd);
+                //L[index].Print();
+                L[index] = Tensor<double,1>(mu_A[index].size(),Vec<double,1>(clipThrd)) - L[index];
+                //L[index].Print();
+                L[index] = L[index]/clipThrd;
+                //if (debug)
+                //	L[index].Print();
+              }
+            else
+              L[index] = (mu_A[index].Abs() * mu_B[index].Abs() *2 + C0).Real() / (mu_A[index]*mu_A[index].Conjugate() + mu_B[index]*mu_B[index].Conjugate() + C0).Real();
+
+          }
+        else if (stsim2_modifer == MetricModifier::STSIM2_NEW_L4)
+          {
+            //because the brightness perception is based on the ration, not the differences, so try to use another metric
+            double clipMin = mu_A[index].Abs()(0,0,0)[0]*0.3;
+            double clipMax = 4;
+            //clipThrd>4?clipThrd=clipThrd:clipThrd=4;
+            //clipThrd = clipThrd*clipThrd;
+            L[index] = ((mu_A[index]-mu_B[index])/mu_B[index]).Abs().Real().MaxClip(clipMax).MinClip(clipMin);
+
+            //L[index].Print();
+            //L[index] = Tensor<double,1>(mu_A[index].size(),Vec<double,1>(clipMax)) - L[index];
+            //L[index].Print();
+            //L[index] = L[index]/(clipMax-clipMin);
+            double tempclip = log(clipMax-clipMin);
+            for (int ii=0; ii<L[index].size().height;ii++)
+              for (int jj=0; jj<L[index].size().width;jj++)
+                L[index](ii,jj,0)[0]=log(L[index](ii,jj,0)[0])/tempclip;
+            //L[index].Print();
+          }
+
+        //mu_A[index].Abs().Print();
+        //mu_B[index].Abs().Print();
+        //(mu_A[index]-mu_B[index]).Print();
+        //(mu_A[index]-mu_B[index]).Conjugate().Print();
+        //((mu_A[index]-mu_B[index])*((mu_A[index]-mu_B[index]).Conjugate())).Print();
+        //pyrA[index].Abs().Real().Print("band A");
+        //mu_A[index].Abs().Real().Print("mu_A abs");
+        //(mu_A[index].Abs() * mu_B[index].Abs() *2).Print("num");
+        //(mu_A[index]*mu_A[index].Conjugate() + mu_B[index]*mu_B[index].Conjugate() + C0).Real().Print("dem");
+        //L[index].Print("L");
+        //.Max(Vec<double,2>(clipThrd,0));
+        //L[index] = Tensor<double,clipThrd - L[index];
+        //max((mu_A[index]-mu_b[inxedx])*(mu_A[index]-mu_b[inxedx])/
+
+        //L[index].Print();
+        //here computed the abs(pyrA.* pyrA) that is (actuall) not equal to the true variance
+        //for the complex number, it will be a covariance mx instead of var
+        //which one is better should be studied.
+        //use gaussian kernel (traditional)
+        if (debug&&index==2)
+          {
+            //pyrA[index].Print("A");
+            //pyrB[index].Print("B");
+            //mu_A[index].Print("muA");
+            //mu_B[index].Print("muB");
+          }
+        sigma2_A[index] = pyrA[index].LocalVariance(mu_A[index],gaussKernel,subWinStepLv);
+        sigma2_B[index] = pyrB[index].LocalVariance(mu_B[index],gaussKernel,subWinStepLv);
+        if (debug&&index==2)
+          {
+            sigma2_A[index].Print("sigma2_A");
+            sigma2_B[index].Print("sigma2_B");
+////            auto temp2 = (sigma2_A[index].Real()*sigma2_B[index].Real()).Sqrt() + C1;
+////            for (int ii=0; ii< rstMat.size().height; ii++)
+////              for (int jj=0; jj<rstMat.size().width; jj++)
+////                {
+////                  //double m = std::numeric_limits<double>::min();
+////                  //double temp = (sigma2_A[index](ii,jj,0)[0]*sigma2_B[index](ii,jj,0)[0]+C1);
+////                  cout<<left<<index<<"\t"<<temp2(ii,jj,0)[0]<<endl;
+////                }
+          }
+        //use flat kernel Dec 30 2012
+        //sigma2_A[index] = pyrA[index].LocalVariance(mu_A[index],flatKel,subWinStepLv);
+        //sigma2_B[index] = pyrB[index].LocalVariance(mu_B[index],flatKel,subWinStepLv);
+        //sigma2_B[index].Print();
+        //Try ignore the C term in order to work on smooth/smooth or smooth/texture region, gjin aug 24, 2011
+        //C[index] = Tensor<double,1>(mu_A[index].size(),Vec<double,1>::all(1));
+        C[index] = ((sigma2_A[index].Real()*sigma2_B[index].Real()).Sqrt()*2 + C1)/(sigma2_A[index]+sigma2_B[index] +C1).Real();
+
+
+        if(debug)
+          {
+//            ((sigma2_A[index].Real()*sigma2_B[index].Real()).Sqrt()*2 + C1).Real().Print("num");
+//            (sigma2_A[index]+sigma2_B[index] +C1).Real().Print("denum");
+//            (((sigma2_A[index].Real()*sigma2_B[index].Real()).Sqrt()*2 + C1)/(sigma2_A[index]+sigma2_B[index] +C1).Real()).Print();
+            C[index].Print("C");
+          }
+        C01[index] = ComputeCrossTerm(pyrA[index](Cube(0,0,0,sz.height,sz.width-1,sz.depth)),
+            pyrA[index](Cube(0,1,0,sz.height,sz.width-1,sz.depth)),
+            pyrB[index](Cube(0,0,0,sz.height,sz.width-1,sz.depth)),
+            pyrB[index](Cube(0,1,0,sz.height,sz.width-1,sz.depth)),
+            subWinSizeLv-Size3(0,1,0), subWinStepLv);
+        //C01[index].Print();
+        //cout<<"pyrA[idx].size ";pyrA[index].size().Print();
+        //pyrB[index].size().Print();
+        //cout<<"sz ";sz.Print();
+        C10[index] = ComputeCrossTerm(pyrA[index](Cube(0,0,0,sz.height-1,sz.width,sz.depth)),
+            pyrA[index](Cube(1,0,0,sz.height-1,sz.width,sz.depth)),
+            pyrB[index](Cube(0,0,0,sz.height-1,sz.width,sz.depth)),
+            pyrB[index](Cube(1,0,0,sz.height-1,sz.width,sz.depth)),
+            subWinSizeLv-Size3(1,0,0), subWinStepLv);
+        //C10[index].Print();
+//        cout<<"size "<<tsA.size()<<endl;
+//        cout<<"sub "<<subWinSizeLv<<endl;
+//        cout<<"step "<<subWinStepLv<<endl;
+//        cout<<"L "<<L[index].size()<<endl;
+//        cout<<"C "<<C[index].size()<<endl;
+//        cout<<"C01 "<<C01[index].size()<<endl;
+//        cout<<"C10 "<<C10[index].size()<<endl;
+
+        Tensor<double,1> tempRstMat;
+        if (stsim2_modifer == MetricModifier::STSIM2_TUNE)
+          {
+            tempRstMat = L[index]*TUNE_WEIGHT[index*4]+C[index]*TUNE_WEIGHT[index*4+1]+C01[index]*TUNE_WEIGHT[index*4+2]+C10[index]*TUNE_WEIGHT[index*4+3];
+          }
+        else
+          tempRstMat=(L[index]*C[index]*C01[index]*C10[index]).Pow(0.25);//change weight for C gj20130120
+        //tempRstMat.Print();
+        //! 20131010 enable this
+        if (stsim2_modifer == MetricModifier::STSIM2_BASELINE)
+          tempRstMat = tempRstMat;// ((L[index]*C[index]*C01[index]*C10[index]).Pow(0.25));
+        else
+        {//    rstMat += ((L[index]*C[index]*C01[index]*C10[index]).Pow(0.25))*()
+           if (index == 12)
+               tempRstMat = tempRstMat*(14.0/3.0);//+= ((L[index]*C[index]*C01[index]*C10[index]).Pow(0.25))*(14.0/3);//(3.5)
+           else
+             tempRstMat = tempRstMat*(28.0/39.0);// += ((L[index]*C[index]*C01[index]*C10[index]).Pow(0.25))*(28.0/39.0);//;*(42.0/52.0);
+        }
+
+        rstMat=rstMat+tempRstMat; //gj20130120 to emphasize every term, use product instead of sum
+        /*if (index==12) //lp
+        rstMat += tempRstMat*(7);
+      else if (index ==13 ) //hp
+        rstMat += tempRstMat*(0.875);
+      else if (index >=8) //level 1
+        rstMat += tempRstMat*(0.875);
+      else if (index >=4) //level 2
+        rstMat += tempRstMat*(0.4375);
+      else //level 3
+        rstMat += tempRstMat*(0.2188);
+*/
+        //}
+        //else if (stsim2_modifer == STSIM2_NEW_L2)
+        // {
+        //
+        // }
+        //else if (stsim2_modifer == STSIM2_NEW_L3)
+        //{
+        //
+        // }
+        //if (debug)
+        //	rstMat.Print();
+        //print paramters
+        if (debug)
+          {
+            for (int ii=0; ii< rstMat.size().height; ii++)
+              for (int jj=0; jj<rstMat.size().width; jj++)
+                debugfile<<left<<index<<"\t"<<L[index](ii,jj,0)[0]<<"\t"<<C[index](ii,jj,0)[0]<<"\t"<<C01[index](ii,jj,0)[0]<<"\t"<<C10[index](ii,jj,0)[0]<<"\t"<<tempRstMat(ii,jj,0)[0]<<endl;
+          }
+      }
+
+    Tensor<double,1> rstMatBackup;
+    if (stsim2_modifer==MetricModifier::STSIM2_TUNE)
+      rstMatBackup = rstMat;
+    else
+      {
+        //rstMatBackup = (rstMat/double(pyrA.size())).Clone();///;.Pow(1.0/double(index)) gj20130120 use product, so do geometric normalization
+        rstMatBackup = rstMat.Clone();
+        rstMat = Tensor<double,1>(Size3(Size3_<double>(pyrA[0].size()-subWinSizeLv)/Size3_<double>(subWinStepLv)) + Size3(1,1,1),0);
+      }
+    if (debug)
+      rstMatBackup.Print();
+    if (debug)
+      {
+        debugfile<<"STSIM-1 score"<<"\t\t\t\t\t"<<rstMatBackup.Min()[0]/index/*diabled when using product pooling/index*/<<endl;
+        debugfile<<"====== cross band ======="<<endl;
+        debugfile<<"Band A"<<"\t"<<"Band B"<<"\t"<<"C00"<<endl;
+      }
+
+    if (stsim2_modifer!=MetricModifier::STSIM2_TUNE)
+      {
+        index = 0;
+        for (int dr = 0; dr < nDir; dr++)
+          for (int lv = 0; lv < nLevel-1; lv++)
+            {
+              C00[index] = ComputeCrossTerm( pyrA[ lv*nDir + dr].Abs(), pyrA[ (lv+1)*nDir + dr].Abs(),
+                  pyrB[ lv*nDir + dr].Abs(), pyrB[ (lv+1)*nDir + dr].Abs(),
+                  subWinSizeLv,subWinStepLv);
+              //rst+= C00[index].Mean();
+              rstMat+= C00[index];
+              //  C00[index].Print();
+              if(debug)
+                {
+                  for (int ii=0; ii< rstMat.size().height; ii++)
+                    for (int jj=0; jj<rstMat.size().width; jj++)
+                      debugfile<<lv*nDir+dr<<"\t"<<(lv+1)*nDir+dr<<"\t"<<C00[index](ii,jj,00)[0]<<endl;
+                }
+              index++;
+            }
+
+        for (int lv=0; lv< nLevel; lv++)
+          for (int dr = 0; dr < nDir-1; dr++)
+            for ( int p = dr+1; p < nDir; p++)
+              {
+                C00[index] = ComputeCrossTerm(pyrA[lv*nDir + dr].Abs(),pyrA[lv*nDir + p].Abs(),
+                    pyrB[lv*nDir + dr].Abs(),pyrB[lv*nDir + p].Abs(),
+                    subWinSizeLv, subWinStepLv);
+                //rst+=C00[index].Mean();
+                rstMat+= C00[index];
+                //C00[index].Print();
+                if (debug)
+                  {
+                    for (int ii=0; ii< rstMat.size().height; ii++)
+                      for (int jj=0; jj<rstMat.size().width; jj++)
+                        debugfile<<lv*nDir+dr<<"\t"<<(lv)*nDir+p<<"\t"<<C00[index](ii,jj,00)[0]<<endl;
+                  }
+                index++;
+              }
+        //rstMat = rstMat/double(crossbandNum);
+        if (debug)
+          rstMat.Print();
+        double totalbands = double(pyrA.size()+crossbandNum);
+
+        //gj20120120 use product in STSIM-1 but still use summation in C00, so the pooling is different//
+        //rstMat = rstMatBackup*double(pyrA.size())/totalbands + rstMat*double(crossbandNum)/totalbands;
+
+        rstMat = (rstMatBackup + rstMat)/totalbands;
+
+        // turn off cross band, so set rstMat
+        //rstMat = rstMatBackup; // Dec28 2012, turn off cross band
+
+        //  rstMat = rstMat/double(pyrA.size());
+        //pooling STSIM terms
+        //if (rstMat.size().area() == 4)
+        // rstMat.Print();
+      }
+    if (stsim2_pool_type == FeaturePoolType::FEATURE_POOL_AVE)
+      {
+        rst = rstMat.Mean()[0];
+      }
+    else
+      {
+        rst = rstMat.Min()[0];
+      }
+    if(debug)
+      {
+        debugfile<<"STSIM-2 score"<<"\t\t\t\t\t"<<rst<<endl;
+        //return rst/(crossbandNum+pyrA.size())/sz.depth;
+        debugfile.close();
+        rstMat.Print();
+      }
+  }
 
   double ComputeMahalanobis(const Mat& tsA,const Mat& tsB, Size3 subWinSize, Size3 subWinStep, const Mat& iMcovar, FilterBoundary boundary_cut)
   {

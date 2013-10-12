@@ -1972,6 +1972,54 @@ QNode<T,cn>& QNode<T,cn>::PoissonLightingCorrection(const QNode<T,cn>& changeTo,
   }
 	return *this;
 }
+template<class T, size_t cn> Tensor<T,cn> QNode<T,cn>::ComputeBoundHorDev(void)
+{
+    int M = this->leftBound.size().height;
+    int N = this->upBound.size().width;
+    int Mo = this->overlap().height;
+    int No = this->overlap().width;
+    Tensor<T,cn> output(N*Mo+N*No-Mo*No,1,1,Vec<T,cn>::all(0));
+
+    for (int i=0; i< Mo; i++)
+        for (int j=0; j<N-1; j++)
+        {
+            output(i*N+j,0,0)=this->upBound(i,j+1,0)-this->upBound(i,j,0);
+
+        }
+
+    for (int i=Mo; i<M; i++)
+        for (int j=0; j<No-1; j++)
+        {
+            output(N*Mo+(i-Mo)*No+j,0,0) = this->leftBound(i,j+1,0)-this->leftBound(i,j,0);
+        }
+
+    return output;
+}
+
+template <class T, size_t cn> Tensor<T,cn> QNode<T,cn>::ComputeBoundVerDev(void)
+{
+    int M = this->leftBound.size().height;
+    int N = this->upBound.size().width;
+    int Mo = this->overlap().height;
+    int No = this->overlap().width;
+    Tensor<T,cn> rst(N*Mo+N*No-Mo*No,1,1,Vec<T,cn>::all(0));
+    for (int i=0; i<Mo-1;i++)
+        for (int j=0;j<N; j++)
+        {
+            rst(i*N+j,0,0)=this->upBound(i+1,j,0)-this->upBound(i,j,0);
+        }
+    for (int j=0;j<No;j++)
+    {
+        rst((Mo-1)*N+j,0,0)=this->leftBound(Mo,j,0) - this->leftBound(Mo-1,j,0);
+    }
+    for (int i=Mo;i<M-1;i++)
+        for (int j=0; j<No; j++)
+        {
+            rst(N*Mo+(i-Mo)*No+j,0,0)= this->leftBound(i+1,j,0)-this->leftBound(i,j,0);
+        }
+    //rst.Print("vdev",true);
+    return rst;
+}
 
 template <class T, size_t cn>
 void QNode<T,cn>::GradientStitching(const QNode<T,cn>& changeTo, BlendingLocation blendPos, Size3 boundSize, const Tensor<T,1>& tempmask)

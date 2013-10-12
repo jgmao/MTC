@@ -3,6 +3,16 @@
 Matching 
 {% endblock %}
 
+{%block myscripts %}
+<script language="JavaScript">
+function point_it(event){
+    pos_x = event.offsetX?(event.offsetX):event.pageX-document.getElementById("imgid").offsetLeft;
+    pos_y = event.offsetY?(event.offsetY):event.pageY-document.getElementById("imgid").offsetTop;
+    document.getElementById('coords').innerHTML='X= '+pos_y+' ,Y= '+pos_x;
+}
+</script>
+{% endblock %}
+
 {% block content %}
 {% load extra_tags %}
 <div class="pagination">
@@ -19,9 +29,12 @@ Matching
             <a href="?page={{ file.next_page_number }}">next</a>
         {% endif %}
     </span>
+    <span>
+    <a id="coords">Coords</a>
+   </span>
 </div>
 {% for image in file %}
-<img src="{{STATIC_URL}}{{image}}" >
+<img id="imgid" onclick="point_it(event)" src="{{STATIC_URL}}{{image}}" >
 {% endfor %}
 <div>
 

@@ -126,7 +126,8 @@ public:
     EXPORTLIB Tensor<T,cn> LightingCorrection(const Tensor<T,cn>& changeTo, const Tensor<T,cn>& VQCodebook);
     EXPORTLIB QNode<T,cn>& PoissonLightingCorrection(const QNode<T,cn>& changeTo,const Tensor<T,cn>& ref, const Tensor<T,cn>& rec, Size3 boundSize = Size3(0,0,0), int footRegion=0, int footMethod=0, double qsize=0);
     //EXPORTLIB QNode<T,cn>& PostPLC(const QNode<T,cn>& changeTo);
-
+    EXPORTLIB Tensor<T,cn> ComputeBoundHorDev(void);
+    EXPORTLIB Tensor<T,cn> ComputeBoundVerDev(void);
 
     EXPORTLIB void GradientStitching(const QNode<T,cn> & changeTo, BlendingLocation blendPos, Size3 boundSize,const  Tensor<T,1>& tempmask);
 

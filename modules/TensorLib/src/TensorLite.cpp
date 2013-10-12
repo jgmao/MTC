@@ -20,7 +20,7 @@ template<class T, size_t cn> Tensor<T,cn>::Tensor(void):Mat()
 
 template<class T, size_t cn> Tensor<T,cn>::Tensor(int height, int width, int depth, typename Tensor<T,cn>::c_ref_type val): Mat()
 {
-	*this = Mat(height,width,CV_MAKETYPE(DataType<T>::depth,cn));
+    *this = Mat(height,width,CV_MAKETYPE(DataType<T>::depth,cn),val);
 	this->tsSize = Size3(height,width,depth);
 	this->cFileName = "unknown";
 	this->tsOffset = Point3i();
@@ -982,7 +982,20 @@ template <class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::Conjugate(void) const
 		rst = this->Clone();
 	return rst;
 }
+//template <class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::HorDev(void) const
+//{
+//    Tensor<T,cn> rst = this->operator(Cube(0,0,0,this->tsSize.height,this->tsSize.width-1,1))-
+//            this->operator(Cube(0,1,0,this->tsSize.height,this->tsSize.width-1,1));
+//    return rst.Clone();
+//}
 
+//template <class T, size_t cn> Tensor<T<cn> Tensor<T,cn>::VerDev(void) const
+//{
+//Tensor<T,cn> rst = this->operator(Cube(0,0,0,this->tsSize.height-1,this->tsSize.width,1))-
+//        this->operator(Cube(0,1,0,this->tsSize.height-1,this->tsSize.width-,1));
+//return rst.Clone();
+
+//}
 template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::Pow(double p) const
 {
 	Tensor<T,cn> rst(this->size());
