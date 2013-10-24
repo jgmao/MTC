@@ -628,7 +628,7 @@ void Metric::trainMetirc(string path,string scorefilepath)
     scorefile.open(path+"/subtestoutput.txt");
   else
     scorefile.open(scorefilepath);
-
+  cout<<"loading scorefile "<<scorefilepath<<endl;
   //std::regex rx(searchPattern+"_([^]*)_(\\d+)"+searchExt);
   char temp[1024];
   //string temp;
@@ -642,19 +642,20 @@ void Metric::trainMetirc(string path,string scorefilepath)
   while(scorefile.getline(temp,1024))
   {
     string str(temp);
-    std::smatch res;
-    std::regex rx("\\b([^ ]*),");
-    std::regex_search(str,res,rx);
-    cout<<"org: "<<res[1]<<", ";
+    cout<<"parsing "<<str<<endl;
+    boost::smatch res;
+    boost::regex rx("\\b([^ ]*),");
+    boost::regex_search(str,res,rx);
+    cout<<"org: "<<res[0]<<res[1]<<", ";
     Tensor<double,1> org(path+"/"+string(res[1]));
     org = org.Crop((org.size()/4).Point3(),org.size()/2+Point3i(0,0,1));
     str = res.suffix().str();
-    std::regex_search(str,res,rx);
+    boost::regex_search(str,res,rx);
     cout<<"cand "<<res[1]<<endl;
     Tensor<double,1> cand(path+"/"+string(res[1]));
     cand = cand.Crop((cand.size()/4).Point3(),cand.size()/2+Point3i(0,0,1));
     str = res.suffix().str();
-    std::regex_search(str,res,rx);
+    boost::regex_search(str,res,rx);
     scores.push_back((double)std::stoi(res[1]));
     computeStats(org,cand);
     computeFeatures(stats);

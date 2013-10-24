@@ -169,6 +169,8 @@ public:
 public:
 	std::map<int,string> Huffman_DC_Map, Huffman_AC_Map;
 	HuffTree Huffman_AC_Tree, Huffman_DC_Tree;
+   public:
+    Tensor<T,cn>& PQICodingLFComponent(void);
 
 private:
 	void CodingMTC(QTree<T,cn> &qNode, int qLevel=0); //this is online coding
@@ -196,7 +198,7 @@ private:
 	void UpdateLog(void);
 	void BuildVQCodebook(vector<Tensor<T,cn>>& lightPlanes,Tensor<T,cn>& coeffs, int bits=6);
 	//int SearchCodeword(vector<Vec<T,cn>>& poly);
-	Tensor<T,cn>& PQICodingLFComponent(void); 
+
 	Tensor<T,cn>& LoadPreDefLighting(void);
 	QTree<T,cn>& ComputeJPEG(QTree<T,cn>& qNode);
 	QTree<T,cn>& CodingCore(QTree<T,cn>& qTree);

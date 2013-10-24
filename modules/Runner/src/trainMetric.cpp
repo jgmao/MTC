@@ -15,7 +15,7 @@ Metric mc;
   //mc.subsample = true;
   //mc.changeWin=true;
   //mc.searchPath =  "H:/Code/Matlab/metric trainning/data/";
-  string scorefilepath = "../../Size/subtestoutput_corbis64_inter.txt";
+  string scorefilepath = "./modules/Site/subtestoutput_corbis64_inter.txt";
   mc.searchPath = "../../../data/totest/dist_corbis_64_inter/";
   mc.trainMetirc(mc.searchPath,scorefilepath);
   return 0;

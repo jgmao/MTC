@@ -507,6 +507,7 @@ namespace tensor{
 				    else
 				      masking = 1;
 				    //double constraint = lambda*(d0*d0 + d1*d1);//may be constraint by distribution similarity
+                   //lambda2 = 1/sqrt( ((TT-VV)*(TT-VV)).Sum()[0]);
                     //!20131008 use other by guoxin double constraint = lambda*delta;// + masking*lambda2 ;
                    // cout<<"tv="<<tv[0]<<endl;
                    // cout<<"xyH="<<(2*(tarDevH*candDevH).Sum())[0]<<endl;
@@ -517,7 +518,7 @@ namespace tensor{
                     localdiff/=256;
                    // cout<<"constr="<<constraint<<endl;
            // cout<<"diff="<<localdiff<<endl;
-                    localdiff = 1*localdiff +0.1*delta + 0*constraint ;
+                    localdiff = 1*localdiff +0.5*delta +0*constraint ;
           }
 				/// debug here !!!!!!!!!!!!!
 				//protect shared data here

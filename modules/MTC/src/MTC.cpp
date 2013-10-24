@@ -117,6 +117,7 @@ namespace mtc  {
     //UpdateParameters();
     //rst = Tensor_<T,cn>(ensemble.size());
     //rst_with_seam = rst.CvtColor<3>(CV_GRAY2RGB);
+    levels=2;
     rectType = false;
     stat = Statistics(levels,initSize.height);
     footmap = Tensor<T,1>(ensemble.size(),Vec<T,1>::all(255));
@@ -607,7 +608,8 @@ namespace mtc  {
   }
   Tensor<MTC::T,MTC::cn>& MTC::PQICodingLFComponent(void)
   {
-    LFImage = ensemble.Clone();
+    //LFImage = ensemble.Clone();
+      LFImage = Tensor<T,cn>(ensemble.size(),Vec<T,cn>::all(0));
     QNode<T,cn> qNode,tempAve;
     QTree<T,cn> qTree,temp;
     QTree<T,cn>* tempTree;
@@ -632,8 +634,8 @@ namespace mtc  {
             //ensemble(Cube(x,y,t,16,16,1)).Print();
             //LFImage(Cube(x,y,t,16,16,1)).Print();
           }
-    //tempMx.Display();
-    LFImage.SaveBlock(".\\LFImage_ave.tif");
+    //LFImage.Display();
+    LFImage.SaveBlock("./temp/LFImage_ave.tif");
     for (int x=0; x<GetGridSize().height;x++)
       for (int y=0; y<GetGridSize().width; y++)
         for (int t=0; t<GetGridSize().depth; t++)
@@ -2603,11 +2605,11 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
 #else
 #     ifdef RECORD_EVERYTHING
       string extra_path = "./everything/";
-      mkdir(extra_path.c_str());
+      mkdir(extra_path.c_str(),0755);
       char posstr[20];
       sprintf(posstr,"_%d_(%d_%d)",qNode.size().height,qNode.offset().x,qNode.offset().y);
       QNode<double,1> orgtemp;
-      if (lightCorrectionType == POISSON_LC)
+      if (lightCorrectionType == LightingCorrectionType::POISSON_LC)
         {
           //if (criteria == COMPARE_CRITERIA_SSIM || criteria == COMPARE_CRITERIA_MAHALANOBIS||criteria==COMPARE_CRITERIA_LRI)
           orgtemp = QNode<T,cn>(ensemble,qNode.size(),qNode.offset(), qNode.size()/2);
@@ -2618,7 +2620,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
         {
           //org = ensemble.Crop(qNode.offset(),qNode.size());
           orgtemp = QNode<T,cn>(ensemble,qNode.size(),qNode.offset(),qNode.overlap());
-          if (lightCorrectionType == PREDEF_LIGHTING)
+          if (lightCorrectionType == LightingCorrectionType::PREDEF_LIGHTING)
             (orgtemp.GetExtendTensor(1,1,0,0).Crop(Point3i(0,0,0),qNode.size()+qNode.size()/4)+128).SaveBlock(extra_path+"org"+string(posstr)+".png");
           else
             orgtemp.GetExtendTensor(1,1,0,0).Crop(Point3i(0,0,0),qNode.size()+qNode.size()/4).SaveBlock(extra_path+"org"+string(posstr)+".png");
@@ -2644,7 +2646,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
 	      //}
 	      //else
 	      org = QNode<T,cn>(ensemble,qNode.size(),qNode.offset(),qNode.overlap());
-	      tpss = org.ComputeTPSS(0.01);
+             tpss = ComputeTPSS(org, 0.01);
 	      //! 20130913 add tpss of un-corrected candid
 
 #endif
@@ -3103,6 +3105,9 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
 
           //! 20130916 compute var
           //cout<<this->qfactor<<endl;
+#if METRIC_PARALLEL
+          Tensor<double,1> org = ensemble.Crop(qNode.offset(),qNode.size());
+#endif
           double orgvar = org.Var()[0];
           double orgmean = org.Mean()[0];
           if (orgvar > 10 && orgvar <200 && orgmean>200)//incease threaold

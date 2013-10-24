@@ -13,7 +13,8 @@ enum class CodingMode : int { CODING_MODE_PQI,
 						   CODING_MODE_JPEG,
 						   CODING_MODE_MTC,//MTC
 						   CODING_MODE_POST_TP,
-               CODING_MODE_TPSS //thin plate spline smoothing
+               CODING_MODE_TPSS, //thin plate spline smoothing
+                              CODING_MODE_PQILF
 };
 #endif
 
@@ -21,7 +22,7 @@ enum class CodingMode : int { CODING_MODE_PQI,
 #include "QGrid.h"
 #include <fstream>
 static const char* month[] = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
-
+//#define METRIC_PARALLEL   1
 
 //parameters
 enum UNIT_TEST { HAS_UNIT_TEST, NO_UNIT_TEST};
