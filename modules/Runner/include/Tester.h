@@ -49,6 +49,7 @@ public:
   void TestAlgorithms();
   void TestGranulateGen();
   void TestMetric();
+  void StudyMetricFeatures();
   void TestGranulateTrain();
   void debugBlock(int x, int y, int sz);
 };/*

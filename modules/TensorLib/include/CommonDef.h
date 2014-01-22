@@ -69,6 +69,7 @@ namespace tensor{
   extern int DEBUG_DISP_Y;
   extern int DEBUG_SIZE;*/
   #endif
+#define DEBUG_20131226	0
 #ifndef USE_GPU
 //#define USE_GPU
 #endif
@@ -231,7 +232,7 @@ enum class BlendingLocation : int { FORWARD_BLENDING, POST_BLENDING_RIGHT, POST_
 
 #ifndef SIDE_MATCHING_METHOD
 #define SIDE_MATCHING_METHOD
-enum class MatchingMethod : int { MATCHING_MSE, MATCHING_SAT, MATCHING_VAR, MATCHING_SAD, MATCHING_MSE_CONSTRAINT,MATCHING_HIERARCHY, MATCHING_DIRECT, MATCHING_OPENCV};
+enum class MatchingMethod : int { MATCHING_MSE, MATCHING_SAT, MATCHING_VAR, MATCHING_SAD, MATCHING_MSE_CONSTRAINT,MATCHING_HIERARCHY, MATCHING_DIRECT, MATCHING_OPENCV, MATCHING_STSIM};
 #endif
 //!20131010 disable this since STSIM2 do not have power to detect lighint erro
 #define SUBSTRACT_BOUND_MEAN 0 //substract mean when do matching

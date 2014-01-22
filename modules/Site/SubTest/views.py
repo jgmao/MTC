@@ -65,10 +65,11 @@ def show_image(request,count):
     global total
     global imagetype
     global dist_type
-    if int(count)==total: #finish
+    total=30
+    if request.session['count']==total: #finish
         org_idx_old = randint(0,len(orgs)-1)
         dist_idx_old = genDistIdx() #randint(0,len(dist_type)-1)
-        return render(request,'test_finish.html',{'type':imagetype,})
+        return render(request,'SubTest/test_finish.html',{'type':imagetype,})
     if request.method == 'POST':
         for i in range(0,11):
             if  'button '+str(i) in request.POST:       
@@ -82,8 +83,15 @@ def show_image(request,count):
                     thistest.orgName = orgs[cls_idx_old][0]+"_"+orgs[cls_idx_old][1][org_idx_old_B]+'_org.png'
                     thistest.candName = orgs[cls_idx_old][0]+"_"+orgs[cls_idx_old][1][org_idx_old_A]+'_'+orgs[cls_idx_old][1][org_idx_old_B]+'_replace_'+dist_suffix[dist_idx_old]+'.png'
                 thistest.imagetype=imagetype
+                x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+                if x_forwarded_for:
+                    ip = x_forwarded_for.split(',')[-1].strip()
+                else:
+                    ip = request.META.get('REMOTE_ADDR')
+                thistest.ip = ip
+                thistest.dbname=request.session['dbname']
                 thistest.save()
-                count=int(count)+1
+                request.session['count']+=1
                 if imagetype<3:
                     org_idx = randint(0,len(orgs)-1)
                     org_idx_old = org_idx
@@ -147,13 +155,16 @@ def show_image(request,count):
 
     if position==1:
         outfiles[0],outfiles[1] = outfiles[1],outfiles[0]
-    return render(request,'display_images.html',{'images':outfiles,'form':form,'count':count,'total':total})
+    return render(request,'display_images.html',{'images':outfiles,'form':form,'count':request.session['count'],'total':total})
 
 def startcompare(request,database,bsize,pair):
     kword = database+bsize+'_'+pair
     if (kword in dbpath):
         initTestData(database,bsize,pair)
-        return render(request,'test_begin1.html')
+        request.session['dbname']=str(database)+str(bsize)
+        request.session['count']=0
+        request.session['total']=30
+        return render(request,'SubTest/test_begin1.html')
     else:
         #print 'print select one of valid database:'
         #print dbpath.keys()
@@ -374,8 +385,8 @@ def output(request):
     
     #write to file
     for item in out:
-        mystr =  item.orgName+", "+item.candName+", "+str(item.score)+", "+item.distortion+";\n"
+        mystr =  item.orgName+", "+item.candName+", "+str(item.score)+", "+item.distortion+str(item.create_date)+";\n"
         f[item.imagetype].write(mystr)
     for fp in f:
         fp.close()
-    return render(request,'output.html',{'data':out,})
+    return render(request,'SubTest/output.html',{'data':out,})

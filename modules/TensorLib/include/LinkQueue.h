@@ -50,6 +50,10 @@
 //#include <cv.h>
 #include <opencv2/opencv.hpp>
 #include <mutex>
+#include <queue>
+#include <condition_variable>
+#include <memory>
+
 using namespace std;
 struct CandidateRecord
 {
@@ -58,22 +62,25 @@ struct CandidateRecord
 };
 class LinkStruct
 {
+
 public:
-   std::mutex mymutex;
+  mutable std::mutex mymutex;
+  std::condition_variable emptyCondition;
   LinkStruct(){};
   virtual ~LinkStruct(){};
-  virtual int getLength()=0;
+  virtual int getLength() const=0;
   virtual void push(double d,const cv::Point3i pos)=0;
   virtual void pop(void)=0;
-  virtual double getData(unsigned int i)=0;
-  virtual  void set(unsigned int i, double d, Point3i addr)=0;
+  virtual double getData(unsigned int i) const=0;
+  virtual void set(unsigned int i, double d, Point3i addr)=0;
   virtual void insert(double d, const cv::Point3i pos, int insertPos)=0;
-  virtual 	int compareInsert(double d, cv::Point3i pos)=0;
-  virtual vector<cv::Point3i> GetAddress(void)=0;
-  virtual cv::Point3i GetAddress(unsigned int i)=0;
-  virtual CandidateRecord getMin(void)=0;
-  virtual int getMinIdx(void)=0;
+  virtual int compareInsert(double d, cv::Point3i pos)=0;
+  virtual vector<cv::Point3i> GetAddress(void) const=0;
+  virtual cv::Point3i GetAddress(unsigned int i) const=0;
+  virtual CandidateRecord getMin(void) =0;
+  virtual int getMinIdx(void) const=0;
 };
+// a thread-safe linkArry
 class LinkArray:public LinkStruct
 {
 private:
@@ -81,111 +88,121 @@ private:
 public:
   LinkArray(){};
   ~LinkArray(){};
-  int getLength()
+  int getLength() const
   {
+    std::lock_guard<std::mutex> lock(mymutex) ;
     return rec.size();
   }
   void push(double d,const cv::Point3i pos)
-	{
+  {
+    std::lock_guard<std::mutex> lock(mymutex);
     CandidateRecord temp;
     temp.addr = pos;
     temp.data = d;
     rec.push_back(temp);
-	}
+  }
+
   void pop(void)
-	{
-    std::lock_guard<std::mutex> guard(mymutex);
+  {
+    std::lock_guard<std::mutex> lock(mymutex);
     rec.pop_back();
-	}
+  }
+
   CandidateRecord getMin(void)
   {
-    return *(--rec.end());
+    std::unique_lock<std::mutex> lock(mymutex);
+    emptyCondition.wait(lock,[this]{return !rec.empty();});
+    list<CandidateRecord>::const_iterator ret = --rec.end();
+    return *ret;
   }
-   int getMinIdx(void)
+
+  int getMinIdx(void) const
   {
+    std::lock_guard<std::mutex> lock(mymutex);
     return rec.size()-1;
+  }
 
-   }
-  double getData(unsigned int i)
-	{
-    std::lock_guard<std::mutex> guard(mymutex);
- 		CV_DbgAssert(i<rec.size());
+  double getData(unsigned int i) const
+  {
+    std::lock_guard<std::mutex> lock(mymutex);
+    CV_DbgAssert(i<rec.size());
+    list<CandidateRecord>::const_iterator iter = rec.begin();
+    std::advance(iter,i);
+    return iter->data;
+  }
+
+  void set(unsigned int i, double d, Point3i addr)
+  {
+    std::lock_guard<std::mutex> lock(mymutex);
+    CV_DbgAssert(i<rec.size());
     list<CandidateRecord>::iterator iter=rec.begin();
-    for (unsigned int ii=0; ii< i; ii++)
-      iter++;
-		return iter->data; 
-	}
+    std::advance(iter,i);
+    iter->data=d;
+    iter->addr=addr;
+  }
 
-	void set(unsigned int i, double d, Point3i addr)
-	{
-		CV_DbgAssert(i<rec.size());
-    list<CandidateRecord>::iterator iter=rec.begin();
-    for (unsigned int ii=0; ii< i; ii++)
-      iter++;
-		iter->data=d;
-		iter->addr=addr;
-	}
-
-	void insert(double d, const cv::Point3i pos, int insertPos)
-	{
+  void insert(double d, const cv::Point3i pos, int insertPos)
+  {
+    std::lock_guard<std::mutex> lock(mymutex);
     CV_DbgAssert(insertPos<=rec.size());//allow for the last position
     list<CandidateRecord>::iterator iter=rec.begin();
-    for ( int ii=0; ii< insertPos; ii++)
-      iter++;
+    std::advance(iter,insertPos);
     CandidateRecord temp;
     temp.addr = pos;
     temp.data = d;
     rec.insert(iter,temp);
-	}
+  }
   
-	int compareInsert(double d, cv::Point3i pos)
-	{
-    std::lock_guard<std::mutex> guard(mymutex);
+  int compareInsert(double d, cv::Point3i pos)
+  {
+    std::lock_guard<std::mutex> lock(mymutex);
     list<CandidateRecord>::iterator iter=rec.begin();
     CandidateRecord temp;
     temp.addr = pos;
     temp.data = d;
-		int count=0;
-		for (iter=rec.begin();iter!=rec.end();iter++)
-		{
-			if (iter->data<d)
-			{
-        rec.insert(iter,temp);
-				return count;
-			}
-			count++;
-		}
-		rec.push_back(temp);
-		return count;
-	}
-
-	vector<cv::Point3i> GetAddress(void)
-	{
-    vector<cv::Point3i> address;
-    list<CandidateRecord>::iterator iter=rec.begin();
+    int count=0;
     for (iter=rec.begin();iter!=rec.end();iter++)
-		{
+    {
+      if (iter->data<d)
+      {
+        rec.insert(iter,temp);
+        return count;
+      }
+      count++;
+    }
+    rec.push_back(temp);
+    return count;
+  }
+
+  vector<cv::Point3i> GetAddress(void) const
+  {
+    std::lock_guard<std::mutex> lock(mymutex);
+    vector<cv::Point3i> address;
+    list<CandidateRecord>::const_iterator iter;
+    for (iter=rec.begin();iter!=rec.end();iter++)
+    {
       address.push_back(iter->addr);
     }
-		return address;
-	}
-  cv::Point3i GetAddress(unsigned int i)
-	{
-   	CV_DbgAssert(i<rec.size());
-    list<CandidateRecord>::iterator iter=rec.begin();
-    for (unsigned int ii=0; ii< i; ii++)
-      iter++;
-		return iter->addr; 
-	}
-
+    return address;
+  }
+  cv::Point3i GetAddress(unsigned int i) const
+  {
+    std::lock_guard<std::mutex> lock(mymutex);
+    CV_DbgAssert(i<rec.size());
+    list<CandidateRecord>::const_iterator iter=rec.begin();
+    std::advance(iter,i);
+    return iter->addr;
+  }
 };
+
+
 class LinkQueue:public LinkStruct
 {
 private:
   //vector<CandidateRecord> rec;
-	vector<double> data;
-	vector<cv::Point3i> address; 
-	unsigned int length;
+  vector<double> data;
+  vector<cv::Point3i> address;
+  unsigned int length;
 //	struct node
 //	{
 //		double data;
@@ -245,18 +262,20 @@ public:
 //
 //
 	void setData(unsigned int i, double d)
-	{
+    {
+            std::lock_guard<std::mutex> lock(mymutex);
 		data[i]=d;
 	}
 
 	void SetMaxLength(int num)
 	{
+            std::lock_guard<std::mutex> lock(mymutex);
 		length = num;
 	}
 
 	void push(double d,const cv::Point3i pos)
 	{
-
+        std::lock_guard<std::mutex> lock(mymutex);
 		data.push_back(d);
 		address.push_back(pos);
 		if (data.size()>length) //queue full, note length is fixed
@@ -267,22 +286,24 @@ public:
 	}
 	void pop(void)
 	{
-    std::lock_guard<std::mutex> guard(mymutex);
+            std::lock_guard<std::mutex> guard(mymutex);
 		length--;
 		data.erase(data.begin());
 		address.erase(address.begin());
 	}
-	int getLength(void)
-	{
+    int getLength(void) const
+    {
+            std::lock_guard<std::mutex> lock(mymutex);
 		return length;
 	}
-	double getData(unsigned int i)
+    double getData(unsigned int i) const
 	{
-    std::lock_guard<std::mutex> guard(mymutex);
+            std::lock_guard<std::mutex> guard(mymutex);
 		return data[i]; 
 	}
 	void set(unsigned int i, double d, Point3i addr)
 	{
+            std::lock_guard<std::mutex> lock(mymutex);
 		CV_DbgAssert(i<length);
 		data[i]=d;
 		address[i]=addr;
@@ -290,7 +311,7 @@ public:
 
 	void insert(double d, const cv::Point3i pos, int insertPos)
 	{
-
+        std::lock_guard<std::mutex> lock(mymutex);
 		data.insert(data.begin()+insertPos,d);
 		address.insert(address.begin()+insertPos,pos);
 		if (data.size()>length) //queue full
@@ -302,7 +323,7 @@ public:
 
 	int compareInsert(double d, cv::Point3i pos)
 	{
-    std::lock_guard<std::mutex> guard(mymutex);
+            std::lock_guard<std::mutex> guard(mymutex);
 		vector<double>::iterator iter=data.begin();
 		int count=0;
 		for (iter=data.begin();iter!=data.end();iter++)
@@ -328,25 +349,29 @@ public:
 		return count;
 	}
 
-	vector<cv::Point3i> GetAddress(void)
+    vector<cv::Point3i> GetAddress(void) const
 	{
+            std::lock_guard<std::mutex> lock(mymutex);
 		return address;
 	}
 
-  cv::Point3i GetAddress(unsigned int i)
+  cv::Point3i GetAddress(unsigned int i) const
   {
-   return address[i];
+      std::lock_guard<std::mutex> lock(mymutex);
+    return address[i];
   }
 
   CandidateRecord getMin(void)
   {
+    std::lock_guard<std::mutex> lock(mymutex);
     CandidateRecord rec;
     rec.addr = address[length-1];
     rec.data = data[length-1];
     return rec;
   }
-  int getMinIdx(void)
+  int getMinIdx(void) const
   {
+    std::lock_guard<std::mutex> lock(mymutex);
     return length-1;
 
    }

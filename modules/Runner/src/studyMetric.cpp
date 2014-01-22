@@ -15,9 +15,9 @@ Metric mc;
   //mc.subsample = true;
   //mc.changeWin=true;
   //mc.searchPath =  "H:/Code/Matlab/metric trainning/data/";
-  string scorefilepath = "./modules/Site/subtestoutput_coding64_inter.txt";
-  mc.searchPath = "./data/totest/dist_coding_64_inter/";
+  string logfilepath = "./everything/everything.txt";
+  mc.searchPath = "./everything/";
   //mc.trainSTSIM2Weights(mc.searchPath,scorefilepath);
-  mc.trainMetirc(mc.searchPath,scorefilepath);
+  mc.studyMetricFeature(logfilepath);
   return 0;
 }

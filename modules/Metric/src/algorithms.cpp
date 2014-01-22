@@ -10,11 +10,19 @@ namespace metric
     CV_Assert(tsA.size()==tsB.size());
     Scalar temp=0;
     Mat v;
+
     v = tsA - tsB;
+
     cv::pow(v,2.0,v);
     temp +=cv::sum(v);
     for (int i =0; i < tsA.channels(); i++)
       distance+= temp[i];
+#if DEBUG_20131226
+    mylib::DisplayMat(tsA);
+    mylib::DisplayMat(tsB);
+    cout<<v<<endl;
+    cout<<distance<<endl;
+#endif
     return distance/double(tsA.size().area())/double(tsA.channels());///tsSize.volumn()/cn;
   }
 
@@ -951,7 +959,7 @@ namespace metric
     //Tensor<double,1>(icovar).Print("icovar",true);
     return icovar;
   }
-  void ComputeSTSIM2Terms(const Mat& tsA, const Mat& tsB,
+  vector<vector<Tensor<double,1>>> ComputeSTSIM2Terms(const Mat& tsA, const Mat& tsB,
                                 const Size3& subWinSize ,
                                 const Size3& subWinStep ,
                                 int nLevel, int nDir,
@@ -959,11 +967,6 @@ namespace metric
                                 FilterBoundary boundary_cut ,
                                 FeaturePoolType stsim2_pool_type ,
                                 MetricModifier stsim2_modifer,
-                                vector<Tensor<double,1>>& L,
-                                vector<Tensor<double,1>>& C,
-                                vector<Tensor<double,1>>& C01,
-                                vector<Tensor<double,1>>& C10,
-                                vector<Tensor<double,1>>& C00,
                                 bool debug)
 
   {
@@ -987,6 +990,7 @@ namespace metric
     const double C1 = 0.001;
     //const double C2 = 0.001;a
     //const double C3 = 0.001;
+    vector<vector<Tensor<double,1>>> terms;
     Steerable spA, spB;
     Tensor<double,2> A;
     Tensor<double,2> B;
@@ -1056,12 +1060,12 @@ namespace metric
     vector<Tensor<double,2>> mu_B(pyrB.size());
     vector<Tensor<double,2>> sigma2_A(pyrA.size());
     vector<Tensor<double,2>> sigma2_B(pyrA.size());
-    L = vector<Tensor<double,1>>(pyrA.size());
-    C =vector<Tensor<double,1>> (pyrB.size());
-    C01 = vector<Tensor<double,1>> (pyrA.size());
-    C10=vector<Tensor<double,1>> (pyrB.size());
+    vector<Tensor<double,1>> L = vector<Tensor<double,1>>(pyrA.size());
+    vector<Tensor<double,1>> C =vector<Tensor<double,1>> (pyrB.size());
+    vector<Tensor<double,1>> C01 = vector<Tensor<double,1>> (pyrA.size());
+    vector<Tensor<double,1>> C10=vector<Tensor<double,1>> (pyrB.size());
     int crossbandNum = nDir*(nLevel-1) + nLevel* (mylib::combination(nDir,2));
-    C00 = vector<Tensor<double,1>> (crossbandNum);
+    vector<Tensor<double,1>> C00 = vector<Tensor<double,1>> (crossbandNum);
     int index = 0;
     Size3 initSize = pyrA[0].size();
     Size3 sz = pyrA[0].size();
@@ -1454,6 +1458,21 @@ namespace metric
         debugfile.close();
         rstMat.Print();
       }
+    //group terms
+        terms.push_back(L);
+        terms.push_back(C);
+        terms.push_back(C01);
+        terms.push_back(C10);
+        terms.push_back(C00);
+        for (int i=0; i< 5; i++)
+        for (int j=0; j<terms[i].size();j++)
+        {
+             if (stsim2_pool_type == FeaturePoolType::FEATURE_POOL_AVE)
+                 terms[i][j] = Tensor<double,1>(1,1,1,terms[i][j].Mean());
+             else if (stsim2_pool_type == FeaturePoolType::FEATURE_POOL_MIN)
+                 terms[i][j] = Tensor<double,1>(1,1,1,terms[i][j].Min());
+        }
+        return terms;
   }
 
   double ComputeMahalanobis(const Mat& tsA,const Mat& tsB, Size3 subWinSize, Size3 subWinStep, const Mat& iMcovar, FilterBoundary boundary_cut)
@@ -1625,6 +1644,10 @@ namespace metric
     CV_Assert(tsA.channels()==1);
     Tensor<double,1> A(tsA);
     Tensor<double,1> B(tsB);
+#if DEBUG_20131226
+    A.Print();
+    B.Print();
+#endif
     if (criteria == CompareCriteria::COMPARE_CRITERIA_MSE)
       {
         int modifier = param1.i;//get the modifer
@@ -1745,8 +1768,9 @@ namespace metric
     //  return ComputeSVMMetric(ts,subWinSize,subWinStep);
     // }
     else
-      return INT_MAX;
-    return INT_MAX;
+        CV_Assert(0);//error
+    //  return INT_MAX;
+    //return INT_MAX; 20131227
   }
 
   Tensor<double,1> ComputeCrossTerm(const Mat& im11, const Mat& im12, const Mat& im21, const Mat& im22, const Size3& subWinSize, const Size3& subWinStep)

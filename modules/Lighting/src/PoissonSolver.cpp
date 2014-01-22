@@ -342,6 +342,8 @@ bool PoissonSolver::buildLCMatrix(Eigen::SparseMatrix<T> &A, Eigen::Matrix<T, Ei
   //of.open("Aout.txt",ios::out);
   //of<<A.innerVector(rowA);
     //////////////////////////////////////////////////////
+    //! 20131030 I will turn off it and test
+    //! turn on now..
     if(!(tlrb&1))// if bottom boundary
     {
       A.coeffRef(mp[tidx+k],rowA+k)=2.0;//be careful , if the element isn't exist, this will insert a value and make it slow

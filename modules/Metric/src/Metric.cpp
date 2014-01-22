@@ -329,23 +329,60 @@ int Metric::computeStats(string path, string searchPattern, string searchExt)
   dec = Mat(pairNum,coeffNum,CV_64F);
   return stats.size();
 }
- int Metric::computeStats(const Tensor<double,1>& im1, const Tensor<double,1>& im2, FeaturePoolType pooltype)
+
+int Metric::computeStats(const Tensor<double,1>& im1, const Tensor<double,1>& im2, FeaturePoolType pooltype)
+{
+  pairNum = 1;
+  coeffNum = 0;
+  stats = vector<vector<Tensor<double,2> > >(2);
+  stats[0] = ComputeStatistics(im1, subwinSize,subwinStep,this->subsample,changeWin,3,4,FilterBoundary::FILTER_BOUND_FULL,pooltype);
+  stats[1] = ComputeStatistics(im2, subwinSize,subwinStep,this->subsample,changeWin,3,4,FilterBoundary::FILTER_BOUND_FULL,pooltype);
+  coeffNum=0;
+  coeff_in_band.clear();
+ for (auto t : stats[0])
+ {
+   coeffNum += t.size().area();
+   coeff_in_band.push_back( t.size().area() );
+ }
+ llr = Mat(pairNum,coeffNum,CV_64F);
+ dec = Mat(pairNum,coeffNum,CV_64F);
+ return stats.size();
+}
+
+ Mat& Metric::computeSTSIM2Terms(const Tensor<double,1>& im1, const Tensor<double,1>& im2, FeaturePoolType pooltype)
  {
    pairNum = 1;
    coeffNum = 0;
-   stats = vector<vector<Tensor<double,2> > >(2);
-   stats[0] = ComputeStatistics(im1, subwinSize,subwinStep,this->subsample,changeWin,3,4,FilterBoundary::FILTER_BOUND_FULL,pooltype);
-   stats[1] = ComputeStatistics(im2, subwinSize,subwinStep,this->subsample,changeWin,3,4,FilterBoundary::FILTER_BOUND_FULL,pooltype);
+   vector<vector<Tensor<double,1>>> terms = ComputeSTSIM2Terms(im1,im2,subwinSize,subwinStep,3,4,this->subsample,FilterBoundary::FILTER_BOUND_FULL,pooltype,MetricModifier::STSIM2_BASELINE,false);
    coeffNum=0;
    coeff_in_band.clear();
-  for (auto t : stats[0])
-  {
-    coeffNum += t.size().area();
-    coeff_in_band.push_back( t.size().area() );
-  }
-  llr = Mat(pairNum,coeffNum,CV_64F);
-  dec = Mat(pairNum,coeffNum,CV_64F);
-  return stats.size();
+   for (vector<Tensor<double,1>>& s : terms)
+       for (Tensor<double,1> t : s)
+       {
+           coeffNum += t.size().area();
+           coeff_in_band.push_back( t.size().area() );
+           //t.Print();
+       }
+   cout<<coeffNum<<endl;
+   f = Mat(1,coeffNum,CV_64F,cv::Scalar::all(0));
+   int count = 0;
+   int pos = 0;
+   for (vector<Tensor<double,1>>& s : terms)
+       for (Tensor<double,1> t : s)
+       {
+           Rect roi;
+
+           roi = Rect(pos,0,coeff_in_band[count],1);
+           // cout<<f(roi).size().height<<endl;
+           //cout<<roi<<endl;
+           t.GetFrameRef(0)
+            .reshape(1,1)
+            .copyTo(f.operator()(roi));
+           //mylib::DisplayMat(f);
+           count++;
+           pos+=coeff_in_band[count];
+       }
+    return f;
  }
 
 int Metric::computeStats(const Tensor<double,1>& im, FeaturePoolType pooltype)
@@ -508,7 +545,8 @@ int Metric::computeFeatures(const vector<vector<Tensor<double,2>>>& stats)
         Tensor<double,2> num(stats[1][k]-stats[0][k]);
         Tensor<double,2> dem(stats[0][k]);
         Tensor<double,2> web = num.Abs()/dem.Abs();
-        logit = web.GetFrameRef(0).clone();
+        //logit = web.GetFrameRef(0).clone();
+        logit = num.GetFrameRef(0).clone();
       }
       else if (stats.size()==1)
       {
@@ -621,6 +659,274 @@ Mat& Metric::estimateML(const Mat& f, int subband, int feature, vector<vector<Ma
   //mylib::DisplayMat(gamma[subband][feature]);
   return gamma[subband][feature];
 }
+void Metric::trainSTSIM2Weights(string path, string scorefilepath)
+{
+    ifstream scorefile;
+    if (scorefilepath.empty())
+      scorefile.open(path+"/subtestoutput.txt");
+    else
+      scorefile.open(scorefilepath);
+    cout<<"loading scorefile "<<scorefilepath<<endl;
+    //std::regex rx(searchPattern+"_([^]*)_(\\d+)"+searchExt);
+    char temp[1024];
+    //string temp;
+    /*int count=0;
+    while(scorefile.getline(temp,1024))
+      count++;
+    scorefile.close();*/
+    //scorefile.open(path+"/subtestoutput.txt");
+    vector<Mat> features;
+    vector<double> scores;
+    while(scorefile.getline(temp,1024))
+    {
+      string str(temp);
+      cout<<"parsing "<<str<<endl;
+      boost::smatch res;
+      boost::regex rx("\\b([^,]+)");
+      boost::regex_search(str,res,rx);
+      cout<<"org: "<<res[0]<<", "<<endl;
+      Tensor<double,1> org(path+"/"+string(res[0]));
+      org = org.Crop((org.size()/4).Point3(),org.size()/2+Point3i(0,0,1));
+      str = res.suffix().str();
+      boost::regex_search(str,res,rx);
+      cout<<"cand "<<res[1]<<endl;
+      Tensor<double,1> cand(path+"/"+string(res[1]));
+      cand = cand.Crop((cand.size()/4).Point3(),cand.size()/2+Point3i(0,0,1));
+      str = res.suffix().str();
+      boost::regex_search(str,res,rx);
+      cout<<"score"<<res[1]<<endl;
+      scores.push_back((double)std::stoi(res[1]));
+      f = computeSTSIM2Terms(org,cand,FeaturePoolType::FEATURE_POOL_MIN);//terms are features, no need to compute features
+      //do LS
+      features.push_back(f.clone());
+      //mylib::DisplayMat(f);
+    }
+    cout<<features.size()<<endl;
+    Mat A(features.size(),coeffNum,CV_64F);
+    Mat b(features.size(),1,CV_64F);
+    Mat bl(features.size(),1,CV_64F);
+    cout<<features[0].at<double>(0,0)<<","<<features[1].at<double>(0,0)<<endl;
+    for (unsigned int i=0; i< features.size(); i++)
+    {
+      features[i].copyTo(A.row(i));
+      b.at<double>(i,0) = scores[i]/10;
+    }
+    mylib::DisplayMat(A,"A_STSIM2_Terms",true);
+    mylib::DisplayMat(b,"b_STSIM2_Terms",true);
+    Mat x;
+    //cv::solve(A,b,x,DECOMP_SVD);
+    //x = (A.t()*A).inv()*A*b;
+    cv::invert(A,x,cv::DECOMP_SVD);
+    x = x*b;
+    weights = x;
+    mylib::DisplayMat(x,"lse_STSIM2_Terms",true);
+    scorefile.close();
+    //compute err
+    //Mat tempmat = A*x;
+    //Mat expmat;
+    //exp(tempmat,expmat);
+    Mat rst  = A*x;//expmat/(expmat+1);
+
+    mylib::DisplayMat(rst-b,"err",true);
+    double err = cv::sum(cv::abs(rst-b))[0];
+    cout<<"abs error is: "<<err<<endl;
+    ofstream coefffile;
+    coefffile.open("coeff_in_band.txt");
+    for (unsigned int i=0; i< coeff_in_band.size();i++)
+    {
+      coefffile<<coeff_in_band[i]<<";"<<endl;
+    }
+    coefffile.close();
+    ofstream weightfile;
+    weightfile.open("weight.txt");
+    for (int i=0; i<x.size().height; i++)
+    {
+      weightfile<<x.at<double>(i,0)<<",";
+    }
+    weightfile.close();
+}
+void Metric::studyMetricFeature(string logfilepath)
+{
+  ifstream scorefile;
+  ofstream outfile;
+  if (logfilepath.empty())
+    scorefile.open("./everything/everything.txt");
+  else
+    scorefile.open(logfilepath);
+  outfile.open("./studymetric.txt",ios::out);
+  cout<<"loading scorefile "<<logfilepath<<endl;
+  //std::regex rx(searchPattern+"_([^]*)_(\\d+)"+searchExt);
+  char temp[1024];
+  vector<Mat> features;
+  vector<double> scores;
+  //create a map store index
+  std::map<string, int> patchIdx;
+  int idxCount=0;
+  //creat a 3-tuple store (i,j,p)
+  vector<vector<int>> tuples;
+  Tensor<double,1> org;
+  Tensor<double,1> cand;
+  string overhead;
+  string orgName,candName;
+  Tensor<double,1> orgBorder, candBorder;
+  Tensor<double,1> orgCore,candCore;
+  int bsize=0,osize=0;
+  this->featureNum=118;
+  Mat orgF= Mat::zeros(1,featureNum,CV_64F);
+  Mat candF=Mat::zeros(1,featureNum,CV_64F);
+  while(scorefile.getline(temp,1024))
+  {
+    string str(temp);
+    //cout<<"parsing "<<str<<endl;
+    boost::smatch res;
+    boost::regex rx("^([\\w]+)");
+    boost::regex_search(str,res,rx);
+    string prefix = res[0];
+    rx.assign("\\((\\d+),(\\d+)\\)");
+    boost::regex_search(str,res,rx);
+    string pos=res[0];
+    string x = res[1];
+    string y = res[2];
+    if (prefix.compare("org"))
+    {
+        rx.assign("\\s(\\d+)\\s");
+        boost::regex_search(str,res,rx);
+        string idx = res[1];
+        cand = Tensor<double,1>(this->searchPath+"/"+"cand"+overhead+"_("+x+"_"+y+")_("+idx+").png");
+        //compute features
+        Tensor<double,1> temp;
+        cand.Ref(Cube(0,osize,0,osize,bsize,1),temp);
+        candBorder.SetBlock(Point3i(0,0,0),temp.Transpose());
+        candBorder.SetBlock(Point3i(bsize,0,0),cand.GetBlock(Cube(0,0,0,osize+bsize,osize,1)));
+        //candBorder.Print();
+        candF.at<double>(0,0)=candBorder.Mean()[0]-orgF.at<double>(0,0);
+        outfile<<candF.at<double>(0,0)<<", ";
+        candF.at<double>(0,1)=candBorder.Var()[0]-orgF.at<double>(0,0);
+        outfile<<candF.at<double>(0,1)<<", ";
+        candF.at<double>(0,2)=candBorder.Var()[0]/orgF.at<double>(0,0);
+        outfile<<candF.at<double>(0,2)<<", ";
+        cand.Ref(Cube(osize,osize,0,bsize,bsize,1),candCore);
+        vector<Tensor<double,2>> stats = ComputeStatistics(candCore,this->subwinSize,this->subwinStep);
+        uint count=3;
+        for (Tensor<double,2>& s : stats)
+        {
+          candF.at<double>(0,count)=s(0,0,0)[0]-orgF.at<double>(0,count);
+          outfile<<candF.at<double>(0,count)<<", ";
+          candF.at<double>(0,count+1)=s(0,0,0)[1]-orgF.at<double>(0,count+1);
+          outfile<<candF.at<double>(0,count+1)<<", ";
+          count+=2;
+        }
+        //stsim2
+        candF.at<double>(0,count) = ComputeSTSIM2(orgCore,candCore,this->subwinSize,this->subwinStep,3,4,false,FilterBoundary::FILTER_BOUND_FULL);
+        outfile<<candF.at<double>(0,count)<<", ";
+        count++;
+        //mse
+        candF.at<double>(0,count) = ComputeMSE(candBorder,orgBorder);
+        outfile<<cand.at<double>(0,count)<<", ";
+        count++;
+        //corr
+        Mat cBd32f,oBd32f;
+        candBorder.convertTo(cBd32f,CV_32F);
+        orgBorder.convertTo(oBd32f,CV_32F);
+        Mat mout;
+        cv::matchTemplate(cBd32f,oBd32f,mout,cv::TM_CCORR_NORMED);
+        candF.at<double>(0,count) = mout.at<float>(0,0);
+        outfile<<candF.at<double>(0,count)<<";\n";
+        count++;
+        features.push_back(candF.clone());
+
+    }
+    else
+    {
+
+        rx.assign("\\s(\\d+)\\s");
+        boost::regex_search(str,res,rx);
+        string size = res[1];
+        overhead="_"+size+"_"+"("+x+"_"+y+")";
+        org = Tensor<double,1>(this->searchPath+"/"+prefix+overhead+".png");
+        osize = org.size().height/5;
+        bsize = osize*4;
+        orgBorder = Tensor<double,1>(org.size().height+org.size().width-org.size().height/5,org.size().height/5,1,0);
+        candBorder = Tensor<double,1>(org.size().height+org.size().width-org.size().height/5,org.size().height/5,1,0);
+        Tensor<double,1> temp;
+        org.Ref(Cube(0,osize,0,osize,bsize,1),temp);
+        orgBorder.SetBlock(Point3i(0,0,0),temp.Transpose());
+        orgBorder.SetBlock(Point3i(bsize,0,0),org.GetBlock(Cube(0,0,0,osize+bsize,osize,1)));
+        //orgBorder.Print();
+        orgF.at<double>(0,0)=orgBorder.Mean()[0];
+        orgF.at<double>(0,1)=orgBorder.Var()[0];
+        orgF.at<double>(0,2)=orgBorder.Var()[0];
+        org.Ref(Cube(osize,osize,0,bsize,bsize,1),orgCore);
+        vector<Tensor<double,2>> stats = ComputeStatistics(orgCore,this->subwinSize,this->subwinStep);
+        uint count=3;
+        for (Tensor<double,2>& s : stats)
+        {
+          orgF.at<double>(0,count)=s(0,0,0)[0];
+          orgF.at<double>(0,count+1)=s(0,0,0)[1];
+          count+=2;
+        }
+        //cout<<orgF<<endl;
+    }
+    /*
+    orgName=string(res[0]);
+    if (patchIdx.end()==patchIdx.find(orgName))
+    {
+        patchIdx.insert(pair<string,int>(orgName,idxCount));
+        idxCount++;
+    }
+    Tensor<double,1> org(this->searchPath+"/"+string(res[0]));
+    org = org.Crop((org.size()/4).Point3(),org.size()/2+Point3i(0,0,1));
+    str = res.suffix().str();
+    boost::regex_search(str,res,rx);
+    cout<<"cand "<<res[1]<<endl;
+    candName = string(res[1]);
+    if (patchIdx.end()==patchIdx.find(candName))
+    {
+        patchIdx.insert(pair<string,int>(candName,idxCount));
+        idxCount++;
+    }
+
+    Tensor<double,1> cand(this->searchPath+"/"+string(res[1]));
+    cand = cand.Crop((cand.size()/4).Point3(),cand.size()/2+Point3i(0,0,1));
+    str = res.suffix().str();
+    boost::regex_search(str,res,rx);
+    cout<<"score"<<res[1]<<endl;
+    scores.push_back((double)std::stoi(res[1]));
+    tu.push_back(patchIdx.at(orgName));
+    tu.push_back(patchIdx.at(candName));
+    tu.push_back(std::stoi(res[1]));
+    tuples.push_back(tu);
+    computeStats(org,cand,FeaturePoolType::FEATURE_POOL_ALL);
+    computeFeatures(stats);
+    //do LS
+    features.push_back(f);
+    //mylib::DisplayMat(f);
+    */
+  }
+  cout<<features.size()<<endl;
+  outfile.close();
+  scorefile.close();
+  //train EM
+  cv::TermCriteria termCrit;
+  termCrit.maxCount=300;
+  cv::EM em(3,EM::COV_MAT_DIAGONAL,termCrit);
+  this->f = Mat::zeros(features.size(),this->featureNum,CV_64F);
+  for (uint i=0; i<features.size();i++)
+  {
+      features[i].copyTo(this->f.row(i));
+     // cout<<this->f.row(i)<<endl;
+  }
+  Mat trData = Mat::zeros(features.size(),2,CV_64F);
+ // cout<<this->f.col(this->featureNum-2)<<endl;
+  f.col(this->featureNum-2).copyTo(trData.col(0));
+  f.col(this->featureNum-3).copyTo(trData.col(1));
+  //cout<<trData<<endl;
+  Mat prob;
+  em.train(trData,this->llr,this->label,prob);
+  //cout<<this->label<<endl;
+  mylib::DisplayMat(this->label,"em_label",true);
+  mylib::DisplayMat(prob,"em_prob",true);
+}
 void Metric::trainMetirc(string path,string scorefilepath)
 {
   ifstream scorefile;
@@ -639,25 +945,51 @@ void Metric::trainMetirc(string path,string scorefilepath)
   //scorefile.open(path+"/subtestoutput.txt");
   vector<Mat> features;
   vector<double> scores;
+  //create a map store index
+  std::map<string, int> patchIdx;
+  int idxCount=0;
+  //creat a 3-tuple store (i,j,p)
+  vector<vector<int>> tuples;
+
   while(scorefile.getline(temp,1024))
   {
+    string orgName,candName;
+    vector<int> tu;//use for store each tuple
     string str(temp);
     cout<<"parsing "<<str<<endl;
     boost::smatch res;
-    boost::regex rx("\\b([^ ]*),");
+    boost::regex rx("\\b([^,]+)");
     boost::regex_search(str,res,rx);
-    cout<<"org: "<<res[0]<<res[1]<<", ";
-    Tensor<double,1> org(path+"/"+string(res[1]));
+    cout<<"org: "<<res[0]<<", "<<endl;
+    orgName=string(res[0]);
+    if (patchIdx.end()==patchIdx.find(orgName))
+    {
+        patchIdx.insert(pair<string,int>(orgName,idxCount));
+        idxCount++;
+    }
+    Tensor<double,1> org(path+"/"+string(res[0]));
     org = org.Crop((org.size()/4).Point3(),org.size()/2+Point3i(0,0,1));
     str = res.suffix().str();
     boost::regex_search(str,res,rx);
     cout<<"cand "<<res[1]<<endl;
+    candName = string(res[1]);
+    if (patchIdx.end()==patchIdx.find(candName))
+    {
+        patchIdx.insert(pair<string,int>(candName,idxCount));
+        idxCount++;
+    }
+
     Tensor<double,1> cand(path+"/"+string(res[1]));
     cand = cand.Crop((cand.size()/4).Point3(),cand.size()/2+Point3i(0,0,1));
     str = res.suffix().str();
     boost::regex_search(str,res,rx);
+    cout<<"score"<<res[1]<<endl;
     scores.push_back((double)std::stoi(res[1]));
-    computeStats(org,cand);
+    tu.push_back(patchIdx.at(orgName));
+    tu.push_back(patchIdx.at(candName));
+    tu.push_back(std::stoi(res[1]));
+    tuples.push_back(tu);
+    computeStats(org,cand,FeaturePoolType::FEATURE_POOL_ALL);
     computeFeatures(stats);
     //do LS
     features.push_back(f);
@@ -667,9 +999,14 @@ void Metric::trainMetirc(string path,string scorefilepath)
   Mat A(features.size(),coeffNum*2,CV_64F);
   Mat b(features.size(),1,CV_64F);
   Mat bl(features.size(),1,CV_64F);
+  Mat t(tuples.size(),3,CV_32S);
+
   cout<<features[0].at<double>(0,0)<<","<<features[1].at<double>(0,0)<<endl;
   for (unsigned int i=0; i< features.size(); i++)
   {
+      t.at<int32_t>(i,0) = tuples[i][0];
+      t.at<int32_t>(i,1) = tuples[i][1];
+      t.at<int32_t>(i,2) = tuples[i][2];
     Mat temp(coeffNum,2,CV_64F);
     int copypos =0;
     //mylib::DisplayMat(features[i],"featurei",true);
@@ -693,6 +1030,7 @@ void Metric::trainMetirc(string path,string scorefilepath)
   }
   mylib::DisplayMat(A,"A",true);
   mylib::DisplayMat(b,"b",true);
+  mylib::DisplayMat(t,"t",true);
   Mat x;
   //cv::solve(A,b,x,DECOMP_SVD);
   //x = (A.t()*A).inv()*A*b;

@@ -433,6 +433,19 @@ void Tester::TestMetric()
    mc.searchPath = "../../../data/totest/dist_corbis_64_inter/";
    mc.trainMetirc(mc.searchPath,scorefilepath);
 }
+void Tester::StudyMetricFeatures()
+{
+    Metric mc;
+    mc.subwinSize = Size3(16,16,1);
+    mc.subwinStep = Size3(16,16,1);
+    //mc.subsample = true;
+    //mc.changeWin=true;
+    //mc.searchPath =  "H:/Code/Matlab/metric trainning/data/";
+    string logfilepath = "./everything/everything.txt";
+    mc.searchPath = "./everything/";
+    //mc.trainSTSIM2Weights(mc.searchPath,scorefilepath);
+    mc.studyMetricFeature(logfilepath);
+}
 
 void Tester::TestGranulateTrain()
 {
@@ -440,13 +453,12 @@ void Tester::TestGranulateTrain()
   string scorefilepath = "/modules/Site/grantest_output.txt";
   mc.searchPath = "/data/totest/gran/";
   mc.trainGranularity(mc.searchPath,scorefilepath);
-
 }
 
 
 void Tester::TestEncoding(int argc, char* argv[])
 {
-	CV_Assert(argc==2);
+	//CV_Assert(argc==2);
 
 
 	cout<<getpid()<<endl;
@@ -939,7 +951,7 @@ void Tester::debugBlock(int x, int y, int sz)
     }
 
     closedir(dir);
-    for (int i=0; i<cands.size();i++)
+    for (unsigned int i=0; i<cands.size();i++)
     {
         cout<<"Computing STSIM-2 for candidate "<<i<<endl;
         metric::ComputeSTSIM2(org,cands[i],Size3(16,16,1),Size3(16,16,1),3,4,false,FilterBoundary::FILTER_BOUND_FULL,FeaturePoolType::FEATURE_POOL_MIN,MetricModifier::STSIM2_NEW_L1,true);

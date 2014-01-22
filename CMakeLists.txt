@@ -19,7 +19,7 @@ set(OpenCV_DIR "/usr/local/share/OpenCV")
 else()
 set(OpenCV_DIR "/opt/local/lib/cmake")
 endif()
-
+message (GCC_MAJOR)
 find_package(OpenCV COMPONENTS core)
 if(${OpenCV_VERSION_MINOR} LESS 9)
 find_package(OpenCV REQUIRED core highgui imgproc gpu ml)# gpufilters gpuarithm gpuimgproc ml)

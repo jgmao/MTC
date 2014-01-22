@@ -2160,15 +2160,21 @@ bool MTC::TexturePrediction(QTree<T,cn>& qNode, int qLevel)
         }
       /* RetrieveFoot(qNode,fLevel);*/
       //cout<<"begin matching....\n";
-      vector<cv::Point3i> matchCandid(candidNum,Point3i(-1,-1,-1));
-      matchCandid = BoundaryMatching(qNode,matching_method,mseThrd);
 
+      vector<pair<cv::Point3i,double> > candRecord = BoundaryMatching(qNode,matching_method,mseThrd);
+      vector<cv::Point3i> matchCandid(candRecord.size());
+      vector<double> matchScore(candRecord.size());
+      for (uint idx=0; idx<candRecord.size(); idx++)
+      {
+        matchScore[idx] = candRecord[idx].second;
+        matchCandid[idx] = candRecord[idx].first;
+      }
       //qNode.bounds[0].Display();
       //qNode.bounds[1].Display();
       //if (matchCandid[candidNum-1] == Point3i(-1,-1,-1) ) // no match find
       if (qNode.offset().x==48&& qNode.offset().y==96)
         cout<<qNode.size().height<<endl;
-      if (matchCandid.size()==0)
+      if (candRecord.size()==0)
         {
           stat.numTestInLevel[qLevel]++; //case 2: matching, but no match found
           tempAccept = false;
@@ -2179,7 +2185,7 @@ bool MTC::TexturePrediction(QTree<T,cn>& qNode, int qLevel)
           //(rst+128).Display();
           int index = -1;
           fLevel = -1;
-          index = IsAcceptPredict(matchCandid,qNode,metricModifier,fLevel);
+          index = IsAcceptPredict(matchCandid,matchScore,qNode,metricModifier,fLevel);
           //cout<<fLevel<<endl;
           /*
       if (metricModifier == M_DIST)
@@ -2516,7 +2522,7 @@ bool MTC::TexturePrediction(QTree<T,cn>& qNode, int qLevel)
   return tempAccept;
 }
 
-int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,MetricModifier metricModifier, int level)//, double param1, double param2)
+int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double>& matchScore, QTree<T,cn>& qNode,MetricModifier metricModifier, int level)//, double param1, double param2)
 {
   double distance = INT_MIN, temp;
   CompareCriteria criteria = ParseCriteria(metricModifier);
@@ -3034,7 +3040,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
 #   ifdef RECORD_EVERYTHING
       for (unsigned int j=0; j<matchCandid.size();j++)
         {
-          everything<<"candid "<<j<<" with LU: ("<<matchCandid[j].x+qNode.overlap().height<<","<<matchCandid[j].y+qNode.overlap().width<<"), "<<"flevel: "<<level<<" light: "<<ldist[j]<<" , score: "<<vdist[j]<<endl;
+          everything<<"candid "<<j<<" with LU: ("<<matchCandid[j].x+qNode.overlap().height<<","<<matchCandid[j].y+qNode.overlap().width<<"), "<<"flevel: "<<level<<" light: "<<ldist[j]<<" side: "<<matchScore[j]<<", score: "<<vdist[j]<<endl;
         }
       everything.close();
 #   endif
@@ -3110,7 +3116,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
 #endif
           double orgvar = org.Var()[0];
           double orgmean = org.Mean()[0];
-          if (orgvar > 10 && orgvar <200 && orgmean>200)//incease threaold
+          if (/*orgvar > 10 &&*/ orgvar <200/* && orgmean>200*/)//incease threaold
             thresholdAdaptor*=1.02;
           if (level<0 && orgvar < 100 ) //herustic set use PLC for smooth region
             accepted = -1;
@@ -3140,7 +3146,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
             {
               vector<Point3i> tempvp;
               tempvp.push_back(matchCandid[index]);
-              if(IsAcceptPredict(tempvp,qNode,MetricModifier::STSIM2_NEW_L2)>=0)
+              if(IsAcceptPredict(tempvp,matchScore,qNode,MetricModifier::STSIM2_NEW_L2)>=0)
                 accepted=index;
             }
           else
@@ -3204,7 +3210,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, QTree<T,cn>& qNode,
           if (level<1)//((qNode.size().height>>level)>8)
             {
               fLevel= level+1;
-              accepted = IsAcceptPredict(matchCandid, qNode,metricModifier,fLevel);
+              accepted = IsAcceptPredict(matchCandid, matchScore, qNode,metricModifier,fLevel);
             }
         }
       return accepted;
@@ -5309,6 +5315,8 @@ void MTC::ScanLine(string& line)
             temp = MatchingMethod::MATCHING_OPENCV;
           else if (value=="MATCHING_DIRECT")
             temp = MatchingMethod::MATCHING_DIRECT;
+          else if (value=="MATCHING_STSIM")
+            temp = MatchingMethod::MATCHING_STSIM;
           else
             CV_Error(CV_StsBadFlag,"wrong parameter"+option+":"+value);
           this->SetMatchingMethod(temp);

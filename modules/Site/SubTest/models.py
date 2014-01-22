@@ -8,8 +8,11 @@ class SubTestResult(models.Model):
     orgName = models.CharField(max_length=50)
     candName = models.CharField(max_length=50)
     distortion = models.CharField(max_length=2,choices = DIST_TYPE)
+    dbname = models.CharField(max_length=50)
     #score = models.FloatField()
     score = models.IntegerField(choices=SCORES)
     imagetype = models.IntegerField(choices=TYPES)
+    create_date = models.DateTimeField(auto_now_add=True)
+    ip = models.CharField(max_length=50)
     def __unicode__(self):
         return self.orgName + "_to_" + self.candName +"_with_"+self.distortion + "_"+ str(self.score)

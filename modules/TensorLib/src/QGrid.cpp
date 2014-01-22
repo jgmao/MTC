@@ -164,7 +164,7 @@ namespace tensor{
   }
 
   template<class T, size_t cn>
-  vector<Point3i> QGrid<T,cn>::BoundaryMatching(QNode<T,cn>& qNode, MatchingMethod matching_method, double matching_thrd)
+  vector<pair<Point3i,double> > QGrid<T,cn>::BoundaryMatching(QNode<T,cn>& qNode, MatchingMethod matching_method, double matching_thrd)
   {
     //qNode.Display();
     //qNode.leftBound.Display();
@@ -208,7 +208,8 @@ namespace tensor{
     QNode<T,cn> cand;
     Tensor<double,cn> tempMu,tempVar;
     Tensor<double,cn> tempMap;
-    vector<Point3i> sideMatchAddr;
+    //vector<Point3i> sideMatchAddr;
+    vector<pair<Point3i,double> > sideMatchAddr;
     Tensor<T,cn> org = ensemble.Crop(qNode.offset(),qNode.size());
     fstream logfile;
     logfile.open("./temp/matching.txt",ios::app);
@@ -760,19 +761,18 @@ namespace tensor{
         //Tensor<T,cn> T0_Lap=T0.Laplacian();
         //Tensor<T,cn> T1_Lap=T1.Laplacian();
         //Tensor<T,cn> filterBD,lowBD;
-        for (int t=0; t< searchRegion.depth;t+=searchStep.depth)
           for (int x=offsetUp; x< offsetDown; x+=searchStep.height)
             for (int y=offsetLeft; y< offsetRight; y+=searchStep.width)
               {
-                if (IsInsideCausalRegion(cv::Point3i(x,y,t),qNode,3))
+                if (IsInsideCausalRegion(cv::Point3i(x,y,0),qNode,3))
                   {
                     diff=0;
                     N=0;
 
                     if (has_left && has_up)
                       {
-                        rst.Ref(Cube(Point3i(x,y+qNode.overlap().width,t),qNode.upBound.size()-Size3(0,qNode.overlap().width,0)),B_up);
-                        rst.Ref(Cube(Point3i(x,y,t),qNode.leftBound.size()),B_left);
+                        rst.Ref(Cube(Point3i(x,y+qNode.overlap().width,0),qNode.upBound.size()-Size3(0,qNode.overlap().width,0)),B_up);
+                        rst.Ref(Cube(Point3i(x,y,0),qNode.leftBound.size()),B_left);
                         VV.SetBlock(B_left.Transpose());
                         VV.SetBlock(Point3i(0,T_left.size().width,0),B_up);
                         var_blk = VV.Var()[0];
@@ -784,7 +784,7 @@ namespace tensor{
                       }
                     else if (has_left)
                       {
-                        rst.Ref(Cube(Point3i(x+qNode.overlap().height,y,t),qNode.leftBound.size()-Size3(qNode.overlap().height,0,0)),B_left);
+                        rst.Ref(Cube(Point3i(x+qNode.overlap().height,y,0),qNode.leftBound.size()-Size3(qNode.overlap().height,0,0)),B_left);
                         var_blk = B_left.Var()[0];
                         var_blk_left = var_blk;
                         muB =B_left.Mean();
@@ -792,7 +792,7 @@ namespace tensor{
                       }
                     else if (has_up)
                       {
-                        rst.Ref(Cube(Point3i(x,y+qNode.overlap().width,t),qNode.upBound.size()-Size3(0,qNode.overlap().width,0)),B_up);
+                        rst.Ref(Cube(Point3i(x,y+qNode.overlap().width,0),qNode.upBound.size()-Size3(0,qNode.overlap().width,0)),B_up);
                         var_blk = B_up.Var()[0];
                         var_blk_up = var_blk;
                         muB = B_up.Mean();
@@ -802,9 +802,20 @@ namespace tensor{
                     //diff = abs(log10(var_blk/var_tag));//change to this, Nov 10, 2012
                     double diff_left=0,diff_up=0;
                     if (has_left)
-                      diff_left = (log10((var_blk_left-var_tag_left)/var_tag_left));
+                    {
+                        if (abs(var_blk_left-var_tag_left)<0.1)
+                            diff_left =0;
+                        else
+                            diff_left = abs(log10((var_blk_left-var_tag_left)/var_tag_left));
+                    }
                     if (has_up)
-                      diff_up = (log10((var_blk_up-var_tag_up)/var_tag_up));
+                    {
+                        if (abs(var_blk_up-var_tag_up)<0.1)
+                            diff_left = 0;
+                        else
+                            diff_up = abs(log10((var_blk_up-var_tag_up)/var_tag_up));
+                    }
+                    //cout<<diff_left<<","<<diff_up<<endl;
                     if (diff_left < varThrd1  && diff_up < varThrd1 ) //varThrd1) //change thred, Nov 10, 2012
                       {//gj01132013 change threahold from 0.5 to 0.2, gj01142013, change thred co
                         //varqueue->compareInsert(diff,cv::Point3i(x,y,t));
@@ -814,40 +825,58 @@ namespace tensor{
                         for (int nbx=-searchStep.height/2; nbx<= searchStep.height/2; nbx+=1) //change from < to <=, Nov 10,2012
                           for (int nby=-searchStep.width/2; nby<= searchStep.width/2; nby+=1)
                             {
-
-                              if (IsInsideCausalRegion(cv::Point3i(nbx+x,nby+y,t),qNode,3))
+                              if (x+nbx<offsetUp||x+nbx>offsetDown||y+nby<offsetLeft||y+nby>offsetRight) //20131227, make sure searching in neighborhood do not voilate search range constrain
+                                  continue;
+                              if (IsInsideCausalRegion(cv::Point3i(nbx+x,nby+y,0),qNode,3))
                                 {
                                   double mse_diff=DBL_MAX;
                                   N=0;
                                   if (has_left && has_up)
                                     {
                                       mse_diff = 0;
-                                      rst.Ref(Cube(Point3i(x+nbx,y+nby+qNode.overlap().width,t),qNode.upBound.size()-Size3(0,qNode.overlap().width,0)),B_up);
-                                      rst.Ref(Cube(Point3i(x+nbx,y+nby,t),qNode.leftBound.size()),B_left);
-
-                                      mse_diff+= metric::Compare(T_up_norm,B_up_norm,CompareCriteria::COMPARE_CRITERIA_MSE);
-                                      mse_diff+= metric::Compare(T_left_norm,B_left_norm,CompareCriteria::COMPARE_CRITERIA_MSE);
+                                      rst.Ref(Cube(Point3i(x+nbx,y+nby+qNode.overlap().width,0),qNode.upBound.size()-Size3(0,qNode.overlap().width,0)),B_up);
+                                      rst.Ref(Cube(Point3i(x+nbx,y+nby,0),qNode.leftBound.size()),B_left);
+#if DEBUG_20131226
+                                      B_up.Print();
+                                      B_left.Print();
+#endif
+                                      double diff_up =   metric::Compare(T_up,B_up,CompareCriteria::COMPARE_CRITERIA_MSE);
+                                      double diff_left = metric::Compare(T_left,B_left,CompareCriteria::COMPARE_CRITERIA_MSE);
+                                      //Compare normalize the value, it's not correct
+                                      //so fix it
+                                      diff_up*=(double)T_up.size().area();
+                                      diff_left*=(double)T_left.size().area();
+                                      mse_diff = diff_up+diff_left;
                                       N+= T_up.size().volumn();
                                       N+= T_left.size().volumn();
                                     }
                                   else if (has_left)
                                     {
                                       mse_diff = 0;
-                                      rst.Ref(Cube(Point3i(x+nbx+qNode.overlap().height,y+nby,t),qNode.leftBound.size()-Size3(qNode.overlap().height,0,0)),B_left);
+                                      rst.Ref(Cube(Point3i(x+nbx+qNode.overlap().height,y+nby,0),qNode.leftBound.size()-Size3(qNode.overlap().height,0,0)),B_left);
                                       mse_diff+= metric::Compare(T_left_norm, B_left_norm,CompareCriteria::COMPARE_CRITERIA_MSE);
                                       N+= T_left.size().volumn();
                                     }
                                   else if (has_up)
                                     {
                                       mse_diff=0;
-                                      rst.Ref(Cube(Point3i(x+nbx,y+nby+qNode.overlap().width,t),qNode.upBound.size()-Size3(0,qNode.overlap().width,0)),B_up);
+                                      rst.Ref(Cube(Point3i(x+nbx,y+nby+qNode.overlap().width,0),qNode.upBound.size()-Size3(0,qNode.overlap().width,0)),B_up);
                                       mse_diff+= metric::Compare(T_up_norm,B_up_norm,CompareCriteria::COMPARE_CRITERIA_MSE);
                                       N+= T_up.size().volumn();
                                     }
                                   mse_diff/=double(N);
+#if DEBUG_20131226
+                                  cout<<x+nbx<<","<<y+nby<<endl;
+                                  cout<<mse_diff<<endl;
+                                  T_up.Print();
+                                  T_left.Print();
+#endif
                                   mse_diff/=65025;//normalize 255^2
+#if DEBUG_20131226
+                                  cout<<mse_diff<<endl;
+#endif
                                   if (mse_diff<=matching_thrd)
-                                    queue->compareInsert(-mse_diff,Point3i(x+nbx,y+nby,t));
+                                    queue->compareInsert(-mse_diff,Point3i(x+nbx,y+nby,0));
                                   if (queue->getLength()>candidNum&&candidNum>0)
                                     queue->pop();
                                 }
@@ -856,6 +885,52 @@ namespace tensor{
                   }
               }
       }
+    else if (matching_method==MatchingMethod::MATCHING_STSIM)
+    {
+      Size3 oSize(qNode.overlap().height,qNode.overlap().width,1);
+
+
+      Tensor<T,cn> tarSide(oSize);
+      Tensor<T,cn> canSide(oSize);
+#ifdef PARALLEL_MATCHING
+        int pnum = 4;
+        vector<thread> threads;
+#else
+        int pnum =1;// thread::hardware_concurrency();
+#endif
+      int brows = (offsetRight - offsetLeft)/searchStep.width/pnum;
+      for (int t=0; t< searchRegion.depth;t+=searchStep.depth)
+      {
+        for (int p=0; p<pnum; p++)
+        {
+        for (int y = offsetLeft +p*brows; y<min(offsetRight, offsetLeft+(p+1)*brows);y+=searchStep.width)
+        {
+          for (int x=offsetUp; x<= offsetDown; x+=searchStep.height)
+          {
+            if (IsInsideCausalRegion(cv::Point3i(x,y,t),qNode,3/*3*/))//20130605  change from 3 to 2
+            {
+              double score=0;
+              for (int m = 0; m<qNode.leftBound.size().height; m+=qNode.overlap().height)
+              {
+                ensemble.Ref(Cube(qNode.offset()-qNode.overlap().Point3()+Point3i(m,0,0),oSize),tarSide);
+                rst.Ref(Cube(Point3i(x+m,y,t),oSize),canSide);
+                score+=metric::Compare(tarSide,canSide,CompareCriteria::COMPARE_CRITERIA_SSIM, oSize,oSize, (int)FilterBoundary::FILTER_BOUND_FULL, (int)FeaturePoolType::FEATURE_POOL_MIN, (int)MetricModifier::STSIM2_BASELINE,0,false);
+              }
+              for (int n = qNode.overlap().width; n<qNode.upBound.size().width; n+=qNode.overlap().width)
+              {
+                  ensemble.Ref(Cube(qNode.offset()-qNode.overlap().Point3()+Point3i(0,n,0),oSize),tarSide);
+                  rst.Ref(Cube(Point3i(x,y+n,t),oSize),canSide);
+                  score+=metric::Compare(tarSide,canSide,CompareCriteria::COMPARE_CRITERIA_SSIM, oSize, oSize,(int)FilterBoundary::FILTER_BOUND_FULL, (int)FeaturePoolType::FEATURE_POOL_MIN, (int)MetricModifier::STSIM2_BASELINE,0,false);
+              }
+              score = score/9.0;//average;
+              queue->compareInsert(score,cv::Point3i(x,y,t));
+            }
+          }
+         }
+         }
+      }
+
+    }
     if (queue->getLength()>0)
       {
         logfile<<"Tar: ("<<qNode.offset().x<<","<<qNode.offset().y<<")"<<endl;
@@ -864,12 +939,13 @@ namespace tensor{
           {
             if (queue->GetAddress()[k]!=Point3i(-1,-1,-1))
               {
-                sideMatchAddr.push_back(queue->GetAddress()[k]);
-                logfile<<"       <<<<<<<<  Cand: ("<<sideMatchAddr[k].x<<","<<sideMatchAddr[k].y<<") Dist: "<<queue->getData(k)<<endl;
-                cout<<"       <<<<<<<<  Cand: ("<<sideMatchAddr[k].x<<","<<sideMatchAddr[k].y<<") Dist: "<<queue->getData(k)<<endl;
+                sideMatchAddr.push_back(pair<Point3i,double>(queue->GetAddress()[k],queue->getData(k)));
+                logfile<<"       <<<<<<<<  Cand: ("<<sideMatchAddr[k].first.x<<","<<sideMatchAddr[k].first.y<<") Dist: "<<queue->getData(k)<<endl;
+                cout<<"       <<<<<<<<  Cand: ("<<sideMatchAddr[k].first.x<<","<<sideMatchAddr[k].first.y<<") Dist: "<<queue->getData(k)<<endl;
               }
           }
       }
+
     delete queue;
     logfile.close();
     return sideMatchAddr;
