@@ -8,7 +8,7 @@ include_directories(${MTC_RUNNER_DIR}/include ${MTC_TENSORLIB_DIR}/include ${MTC
 set(com_link ${MTC_RUNNER_DIR}/src ${MTC_METRIC_DIR} ${MTC_MTC_DIR})
 
 
-set(PROGRAMS testTensor tpss PQICodingLF main trainGranularity trainMetric studyMetric)
+set(PROGRAMS testTensor tpss PQICodingLF mtcmain trainGranularity trainMetric studyMetric)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Debug/lib)

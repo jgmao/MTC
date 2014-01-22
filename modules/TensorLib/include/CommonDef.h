@@ -74,6 +74,7 @@ namespace tensor{
 //#define USE_GPU
 #endif
 
+#define PARALLEL_MATCHING   1
 
 #ifdef WIN32
 #define EXPORTLIB __declspec(dllexport)

@@ -890,12 +890,13 @@ namespace tensor{
       Size3 oSize(qNode.overlap().height,qNode.overlap().width,1);
 
 
-      Tensor<T,cn> tarSide(oSize);
-      Tensor<T,cn> canSide(oSize);
+
 #ifdef PARALLEL_MATCHING
         int pnum = 4;
         vector<thread> threads;
 #else
+        Tensor<T,cn> tarSide(oSize);
+        Tensor<T,cn> canSide(oSize);
         int pnum =1;// thread::hardware_concurrency();
 #endif
       int brows = (offsetRight - offsetLeft)/searchStep.width/pnum;
@@ -903,6 +904,11 @@ namespace tensor{
       {
         for (int p=0; p<pnum; p++)
         {
+#if PARALLEL_MATCHING
+        threads.push_back(thread([&](int p, int t){
+        Tensor<T,cn> tarSide(oSize);
+        Tensor<T,cn> canSide(oSize);
+#endif
         for (int y = offsetLeft +p*brows; y<min(offsetRight, offsetLeft+(p+1)*brows);y+=searchStep.width)
         {
           for (int x=offsetUp; x<= offsetDown; x+=searchStep.height)
@@ -924,12 +930,21 @@ namespace tensor{
               }
               score = score/9.0;//average;
               queue->compareInsert(score,cv::Point3i(x,y,t));
+              if (/*myqueue*/queue->getLength()>candidNum&&candidNum>0)
+                /*myqueue*/queue->pop();
             }
           }
-         }
-         }
+        }
+#if PARALLEL_MATCHING
+       },p,t));
+#endif
+        }
       }
-
+#if PARALLEL_MATCHING
+      for (auto& thread : threads){
+        thread.join();
+      }
+#endif
     }
     if (queue->getLength()>0)
       {
