@@ -753,7 +753,7 @@ void Metric::studyMetricFeature(string logfilepath)
     scorefile.open("./everything/everything.txt");
   else
     scorefile.open(logfilepath);
-  outfile.open("./studymetric.txt",ios::out);
+  outfile.open("./studymetric3.txt",ios::out);
   cout<<"loading scorefile "<<logfilepath<<endl;
   //std::regex rx(searchPattern+"_([^]*)_(\\d+)"+searchExt);
   char temp[1024];
@@ -771,7 +771,7 @@ void Metric::studyMetricFeature(string logfilepath)
   Tensor<double,1> orgBorder, candBorder;
   Tensor<double,1> orgCore,candCore;
   int bsize=0,osize=0;
-  this->featureNum=118;
+  this->featureNum=119+22;
   Mat orgF= Mat::zeros(1,featureNum,CV_64F);
   Mat candF=Mat::zeros(1,featureNum,CV_64F);
   while(scorefile.getline(temp,1024))
@@ -792,6 +792,7 @@ void Metric::studyMetricFeature(string logfilepath)
         rx.assign("\\s(\\d+)\\s");
         boost::regex_search(str,res,rx);
         string idx = res[1];
+
         cand = Tensor<double,1>(this->searchPath+"/"+"cand"+overhead+"_("+x+"_"+y+")_("+idx+").png");
         //compute features
         Tensor<double,1> temp;
@@ -806,18 +807,42 @@ void Metric::studyMetricFeature(string logfilepath)
         candF.at<double>(0,2)=candBorder.Var()[0]/orgF.at<double>(0,0);
         outfile<<candF.at<double>(0,2)<<", ";
         cand.Ref(Cube(osize,osize,0,bsize,bsize,1),candCore);
-        vector<Tensor<double,2>> stats = ComputeStatistics(candCore,this->subwinSize,this->subwinStep);
         uint count=3;
+        //cout<<orgCore<<endl;
+        //cout<<candCore<<endl;
+        vector<Tensor<double,2>> stats = ComputeStatistics(candCore,this->subwinSize,this->subwinStep);
         for (Tensor<double,2>& s : stats)
         {
+          //s.Print();
+          //cout<<orgF.at<double>(0,count)<<endl;
           candF.at<double>(0,count)=s(0,0,0)[0]-orgF.at<double>(0,count);
           outfile<<candF.at<double>(0,count)<<", ";
           candF.at<double>(0,count+1)=s(0,0,0)[1]-orgF.at<double>(0,count+1);
           outfile<<candF.at<double>(0,count+1)<<", ";
           count+=2;
+          //cout<<candF<<endl;
         }
+        //stsim terms
+        vector<vector<Tensor<double,1>>> sterm = ComputeSTSIM2Terms(orgCore,candCore,this->subwinSize,this->subwinStep,3,1,false,FilterBoundary::FILTER_BOUND_FULL,FeaturePoolType::FEATURE_POOL_MIN,MetricModifier::STSIM2_NEW_L1);
+        for (vector<Tensor<double,1>>& vterm : sterm)
+          for (Tensor<double,1>& t : vterm)
+        {
+          candF.at<double>(0,count)=t(0,0,0)[0];
+          outfile<<candF.at<double>(0,count)<<", ";
+          count++;
+        }
+        //side stsim
+        rx.assign("side:\\s([\\d\\.]+)");
+        boost::regex_search(str,res,rx);
+        candF.at<double>(0,count) = std::stod(string(res[1]));
+        outfile<<candF.at<double>(0,count)<<", ";
+        count++;
         //stsim2
-        candF.at<double>(0,count) = ComputeSTSIM2(orgCore,candCore,this->subwinSize,this->subwinStep,3,4,false,FilterBoundary::FILTER_BOUND_FULL);
+        rx.assign("score:\\s([\\d\\.]+)");
+        boost::regex_search(str,res,rx);
+        //cout<<res[0]<<", "<<res[1]<<endl;
+        //candF.at<double>(0,count) = ComputeSTSIM2(orgCore,candCore,this->subwinSize,this->subwinStep,3,4,false,FilterBoundary::FILTER_BOUND_FULL);
+        candF.at<double>(0,count) = std::stod(res[1]);
         outfile<<candF.at<double>(0,count)<<", ";
         count++;
         //mse
@@ -832,9 +857,9 @@ void Metric::studyMetricFeature(string logfilepath)
         cv::matchTemplate(cBd32f,oBd32f,mout,cv::TM_CCORR_NORMED);
         candF.at<double>(0,count) = mout.at<float>(0,0);
         outfile<<candF.at<double>(0,count)<<";\n";
+        //cout<<candF<<endl;
         count++;
         features.push_back(candF.clone());
-
     }
     else
     {

@@ -164,7 +164,7 @@ namespace tensor{
   }
 
   template<class T, size_t cn>
-  vector<pair<Point3i,double> > QGrid<T,cn>::BoundaryMatching(QNode<T,cn>& qNode, MatchingMethod matching_method, double matching_thrd)
+  vector<pair<Point3i,double> > QGrid<T,cn>::BoundaryMatching(QNode<T,cn>& qNode, MatchingMethod matching_method, double matching_thrd, Size3 subWinSize)
   {
     //qNode.Display();
     //qNode.leftBound.Display();
@@ -185,7 +185,7 @@ namespace tensor{
     Size3 searchRegion = rst.size() - qNode.size() - qNode.overlap()*3 + Size3(1,1,1);
     //Size3 searchRegion = rst.size() - qNode.size() - qNode.overlap()*2+ Size3(1,1,1);//20130604 changed , not necessary such big gap?????
     // for limited search region, change here
-    double ratio = 5;
+    double ratio = 3;
     int offsetUp = qNode.offset().x - int(ratio*double(qNode.size().height));
     offsetUp > 1 ? offsetUp = offsetUp: offsetUp=1;
     int offsetLeft = qNode.offset().y - int(ratio*double(qNode.size().width));
@@ -887,11 +887,18 @@ namespace tensor{
       }
     else if (matching_method==MatchingMethod::MATCHING_STSIM)
     {
-      Size3 oSize(qNode.overlap().height,qNode.overlap().width,1);
-
-
-
-#ifdef PARALLEL_MATCHING
+      Size3 oSize(max(qNode.overlap().height,subWinSize.height),max(qNode.overlap().width,subWinSize.width),1);
+      if (offsetUp + qNode.overlap().height-oSize.height<0)
+        offsetUp += oSize.height-qNode.overlap().height;
+      if (offsetLeft+qNode.overlap().width -oSize.width<0)
+        offsetLeft += oSize.width-qNode.overlap().width;
+      int shift_x = 0;
+      int shift_y = 0;
+      if (qNode.overlap().height<subWinSize.height)
+        shift_x = qNode.overlap().height-oSize.height;
+      if (qNode.overlap().width<subWinSize.width)
+        shift_y = qNode.overlap().width-oSize.width;
+#if PARALLEL_MATCHING
         int pnum = 4;
         vector<thread> threads;
 #else
@@ -916,19 +923,22 @@ namespace tensor{
             if (IsInsideCausalRegion(cv::Point3i(x,y,t),qNode,3/*3*/))//20130605  change from 3 to 2
             {
               double score=0;
-              for (int m = 0; m<qNode.leftBound.size().height; m+=qNode.overlap().height)
+              int count=0;
+              for (int m = 0; m<qNode.leftBound.size().height-shift_x; m+=oSize.height)
               {
-                ensemble.Ref(Cube(qNode.offset()-qNode.overlap().Point3()+Point3i(m,0,0),oSize),tarSide);
-                rst.Ref(Cube(Point3i(x+m,y,t),oSize),canSide);
-                score+=metric::Compare(tarSide,canSide,CompareCriteria::COMPARE_CRITERIA_SSIM, oSize,oSize, (int)FilterBoundary::FILTER_BOUND_FULL, (int)FeaturePoolType::FEATURE_POOL_MIN, (int)MetricModifier::STSIM2_BASELINE,0,false);
+                ensemble.Ref(Cube(qNode.offset()-oSize.Point3()+Point3i(m,0,1),oSize),tarSide);
+                rst.Ref(Cube(Point3i(x+m+shift_x,y+shift_y,t),oSize),canSide);
+                score+=metric::Compare(tarSide,canSide,CompareCriteria::COMPARE_CRITERIA_SSIM, oSize,oSize, 3,1, (int)FilterBoundary::FILTER_BOUND_FULL, (int)FeaturePoolType::FEATURE_POOL_MIN, (int)MetricModifier::STSIM2_NEW_L1,0,false);
+                count++;
               }
-              for (int n = qNode.overlap().width; n<qNode.upBound.size().width; n+=qNode.overlap().width)
+              for (int n = oSize.width; n<qNode.upBound.size().width-shift_y; n+=oSize.width)
               {
-                  ensemble.Ref(Cube(qNode.offset()-qNode.overlap().Point3()+Point3i(0,n,0),oSize),tarSide);
-                  rst.Ref(Cube(Point3i(x,y+n,t),oSize),canSide);
-                  score+=metric::Compare(tarSide,canSide,CompareCriteria::COMPARE_CRITERIA_SSIM, oSize, oSize,(int)FilterBoundary::FILTER_BOUND_FULL, (int)FeaturePoolType::FEATURE_POOL_MIN, (int)MetricModifier::STSIM2_BASELINE,0,false);
+                  ensemble.Ref(Cube(qNode.offset()-oSize.Point3()+Point3i(0,n,1),oSize),tarSide);
+                  rst.Ref(Cube(Point3i(x+shift_x,y+n+shift_y,t),oSize),canSide);
+                  score+=metric::Compare(tarSide,canSide,CompareCriteria::COMPARE_CRITERIA_SSIM, oSize, oSize,3,1, (int)FilterBoundary::FILTER_BOUND_FULL, (int)FeaturePoolType::FEATURE_POOL_MIN, (int)MetricModifier::STSIM2_NEW_L1,0,false);
+                  count++;
               }
-              score = score/9.0;//average;
+              score = score/count;//average;
               queue->compareInsert(score,cv::Point3i(x,y,t));
               if (/*myqueue*/queue->getLength()>candidNum&&candidNum>0)
                 /*myqueue*/queue->pop();
@@ -946,6 +956,78 @@ namespace tensor{
       }
 #endif
     }
+    else if (matching_method==MatchingMethod::MATCHING_STSIM_PART)
+    {
+        Size3 oSize(max(qNode.overlap().height,subWinSize.height),max(qNode.overlap().width,subWinSize.width),1);
+        if (offsetUp + qNode.overlap().height-oSize.height<0)
+          offsetUp += oSize.height-qNode.overlap().height;
+        if (offsetLeft+qNode.overlap().width -oSize.width<0)
+          offsetLeft += oSize.width-qNode.overlap().width;
+        int shift_x = 0;
+        int shift_y = 0;
+        if (qNode.overlap().height<subWinSize.height)
+          shift_x = qNode.overlap().height-oSize.height;
+        if (qNode.overlap().width<subWinSize.width)
+          shift_y = qNode.overlap().width-oSize.width;
+  #if PARALLEL_MATCHING
+          int pnum = 4;
+          vector<thread> threads;
+  #else
+          Tensor<T,cn> tarSide(oSize);
+          Tensor<T,cn> canSide(oSize);
+          int pnum =1;// thread::hardware_concurrency();
+  #endif
+        int brows = (offsetRight - offsetLeft)/searchStep.width/pnum;
+        for (int t=0; t< searchRegion.depth;t+=searchStep.depth)
+        {
+          for (int p=0; p<pnum; p++)
+          {
+  #if PARALLEL_MATCHING
+          threads.push_back(thread([&](int p, int t){
+          Tensor<T,cn> tarSide(oSize);
+          Tensor<T,cn> canSide(oSize);
+  #endif
+          for (int y = offsetLeft +p*brows; y<min(offsetRight, offsetLeft+(p+1)*brows);y+=searchStep.width)
+          {
+            for (int x=offsetUp; x<= offsetDown; x+=searchStep.height)
+            {
+              if (IsInsideCausalRegion(cv::Point3i(x,y,t),qNode,3/*3*/))//20130605  change from 3 to 2
+              {
+                double score=0;
+                int count=0;
+                for (int m = 0; m<qNode.leftBound.size().height-shift_x; m+=oSize.height)
+                {
+                  ensemble.Ref(Cube(qNode.offset()-oSize.Point3()+Point3i(m,0,1),oSize),tarSide);
+                  rst.Ref(Cube(Point3i(x+m+shift_x,y+shift_y,t),oSize),canSide);
+                  score+=metric::Compare(tarSide,canSide,CompareCriteria::COMPARE_CRITERIA_SSIM, oSize,oSize, 3, 1, (int)FilterBoundary::FILTER_BOUND_FULL, (int)FeaturePoolType::FEATURE_POOL_MIN, (int)MetricModifier::STSIM2_PART,0,false);
+                  count++;
+                }
+                for (int n = oSize.width; n<qNode.upBound.size().width-shift_y; n+=oSize.width)
+                {
+                    ensemble.Ref(Cube(qNode.offset()-oSize.Point3()+Point3i(0,n,1),oSize),tarSide);
+                    rst.Ref(Cube(Point3i(x+shift_x,y+n+shift_y,t),oSize),canSide);
+                    score+=metric::Compare(tarSide,canSide,CompareCriteria::COMPARE_CRITERIA_SSIM, oSize, oSize,3, 1, (int)FilterBoundary::FILTER_BOUND_FULL, (int)FeaturePoolType::FEATURE_POOL_MIN, (int)MetricModifier::STSIM2_PART,0,false);
+                    count++;
+                }
+                score = score/count;//average;
+                queue->compareInsert(score,cv::Point3i(x,y,t));
+                if (/*myqueue*/queue->getLength()>candidNum&&candidNum>0)
+                  /*myqueue*/queue->pop();
+              }
+            }
+          }
+  #if PARALLEL_MATCHING
+         },p,t));
+  #endif
+          }
+        }
+  #if PARALLEL_MATCHING
+        for (auto& thread : threads){
+          thread.join();
+        }
+  #endif
+    }
+
     if (queue->getLength()>0)
       {
         logfile<<"Tar: ("<<qNode.offset().x<<","<<qNode.offset().y<<")"<<endl;

@@ -563,7 +563,7 @@ namespace metric
               L[index].Print("L");
           }
         }
-        else if (stsim2_modifer == MetricModifier::STSIM2_NEW_L1)
+        else if (stsim2_modifer == MetricModifier::STSIM2_NEW_L1 ||stsim2_modifer==MetricModifier::STSIM2_PART)
           {
 
             double clipThrd = (mu_A[index].Abs().Sum()/double(mu_A[index].size().volumn()))[0]*0.1;
@@ -706,12 +706,18 @@ namespace metric
 //            (((sigma2_A[index].Real()*sigma2_B[index].Real()).Sqrt()*2 + C1)/(sigma2_A[index]+sigma2_B[index] +C1).Real()).Print();
             C[index].Print("C");
           }
+
+        if (stsim2_modifer==MetricModifier::STSIM2_PART)
+        {
+          if (index>=((nLevel-1)*nDir)&&index<nLevel*nDir)
+          {
+
         C01[index] = ComputeCrossTerm(pyrA[index](Cube(0,0,0,sz.height,sz.width-1,sz.depth)),
             pyrA[index](Cube(0,1,0,sz.height,sz.width-1,sz.depth)),
             pyrB[index](Cube(0,0,0,sz.height,sz.width-1,sz.depth)),
             pyrB[index](Cube(0,1,0,sz.height,sz.width-1,sz.depth)),
             subWinSizeLv-Size3(0,1,0), subWinStepLv);
-        //C01[index].Print();
+       // C01[index].Print();
         //cout<<"pyrA[idx].size ";pyrA[index].size().Print();
         //pyrB[index].size().Print();
         //cout<<"sz ";sz.Print();
@@ -720,6 +726,25 @@ namespace metric
             pyrB[index](Cube(0,0,0,sz.height-1,sz.width,sz.depth)),
             pyrB[index](Cube(1,0,0,sz.height-1,sz.width,sz.depth)),
             subWinSizeLv-Size3(1,0,0), subWinStepLv);
+          }
+        }
+        else
+        {
+            C01[index] = ComputeCrossTerm(pyrA[index](Cube(0,0,0,sz.height,sz.width-1,sz.depth)),
+                pyrA[index](Cube(0,1,0,sz.height,sz.width-1,sz.depth)),
+                pyrB[index](Cube(0,0,0,sz.height,sz.width-1,sz.depth)),
+                pyrB[index](Cube(0,1,0,sz.height,sz.width-1,sz.depth)),
+                subWinSizeLv-Size3(0,1,0), subWinStepLv);
+            //C01[index].Print();
+            //cout<<"pyrA[idx].size ";pyrA[index].size().Print();
+            //pyrB[index].size().Print();
+            //cout<<"sz ";sz.Print();
+            C10[index] = ComputeCrossTerm(pyrA[index](Cube(0,0,0,sz.height-1,sz.width,sz.depth)),
+                pyrA[index](Cube(1,0,0,sz.height-1,sz.width,sz.depth)),
+                pyrB[index](Cube(0,0,0,sz.height-1,sz.width,sz.depth)),
+                pyrB[index](Cube(1,0,0,sz.height-1,sz.width,sz.depth)),
+                subWinSizeLv-Size3(1,0,0), subWinStepLv);
+        }
         //C10[index].Print();
 //        cout<<"size "<<tsA.size()<<endl;
 //        cout<<"sub "<<subWinSizeLv<<endl;
@@ -735,7 +760,12 @@ namespace metric
             tempRstMat = L[index]*TUNE_WEIGHT[index*4]+C[index]*TUNE_WEIGHT[index*4+1]+C01[index]*TUNE_WEIGHT[index*4+2]+C10[index]*TUNE_WEIGHT[index*4+3];
           }
         else
-          tempRstMat=(L[index]*C[index]*C01[index]*C10[index]).Pow(0.25);//change weight for C gj20130120
+        {
+          if (stsim2_modifer==MetricModifier::STSIM2_PART&&(index<(nLevel-1)*nDir||index>=nLevel*nDir))
+           tempRstMat =  (L[index]*C[index]).Pow(0.5);//change weight for C gj20130120
+          else
+           tempRstMat=(L[index]*C[index]*C01[index]*C10[index]).Pow(0.25);//change weight for C gj20130120
+        }
         //tempRstMat.Print();
         //! 20131010 enable this
         if (stsim2_modifer == MetricModifier::STSIM2_BASELINE)
@@ -798,7 +828,7 @@ namespace metric
         debugfile<<"Band A"<<"\t"<<"Band B"<<"\t"<<"C00"<<endl;
       }
 
-    if (stsim2_modifer!=MetricModifier::STSIM2_TUNE)
+    if (stsim2_modifer!=MetricModifier::STSIM2_TUNE||stsim2_modifer!=MetricModifier::STSIM2_PART)
       {
         index = 0;
         for (int dr = 0; dr < nDir; dr++)

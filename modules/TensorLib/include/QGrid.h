@@ -74,7 +74,7 @@ public:
 	EXPORTLIB ~QGrid(void);
 	EXPORTLIB QTree<T,cn>& GetNode(const Point3i& pos) ;
 	EXPORTLIB void SetNode(const Point3i& gridPos, const Tensor<T,cn>& ts, const Cube& roi, const Size3& overlapSize);
-	EXPORTLIB vector<pair<Point3i, double> > BoundaryMatching(QNode<T,cn>& qNode,MatchingMethod matching_method = MatchingMethod::MATCHING_MSE, double matching_thrd = 0/*accept all*/);
+	EXPORTLIB vector<pair<Point3i, double> > BoundaryMatching(QNode<T,cn>& qNode,MatchingMethod matching_method = MatchingMethod::MATCHING_MSE, double matching_thrd = 0/*accept all*/, Size3 subWinSize=Size3(16,16,1));
 	EXPORTLIB void ReInitGrid(void);
 	EXPORTLIB Size3 GetGridSize(void) const;
 	EXPORTLIB void SetVarThrd(double t1 =1300);
