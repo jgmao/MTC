@@ -23,7 +23,8 @@ namespace metric
     cout<<v<<endl;
     cout<<distance<<endl;
 #endif
-    return distance/double(tsA.size().area())/double(tsA.channels());///tsSize.volumn()/cn;
+    distance/=double(tsA.size().area())/double(tsA.channels());///tsSize.volumn()/cn;
+    return distance;
   }
 
 
@@ -1495,7 +1496,7 @@ namespace metric
         terms.push_back(C10);
         terms.push_back(C00);
         for (int i=0; i< 5; i++)
-        for (int j=0; j<terms[i].size();j++)
+        for (uint j=0; j<terms[i].size();j++)
         {
              if (stsim2_pool_type == FeaturePoolType::FEATURE_POOL_AVE)
                  terms[i][j] = Tensor<double,1>(1,1,1,terms[i][j].Mean());
@@ -1800,7 +1801,7 @@ namespace metric
     else
         CV_Assert(0);//error
     //  return INT_MAX;
-    //return INT_MAX; 20131227
+    return INT_MAX; //20131227 delete this, but cause warning
   }
 
   Tensor<double,1> ComputeCrossTerm(const Mat& im11, const Mat& im12, const Mat& im21, const Mat& im22, const Size3& subWinSize, const Size3& subWinStep)

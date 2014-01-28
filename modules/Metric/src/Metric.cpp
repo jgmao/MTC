@@ -751,8 +751,8 @@ void Metric::studyMetricFeature(string logfilepath)
   ofstream outfile;
   ofstream distfile;
   scorefile.open(logfilepath);
-  outfile.open("./studymetric_jan27_15.txt",ios::out);
-  distfile.open("./dist_jan27_15.txt",ios::out);
+  outfile.open("./studymetric_jan28_20.txt",ios::out);
+  distfile.open("./dist_jan28_20.txt",ios::out);
   cout<<"loading scorefile "<<logfilepath<<endl;
   //std::regex rx(searchPattern+"_([^]*)_(\\d+)"+searchExt);
   char temp[1024];
@@ -773,7 +773,7 @@ void Metric::studyMetricFeature(string logfilepath)
   this->featureNum=119+22;
   Mat orgF= Mat::zeros(1,featureNum,CV_64F);
   Mat candF=Mat::zeros(1,featureNum,CV_64F);
-  int tarX,tarY,canX,canY;
+  int tarX=0,tarY=0,canX=0,canY=0;
   ifstream test;
   string tarSize ;
   bool orggood=true;
@@ -859,7 +859,8 @@ void Metric::studyMetricFeature(string logfilepath)
         count++;
         //mse
         candF.at<double>(0,count) = ComputeMSE(candBorder,orgBorder);
-        outfile<<cand.at<double>(0,count)<<", ";
+        outfile<<candF.at<double>(0,count)<<", ";
+        //cout<<candF.at<double>(0,count)<<", ";
         count++;
         //corr
         Mat cBd32f,oBd32f;

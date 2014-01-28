@@ -22,7 +22,7 @@ enum class CodingMode : int { CODING_MODE_PQI,
 #include "QGrid.h"
 #include <fstream>
 static const char* month[] = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
-//#define METRIC_PARALLEL   1
+#define METRIC_PARALLEL   1
 
 //parameters
 enum UNIT_TEST { HAS_UNIT_TEST, NO_UNIT_TEST};

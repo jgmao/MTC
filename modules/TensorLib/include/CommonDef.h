@@ -75,6 +75,7 @@ namespace tensor{
 #endif
 
 #define PARALLEL_MATCHING   1
+#define PARALLEL_METRIC     1
 
 #ifdef WIN32
 #define EXPORTLIB __declspec(dllexport)

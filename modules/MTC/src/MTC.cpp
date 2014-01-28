@@ -2529,7 +2529,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
   if (metricModifier == MetricModifier::MAHALANOBIS_DIST)
     distance = INT_MAX;
   int index = -1;
-#ifndef METRIC_PARALLEL
+#if !PARALLEL_METRIC
   QNode<T,cn> candid;
   QNode<T,cn> org;
   Tensor<T,cn> tpss;

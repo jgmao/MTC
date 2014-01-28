@@ -185,7 +185,7 @@ namespace tensor{
     Size3 searchRegion = rst.size() - qNode.size() - qNode.overlap()*3 + Size3(1,1,1);
     //Size3 searchRegion = rst.size() - qNode.size() - qNode.overlap()*2+ Size3(1,1,1);//20130604 changed , not necessary such big gap?????
     // for limited search region, change here
-    double ratio = 3;
+    double ratio = 5;//20140128
     int offsetUp = qNode.offset().x - int(ratio*double(qNode.size().height));
     offsetUp > 1 ? offsetUp = offsetUp: offsetUp=1;
     int offsetLeft = qNode.offset().y - int(ratio*double(qNode.size().width));
@@ -788,16 +788,20 @@ namespace tensor{
         Tensor<T,cn> canSide(oSize);
         int pnum =1;// thread::hardware_concurrency();
 #endif
-
+        vector<LinkArray*> localqueue(pnum);
         int brows = (offsetDown - offsetUp)/searchStep.height/pnum;
         for (int p=0; p<pnum; p++)
         {
 #if PARALLEL_MATCHING
+
           threads.push_back(thread([&](int p, int t){
           Tensor<T,cn> tarSide(oSize);
           Tensor<T,cn> canSide(oSize);
           Tensor<T,cn> VV(Size3(qNode.size().height*2+qNode.overlap().height,qNode.overlap().width,1));
           Tensor<T,cn> candLeftLocal,candUpLocal;
+          localqueue[p] = new LinkArray();
+#else
+          localqueue[p] = queue;
 #endif
           for (int x=offsetUp+p*brows; x< min(offsetDown,offsetUp+(p+1)*brows); x+=searchStep.height)
             for (int y=offsetLeft; y< offsetRight; y+=searchStep.width)
@@ -809,12 +813,17 @@ namespace tensor{
                     //20140127 use varratio
                     rst.Ref(Cube(Point3i(x,y,t),qNode.leftBound.size()),candLeftLocal);
                     rst.Ref(Cube(Point3i(x,y+qNode.overlap().width,t),qNode.upBound.size()-Size3(0,qNode.overlap().width,0)),candUpLocal);
-                    VV.SetBlock(candUpLocal.Transpose());
-                    VV.SetBlock(Point3i(tarUp.size().width,0,0),candLeftLocal);
-                    double Vb = VV.Var()[0];
-                    double delta = abs(10*log10(1 - Vb/Vt));
-                    //double delta_thrd = 20;//10*log10(100);
-                    //delta > delta_thrd? delta = 1 : delta=delta/delta_thrd;
+                    //VV.SetBlock(candUpLocal.Transpose());
+                    //VV.SetBlock(Point3i(tarUp.size().width,0,0),candLeftLocal);
+                    //get local variance
+                    Tensor<T,cn> tempblk;
+                    rst.Ref(Cube(Point3i(x,y,t),qNode.size()+qNode.overlap()),tempblk);
+                    //double Vb = VV.Var()[0];
+                    double Vb = tempblk.Var()[0];//local variance is close to target side variance
+                    double delta = abs(1-Vb/Vt);
+                    //clip
+                    double delta_thrd = 20;//10*log10(100);
+                    delta > delta_thrd? delta = 1 : delta=delta/delta_thrd;
                     //double delta = abs(Vb - Vt);
                     //cout<<"delta is "<<delta<<endl;
 //                    if (has_left && has_up)
@@ -864,7 +873,7 @@ namespace tensor{
 //                            diff_up = abs(log10((var_blk_up-var_tag_up)/var_tag_up));
 //                    }
                     //cout<<diff_left<<","<<diff_up<<endl;
-                    if (delta<=varThrd1) //20140127
+                    if (delta<=varThrd1) //20140127 first trim (coarest) discard large var ratio
                     //if (diff_left < varThrd1  && diff_up < varThrd1 ) //varThrd1) //change thred, Nov 10, 2012
                     {//gj01132013 change threahold from 0.5 to 0.2, gj01142013, change thred co
                         //varqueue->compareInsert(diff,cv::Point3i(x,y,t));
@@ -876,31 +885,42 @@ namespace tensor{
                           for (int nby=-searchStep.width/2; nby<= searchStep.width/2; nby+=1)
                             {
                               if (x+nbx<offsetUp||x+nbx>offsetDown||y+nby<offsetLeft||y+nby>offsetRight) //20131227, make sure searching in neighborhood do not voilate search range constrain
-                                  continue;
+                                continue;
+                              if (x+nbx<offsetUp+p*brows||x+nbx>=offsetUp+(p+1)*brows) //no duplicate search in different threads
+                                continue;
                               if (IsInsideCausalRegion(cv::Point3i(nbx+x,nby+y,0),qNode,3))
                                 {
-                                  double mse_diff=DBL_MAX;
+                                  double mse = metric::ComputeMSE(VV,TT);
+                                  mse /= 65025; //normalize
+                                  if (mse>matching_thrd) //2nd trim: discard large side mse candidate
+                                    continue;
                                   N=0;
                                   double score=0;
+                                  double final_score=1;
                                   int count=0;
                                   for (int m = 0; m<qNode.leftBound.size().height-shift_x; m+=oSize.height)
                                   {
                                     ensemble.Ref(Cube(qNode.offset()-oSize.Point3()+Point3i(m,0,1),oSize),tarSide);
                                     rst.Ref(Cube(Point3i(x+nbx+m+shift_x,y+nby+shift_y,t),oSize),canSide);
-                                    score+=metric::Compare(tarSide,canSide,CompareCriteria::COMPARE_CRITERIA_SSIM, oSize,oSize, 3, 1, (int)FilterBoundary::FILTER_BOUND_FULL, (int)FeaturePoolType::FEATURE_POOL_MIN, (int)MetricModifier::STSIM2_PART,0,false);
+                                    score=metric::Compare(tarSide,canSide,CompareCriteria::COMPARE_CRITERIA_SSIM, oSize,oSize, 3, 1, (int)FilterBoundary::FILTER_BOUND_FULL, (int)FeaturePoolType::FEATURE_POOL_MIN, (int)MetricModifier::STSIM2_PART,0,false);
+                                    if (score<final_score)
+                                      final_score= score;
                                     count++;
                                   }
                                   for (int n = oSize.width; n<qNode.upBound.size().width-shift_y; n+=oSize.width)
                                   {
                                       ensemble.Ref(Cube(qNode.offset()-oSize.Point3()+Point3i(0,n,1),oSize),tarSide);
                                       rst.Ref(Cube(Point3i(x+nbx+shift_x,y+nby+n+shift_y,t),oSize),canSide);
-                                      score+=metric::Compare(tarSide,canSide,CompareCriteria::COMPARE_CRITERIA_SSIM, oSize, oSize,3, 1, (int)FilterBoundary::FILTER_BOUND_FULL, (int)FeaturePoolType::FEATURE_POOL_MIN, (int)MetricModifier::STSIM2_PART,0,false);
+                                      score=metric::Compare(tarSide,canSide,CompareCriteria::COMPARE_CRITERIA_SSIM, oSize, oSize,3, 1, (int)FilterBoundary::FILTER_BOUND_FULL, (int)FeaturePoolType::FEATURE_POOL_MIN, (int)MetricModifier::STSIM2_PART,0,false);
+                                      if (score<final_score)
+                                        final_score= score;
                                       count++;
                                   }
-                                  score = score/count;//average;
-                                  queue->compareInsert(score,cv::Point3i(x+nbx,y+nby,t));
-                                  if (/*myqueue*/queue->getLength()>candidNum&&candidNum>0)
-                                    /*myqueue*/queue->pop();
+                                  //score = score/count;//average;
+                                  //got the min of all scores
+                                  localqueue[p]->compareInsert(final_score,cv::Point3i(x+nbx,y+nby,t));
+                                  if (localqueue[p]->getLength()>candidNum/pnum&&candidNum>0)
+                                    localqueue[p]->pop();
 //                                  if (has_left && has_up)
 //                                    {
 //                                      mse_diff = 0;
@@ -959,8 +979,15 @@ namespace tensor{
 #endif
      }
 #if PARALLEL_MATCHING
-     for (auto& thread : threads){
+     for (int p=0; p<pnum; p++)
+     {
+       auto& thread = threads[p];
        thread.join();
+       for (int ii=0; ii<localqueue[p]->getLength(); ii++)
+       {
+           queue->compareInsert(localqueue[p]->getData(ii),localqueue[p]->GetAddress(ii));
+       }
+       delete localqueue[p];
      }
 #endif
 
