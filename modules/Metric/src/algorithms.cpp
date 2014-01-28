@@ -423,7 +423,6 @@ namespace metric
     spB.buildSCFpyr(B,nLevel,nDir,1,downsample);//B = ts is candExt
     vector<Tensor<double,2>>& pyrA = spA.getSpaceDomainPyr();
     vector<Tensor<double,2>>& pyrB = spB.getSpaceDomainPyr();
-
     if ( boundary_cut == FilterBoundary::FILTER_BOUND_HALF)//modify Dec 27 2011, not cut half but cut half + boundary
       {
         for (unsigned int i = 0; i< pyrA.size(); i++)
@@ -707,28 +706,28 @@ namespace metric
             C[index].Print("C");
           }
 
-        if (stsim2_modifer==MetricModifier::STSIM2_PART)
-        {
-          if (index>=((nLevel-1)*nDir)&&index<nLevel*nDir)
-          {
+        if (stsim2_modifer!=MetricModifier::STSIM2_PART)
+//        {
+//          if (index>=((nLevel-1)*nDir)&&index<nLevel*nDir)
+//          {
 
-        C01[index] = ComputeCrossTerm(pyrA[index](Cube(0,0,0,sz.height,sz.width-1,sz.depth)),
-            pyrA[index](Cube(0,1,0,sz.height,sz.width-1,sz.depth)),
-            pyrB[index](Cube(0,0,0,sz.height,sz.width-1,sz.depth)),
-            pyrB[index](Cube(0,1,0,sz.height,sz.width-1,sz.depth)),
-            subWinSizeLv-Size3(0,1,0), subWinStepLv);
-       // C01[index].Print();
-        //cout<<"pyrA[idx].size ";pyrA[index].size().Print();
-        //pyrB[index].size().Print();
-        //cout<<"sz ";sz.Print();
-        C10[index] = ComputeCrossTerm(pyrA[index](Cube(0,0,0,sz.height-1,sz.width,sz.depth)),
-            pyrA[index](Cube(1,0,0,sz.height-1,sz.width,sz.depth)),
-            pyrB[index](Cube(0,0,0,sz.height-1,sz.width,sz.depth)),
-            pyrB[index](Cube(1,0,0,sz.height-1,sz.width,sz.depth)),
-            subWinSizeLv-Size3(1,0,0), subWinStepLv);
-          }
-        }
-        else
+//        C01[index] = ComputeCrossTerm(pyrA[index](Cube(0,0,0,sz.height,sz.width-1,sz.depth)),
+//            pyrA[index](Cube(0,1,0,sz.height,sz.width-1,sz.depth)),
+//            pyrB[index](Cube(0,0,0,sz.height,sz.width-1,sz.depth)),
+//            pyrB[index](Cube(0,1,0,sz.height,sz.width-1,sz.depth)),
+//            subWinSizeLv-Size3(0,1,0), subWinStepLv);
+//       // C01[index].Print();
+//        //cout<<"pyrA[idx].size ";pyrA[index].size().Print();
+//        //pyrB[index].size().Print();
+//        //cout<<"sz ";sz.Print();
+//        C10[index] = ComputeCrossTerm(pyrA[index](Cube(0,0,0,sz.height-1,sz.width,sz.depth)),
+//            pyrA[index](Cube(1,0,0,sz.height-1,sz.width,sz.depth)),
+//            pyrB[index](Cube(0,0,0,sz.height-1,sz.width,sz.depth)),
+//            pyrB[index](Cube(1,0,0,sz.height-1,sz.width,sz.depth)),
+//            subWinSizeLv-Size3(1,0,0), subWinStepLv);
+//          }
+//        }
+//        else
         {
             C01[index] = ComputeCrossTerm(pyrA[index](Cube(0,0,0,sz.height,sz.width-1,sz.depth)),
                 pyrA[index](Cube(0,1,0,sz.height,sz.width-1,sz.depth)),
@@ -761,7 +760,8 @@ namespace metric
           }
         else
         {
-          if (stsim2_modifer==MetricModifier::STSIM2_PART&&(index<(nLevel-1)*nDir||index>=nLevel*nDir))
+          //if (stsim2_modifer==MetricModifier::STSIM2_PART&&(index<(nLevel-1)*nDir||index>=nLevel*nDir))
+          if (stsim2_modifer==MetricModifier::STSIM2_PART)
            tempRstMat =  (L[index]*C[index]).Pow(0.5);//change weight for C gj20130120
           else
            tempRstMat=(L[index]*C[index]*C01[index]*C10[index]).Pow(0.25);//change weight for C gj20130120

@@ -2161,7 +2161,7 @@ bool MTC::TexturePrediction(QTree<T,cn>& qNode, int qLevel)
       /* RetrieveFoot(qNode,fLevel);*/
       //cout<<"begin matching....\n";
 
-      vector<pair<cv::Point3i,double> > candRecord = BoundaryMatching(qNode,matching_method,mseThrd,this->subSize);
+      vector<pair<cv::Point3i,double> > candRecord = BoundaryMatching(qNode,matching_method,this->mseThrd,this->subSize);
       vector<cv::Point3i> matchCandid(candRecord.size());
       vector<double> matchScore(candRecord.size());
       for (uint idx=0; idx<candRecord.size(); idx++)

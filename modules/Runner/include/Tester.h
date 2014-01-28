@@ -52,6 +52,8 @@ public:
   void StudyMetricFeatures();
   void TestGranulateTrain();
   void debugBlock(int x, int y, int sz);
+  void TestSpeed(void);
+
 };/*
 
 template <class T> class TestTensor : public testing::Test

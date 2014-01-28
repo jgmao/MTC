@@ -749,11 +749,10 @@ void Metric::studyMetricFeature(string logfilepath)
 {
   ifstream scorefile;
   ofstream outfile;
-  if (logfilepath.empty())
-    scorefile.open("./everything/everything.txt");
-  else
-    scorefile.open(logfilepath);
-  outfile.open("./studymetric3.txt",ios::out);
+  ofstream distfile;
+  scorefile.open(logfilepath);
+  outfile.open("./studymetric_jan27_15.txt",ios::out);
+  distfile.open("./dist_jan27_15.txt",ios::out);
   cout<<"loading scorefile "<<logfilepath<<endl;
   //std::regex rx(searchPattern+"_([^]*)_(\\d+)"+searchExt);
   char temp[1024];
@@ -774,6 +773,10 @@ void Metric::studyMetricFeature(string logfilepath)
   this->featureNum=119+22;
   Mat orgF= Mat::zeros(1,featureNum,CV_64F);
   Mat candF=Mat::zeros(1,featureNum,CV_64F);
+  int tarX,tarY,canX,canY;
+  ifstream test;
+  string tarSize ;
+  bool orggood=true;
   while(scorefile.getline(temp,1024))
   {
     string str(temp);
@@ -787,12 +790,21 @@ void Metric::studyMetricFeature(string logfilepath)
     string pos=res[0];
     string x = res[1];
     string y = res[2];
-    if (prefix.compare("org"))
+    if (prefix.compare("org")&&orggood)
     {
         rx.assign("\\s(\\d+)\\s");
         boost::regex_search(str,res,rx);
         string idx = res[1];
-
+        canX = std::stoi(x);
+        canY = std::stoi(y);
+        int dist = (tarX - canX)*(tarX - canX)+(tarY - canY)*(tarY - canY);
+        distfile<<tarSize<<", "<<dist<<";\n";
+        test.open(this->searchPath+"/"+"cand"+overhead+"_("+x+"_"+y+")_("+idx+").png");
+        if (!test.good())
+        {
+          test.close();
+          continue;
+        }
         cand = Tensor<double,1>(this->searchPath+"/"+"cand"+overhead+"_("+x+"_"+y+")_("+idx+").png");
         //compute features
         Tensor<double,1> temp;
@@ -867,7 +879,23 @@ void Metric::studyMetricFeature(string logfilepath)
         rx.assign("\\s(\\d+)\\s");
         boost::regex_search(str,res,rx);
         string size = res[1];
+        tarSize = res[1];
         overhead="_"+size+"_"+"("+x+"_"+y+")";
+        tarX = std::stoi(x);
+        tarY = std::stoi(y);
+        test.open(this->searchPath+"/"+prefix+overhead+".png");
+        if (test.good())
+        {
+          orggood = true;
+          test.close();
+        }
+        else
+        {
+          orggood = false;
+          test.close();
+          continue;
+        }
+        test.close();
         org = Tensor<double,1>(this->searchPath+"/"+prefix+overhead+".png");
         osize = org.size().height/5;
         bsize = osize*4;
@@ -931,6 +959,7 @@ void Metric::studyMetricFeature(string logfilepath)
   cout<<features.size()<<endl;
   outfile.close();
   scorefile.close();
+  distfile.close();
   //train EM
   cv::TermCriteria termCrit;
   termCrit.maxCount=300;

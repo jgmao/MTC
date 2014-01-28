@@ -622,7 +622,7 @@ void Tester::TestPoisson(void)
 	
 
  }
- 
+
  void Tester::TestDistortion(string fname)
  {
    vector<Tensor<double,1>> all;
@@ -958,4 +958,83 @@ void Tester::debugBlock(int x, int y, int sz)
     }
 
 
+}
+void Tester::TestSpeed(void)
+{
+  Tensor<double,1> im("/home/guoxin/Projects/MTC/data/woman_g.tiff");
+  int K = 10000000; // do 1000 trails
+  Tensor<double,1> blk = im.GetBlock(Cube(13,13,0,16,16,1));
+  Tensor<double,1> can = im.GetBlock(Cube(255,255,0,16,16,1));
+  time_t t;
+  blk.Print();
+  can.Print();
+  Tensor<double,2> A,B;
+  Statistics stat,stat2,stat3;
+  Statistics stat4,stat5,stat6;
+  A = Tensor<double,1>(blk).ToComplex();
+  B = Tensor<double,1>(can).ToComplex();
+
+  t = time(&stat4.beginT);
+
+  for (int i=0;i<K; i++){
+      Vec<double,1> muA = blk.Mean();
+      Vec<double,1> muB = can.Mean();
+  }
+  t = time(&stat4.endT);
+  stat4.duration = double(stat4.endT - stat4.beginT);
+  std::cout<<"Duration for mean "<<int(stat4.duration)/60<<" min, "<<int(stat4.duration)%60<<" second."<<endl;
+
+  t = time(&stat5.beginT);
+
+  for (int i=0;i<K; i++){
+      Vec<double,1> varA = blk.Var();
+      Vec<double,1> varB = can.Var();
+  }
+  t = time(&stat5.endT);
+  stat5.duration = double(stat5.endT - stat5.beginT);
+  std::cout<<"Duration for var "<<int(stat5.duration)/60<<" min, "<<int(stat5.duration)%60<<" second."<<endl;
+
+
+  t = time(&stat6.beginT);
+
+  for (int i=0;i<K; i++){
+      double diff = ComputeMSE(blk,can);
+  }
+  t = time(&stat6.endT);
+  stat6.duration = double(stat6.endT - stat6.beginT);
+  std::cout<<"Duration for mse "<<int(stat6.duration)/60<<" min, "<<int(stat6.duration)%60<<" second."<<endl;
+
+
+
+  t = time(&stat.beginT);
+
+  for (int i=0;i<K; i++){
+  Steerable spA,spB;
+  spA.buildSCFpyr(A, 3,1,1,false);
+  spB.buildSCFpyr(B, 3,1,1,false);
+  //cout<<i<<endl;
+  }
+  t = time(&stat.endT);
+  stat.duration = double(stat.endT - stat.beginT);
+  std::cout<<"Duration for just filtering: "<<int(stat.duration)/60<<" min, "<<int(stat.duration)%60<<" second."<<endl;
+
+  t = time(&stat2.beginT);
+  for (int i=0;i<K;i++)
+  {
+    ComputeSTSIM2(blk,can,Size3(16,16,1),Size3(16,16,1),3,1,false,FilterBoundary::FILTER_BOUND_FULL,FeaturePoolType::FEATURE_POOL_MIN,MetricModifier::STSIM2_NEW_L1,false);
+    //cout<<i<<endl;
+  }
+  t = time(&stat2.endT);
+  stat2.duration = double(stat2.endT - stat2.beginT);
+  std::cout<<"Duration for STSIM2/ : "<<int(stat2.duration)/60<<" min, "<<int(stat2.duration)%60<<" second."<<endl;
+
+  t = time(&stat3.beginT);
+  for (int i=0;i<K;i++)
+  {
+    ComputeSTSIM2(blk,can,Size3(16,16,1),Size3(16,16,1),3,1,false,FilterBoundary::FILTER_BOUND_FULL,FeaturePoolType::FEATURE_POOL_MIN,MetricModifier::STSIM2_PART,false);
+    //cout<<i<<endl;
+  }
+  t = time(&stat3.endT);
+  stat3.duration = double(stat3.endT - stat3.beginT);
+  std::cout<<"Duration for Partial STSIM2/ : "<<int(stat3.duration)/60<<" min, "<<int(stat3.duration)%60<<" second."<<endl;
 }
