@@ -420,11 +420,17 @@ namespace metric
       }
     //A.Print("A");
     //B.Print("B");
+    if (boundary_cut == FilterBoundary::FILTER_BOUND_EXTEND)
+    {
+        A = A.ExtendBoundary(A.size()/2);
+        B = B.ExtendBoundary(B.size()/2);
+    }
     spA.buildSCFpyr(A,nLevel,nDir,1,downsample);//A = this is orgExt
     spB.buildSCFpyr(B,nLevel,nDir,1,downsample);//B = ts is candExt
     vector<Tensor<double,2>>& pyrA = spA.getSpaceDomainPyr();
     vector<Tensor<double,2>>& pyrB = spB.getSpaceDomainPyr();
-    if ( boundary_cut == FilterBoundary::FILTER_BOUND_HALF)//modify Dec 27 2011, not cut half but cut half + boundary
+
+    if ( boundary_cut == FilterBoundary::FILTER_BOUND_HALF|| boundary_cut == FilterBoundary::FILTER_BOUND_EXTEND)//modify Dec 27 2011, not cut half but cut half + boundary
       {
         for (unsigned int i = 0; i< pyrA.size(); i++)
           {
@@ -554,7 +560,7 @@ namespace metric
       Tensor<double,2>(mu_A[index]).Print();
       Tensor<double,2>(mu_B[index]).Print();
     }*/
-        if (stsim2_modifer == MetricModifier::STSIM2_BASELINE||stsim2_modifer==MetricModifier::STSIM2_TUNE)
+        if (stsim2_modifer == MetricModifier::STSIM2_BASELINE||stsim2_modifer==MetricModifier::STSIM2_TUNE||stsim2_modifer==MetricModifier::STSIM2_PART)
         {
           //L[index] = (mu_A[index].Abs() * mu_B[index].Abs() *2 + C0).Real() / (mu_A[index]*mu_A[index].Conjugate() + mu_B[index]*mu_B[index].Conjugate() + C0).Real();
           L[index] = ((mu_A[index] * mu_B[index]).Abs() *2 + C0).Real() / (mu_A[index].Square() + mu_B[index].Square() + C0).Real();
@@ -563,7 +569,7 @@ namespace metric
               L[index].Print("L");
           }
         }
-        else if (stsim2_modifer == MetricModifier::STSIM2_NEW_L1 ||stsim2_modifer==MetricModifier::STSIM2_PART)
+        else if (stsim2_modifer == MetricModifier::STSIM2_NEW_L1)
           {
 
             double clipThrd = (mu_A[index].Abs().Sum()/double(mu_A[index].size().volumn()))[0]*0.1;
@@ -880,6 +886,7 @@ namespace metric
 
         // turn off cross band, so set rstMat
         //rstMat = rstMatBackup; // Dec28 2012, turn off cross band
+        rstMat = rstMatBackup/double(pyrA.size()); // 20140130 turn off cross band
 
         //  rstMat = rstMat/double(pyrA.size());
         //pooling STSIM terms

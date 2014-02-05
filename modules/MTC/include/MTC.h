@@ -156,7 +156,7 @@ public:
   cv::Mat iMahaCovar;
   //list<FootItem> FootTable;
   std::mutex foot_lock;
-	std::map<Point3i,FootItem,ComparePoint3i> FootTable;
+        std::map<Point3i,FootItem,ComparePoint3i> FootTable;
   int fLevel;
   struct Option
 	{

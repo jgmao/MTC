@@ -222,11 +222,11 @@ def gotopage(request,list,pno):
 def show_result(request):
     item_per_page =1
     os.chdir(settings.ROOT_DIR+"../../everything")
-    g= glob.glob("*rst*.bmp")
+    g= glob.glob("*seam*.png")
     results = [None] * (len(g))
     print len(results)
     for r in g:
-       print re.findall(r'^rst_(\d+)',r)[0]
-       results[ int(re.findall(r'^rst_(\d+)',r)[0])] = "everything/"+ r
+       print re.findall(r'^seam_rst_(\d+)',r)[0]
+       results[ int(re.findall(r'^seam_rst_(\d+)',r)[0])] = "everything/"+ r
     file = getpage(request,results,item_per_page)
     return render(request,'Matching/result.html',{'file':file})

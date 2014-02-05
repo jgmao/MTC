@@ -58,11 +58,11 @@ namespace tensor{
   //typedef uchar uchar;
   #ifndef DEBUG_SYMBOL
   #define DEBUG_SYMBOL
-  #define DEBUG_X 848//27*32
-  #define DEBUG_Y 176//
+  #define DEBUG_X 160
+  #define DEBUG_Y 256 //-32//
   #define DEBUG_DISP_X -128
   #define DEBUG_DISP_Y 0
-  #define DEBUG_SIZE 16
+  #define DEBUG_SIZE 32
   /*extern int DEBUG_X ;
   extern int DEBUG_Y;
   extern int DEBUG_DISP_X;
@@ -74,9 +74,9 @@ namespace tensor{
 //#define USE_GPU
 #endif
 
-#define PARALLEL_MATCHING   1
-#define PARALLEL_METRIC     1
-
+#define PARALLEL_MATCHING   0
+#define PARALLEL_METRIC     0
+#define OUTPUT_THRDFILE     1
 #ifdef WIN32
 #define EXPORTLIB __declspec(dllexport)
 #else
@@ -235,7 +235,7 @@ enum class BlendingLocation : int { FORWARD_BLENDING, POST_BLENDING_RIGHT, POST_
 
 #ifndef SIDE_MATCHING_METHOD
 #define SIDE_MATCHING_METHOD
-enum class MatchingMethod : int { MATCHING_MSE, MATCHING_SAT, MATCHING_VAR, MATCHING_SAD, MATCHING_MSE_CONSTRAINT,MATCHING_HIERARCHY, MATCHING_DIRECT, MATCHING_OPENCV, MATCHING_STSIM, MATCHING_STSIM_PART, MATCHING_UNDEF};
+enum class MatchingMethod : int { MATCHING_MSE, MATCHING_SAT, MATCHING_VAR, MATCHING_SAD, MATCHING_MSE_CONSTRAINT,MATCHING_HIERARCHY,MATCHING_STAT, MATCHING_DIRECT, MATCHING_OPENCV, MATCHING_STSIM, MATCHING_STSIM_PART, MATCHING_UNDEF};
 #endif
 //!20131010 disable this since STSIM2 do not have power to detect lighint erro
 #define SUBSTRACT_BOUND_MEAN 0 //substract mean when do matching

@@ -185,7 +185,7 @@ namespace tensor{
     Size3 searchRegion = rst.size() - qNode.size() - qNode.overlap()*3 + Size3(1,1,1);
     //Size3 searchRegion = rst.size() - qNode.size() - qNode.overlap()*2+ Size3(1,1,1);//20130604 changed , not necessary such big gap?????
     // for limited search region, change here
-    double ratio = 5;//20140128
+    double ratio = 3;//20140128 from 5-->3
     int offsetUp = qNode.offset().x - int(ratio*double(qNode.size().height));
     offsetUp > 1 ? offsetUp = offsetUp: offsetUp=1;
     int offsetLeft = qNode.offset().y - int(ratio*double(qNode.size().width));
@@ -194,7 +194,7 @@ namespace tensor{
     offsetRight>searchRegion.width-1?offsetRight = searchRegion.width-1:offsetRight = offsetRight;
     int offsetDown = qNode.offset().x + int(2*double(qNode.size().height));
     offsetDown>searchRegion.height-1?offsetDown = searchRegion.height-1:offsetDown  = offsetDown;
-    LinkStruct* queue;
+    LinkArray* queue;
     //if (candidNum>0)
     //  queue = new LinkQueue(candidNum);
     //LinkQueue queue(candidNum);//gj15012013  set possibility of dynamic number of candidate
@@ -704,18 +704,19 @@ namespace tensor{
           }
         //filter again the invalid candidate
       }
-    else if (matching_method == MatchingMethod::MATCHING_HIERARCHY)
+      else if (matching_method == MatchingMethod::MATCHING_STAT)
       {
-    //    Tensor<T,cn> T_left,B_left;
-    //    Tensor<T,cn> T_up, B_up;
+        Tensor<T,cn> T_left,B_left;
+        Tensor<T,cn> T_up, B_up;
         Tensor<T,cn> TT(Size3(qNode.size().height*2+qNode.overlap().height,qNode.overlap().width,1));
 #if !PARALLEL_MATCHING
         Tensor<T,cn> VV(Size3(qNode.size().height*2+qNode.overlap().height,qNode.overlap().width,1));
         Tensor<T,cn> candLeftLocal,candUpLocal;
 #endif
-    //    double var_blk,var_tag;
-    //    bool has_left=false, has_up=false;
-    //    double var_tag_left=-1,var_tag_up=-1, var_blk_left=-1, var_blk_up=-1;
+        double var_blk,var_tag;
+        bool has_left=false, has_up=false;
+        double diff_up=1000, diff_left=1000;
+        double var_tar_left=-1,var_tar_up=-1, var_blk_left=-1, var_blk_up=-1;
         Size3 oSize(max(qNode.overlap().height,subWinSize.height),max(qNode.overlap().width,subWinSize.width),1);
         if (offsetUp + qNode.overlap().height-oSize.height<0)
           offsetUp += oSize.height-qNode.overlap().height;
@@ -733,23 +734,24 @@ namespace tensor{
         //Mt = TT.Mean();
         double Vt = TT.Var()[0];
         int t=0;
-//        Vec<T,cn> muT,muB;
-//        Tensor<T,cn> T_left_norm, T_up_norm, B_up_norm,B_left_norm;
+        Vec<T,cn> muT,muB;
+        ofstream thrdfile("./thrdfile.txt",std::ios::out|std::ios::app);
+        Tensor<T,cn> T_left_norm, T_up_norm, B_up_norm,B_left_norm;
 //        if (qNode.offset().x > 0  && qNode.offset().y>0)
-//          {
-//            T_up =  qNode.upBound.Crop(Point3i(0,qNode.overlap().width,0),qNode.upBound.size()-Size3(0,qNode.overlap().width,0));
-//            T_left = 	 qNode.leftBound.Clone();
+        {
+            T_up =  qNode.upBound.Clone();// qNode.upBound.Crop(Point3i(0,qNode.overlap().width,0),qNode.upBound.size()-Size3(0,qNode.overlap().width,0));
+            T_left = 	 qNode.leftBound.Clone();
 //            TT.SetBlock(T_left.Transpose());
 //            TT.SetBlock(Point3i(0,T_left.size().width,0),T_up);
 //            var_tag = TT.Var()[0];
-//            var_tag_left = T_left.Var()[0];
-//            var_tag_up = T_up.Var()[0];
-//            has_left = true;
-//            has_up = true;
-//            muT = TT.Mean();
-//            T_up_norm = T_up-muT;
-//            T_left_norm = T_left-muT;
-//          }
+            var_tar_left = T_left.Var()[0];
+            var_tar_up = T_up.Var()[0];
+            //has_left = true;
+           // has_up = true;
+           // muT = TT.Mean();
+           // T_up_norm = T_up-muT;
+           // T_left_norm = T_left-muT;
+         }
 //        else if (qNode.offset().x ==0&&qNode.offset().y>0) //only have left
 //          {
 //            T_left = qNode.leftBound.Crop(Point3i(qNode.overlap().height,0,0),qNode.leftBound.size()-Size3(qNode.overlap().height,0,0));
@@ -811,34 +813,51 @@ namespace tensor{
                     diff=0;
                     N=0;
                     //20140127 use varratio
-                    rst.Ref(Cube(Point3i(x,y,t),qNode.leftBound.size()),candLeftLocal);
-                    rst.Ref(Cube(Point3i(x,y+qNode.overlap().width,t),qNode.upBound.size()-Size3(0,qNode.overlap().width,0)),candUpLocal);
+                    rst.Ref(Cube(Point3i(x,y,t),qNode.leftBound.size()),B_left);//candLeftLocal);
+                    //rst.Ref(Cube(Point3i(x,y+qNode.overlap().width,t),qNode.upBound.size()-Size3(0,qNode.overlap().width,0)),candUpLocal);
+                    rst.Ref(Cube(Point3i(x,y,t),qNode.upBound.size()),B_up);//candUpLocal);
+
                     //VV.SetBlock(candUpLocal.Transpose());
                     //VV.SetBlock(Point3i(tarUp.size().width,0,0),candLeftLocal);
                     //get local variance
-                    Tensor<T,cn> tempblk;
-                    rst.Ref(Cube(Point3i(x,y,t),qNode.size()+qNode.overlap()),tempblk);
+                    //Tensor<T,cn> tempblk;
+                    //rst.Ref(Cube(Point3i(x,y,t),qNode.size()+qNode.overlap()),tempblk);
                     //double Vb = VV.Var()[0];
-                    double Vb = tempblk.Var()[0];//local variance is close to target side variance
-                    double delta = abs(1-Vb/Vt);
+                    //double Vb = tempblk.Var()[0];//local variance is close to target side variance
+                    //double delta = abs(1-Vb/Vt);
                     //clip
-                    double delta_thrd = 20;//10*log10(100);
-                    delta > delta_thrd? delta = 1 : delta=delta/delta_thrd;
+                   // double delta_thrd = 20;//10*log10(100);
+                    //delta > delta_thrd? delta = 1 : delta=delta/delta_thrd;
                     //double delta = abs(Vb - Vt);
                     //cout<<"delta is "<<delta<<endl;
 //                    if (has_left && has_up)
-//                      {
+                      {
 //                        rst.Ref(Cube(Point3i(x,y+qNode.overlap().width,0),qNode.upBound.size()-Size3(0,qNode.overlap().width,0)),B_up);
 //                        rst.Ref(Cube(Point3i(x,y,0),qNode.leftBound.size()),B_left);
 //                        VV.SetBlock(B_left.Transpose());
 //                        VV.SetBlock(Point3i(0,T_left.size().width,0),B_up);
 //                        var_blk = VV.Var()[0];
-//                        var_blk_up= B_up.Var()[0];
-//                        var_blk_left = B_left.Var()[0];
+                          var_blk_up= B_up.Var()[0];
+                          var_blk_left = B_left.Var()[0];
+                          //muB_up = B_up.Mean();
+                         // muB_left = B_left.Mean();
 //                        muB = VV.Mean();
-//                        B_up_norm=B_up-muB;
-//                        B_left_norm = B_left - muB;
-//                      }
+                         // B_up_norm=B_up-muB_up;
+                         // B_left_norm = B_left - muB_left;
+                          //diff_up = abs(var_blk_up - var_tar_up);
+                          //diff_left = abs(var_blk_left-var_tar_left);
+                          diff_up = (var_blk_up < var_tar_up)?abs(1-var_blk_up/var_tar_up):abs(1-var_tar_up/var_blk_up);
+                          diff_left = (var_blk_left<var_tar_left)? abs(1-var_blk_left/var_tar_left):abs(1-var_tar_left/var_blk_left);
+                          //for the small variance, I want to make the diff less sensitive 20140130
+                          double adj_left = log10(var_tar_left);
+                          double adj_up = log10(var_tar_up);
+                          adj_left *= adj_left;
+                          adj_left = (adj_left>1)?1:adj_left;
+                          adj_up *= adj_up;
+                          adj_up = (adj_up>1)?1:adj_up;
+                          diff_up*=adj_up;
+                          diff_left*=adj_left;
+                      }
 //                    else if (has_left)
 //                      {
 //                        rst.Ref(Cube(Point3i(x+qNode.overlap().height,y,0),qNode.leftBound.size()-Size3(qNode.overlap().height,0,0)),B_left);
@@ -873,27 +892,30 @@ namespace tensor{
 //                            diff_up = abs(log10((var_blk_up-var_tag_up)/var_tag_up));
 //                    }
                     //cout<<diff_left<<","<<diff_up<<endl;
-                    if (delta<=varThrd1) //20140127 first trim (coarest) discard large var ratio
-                    //if (diff_left < varThrd1  && diff_up < varThrd1 ) //varThrd1) //change thred, Nov 10, 2012
+                    //if (delta<=varThrd1) //20140127 first trim (coarest) discard large var ratio
+                    if (true) //varThrd1) //change thred, Nov 10, 2012
                     {//gj01132013 change threahold from 0.5 to 0.2, gj01142013, change thred co
                         //varqueue->compareInsert(diff,cv::Point3i(x,y,t));
                         //varList.push_back(cv::Point3i(x,y,t));
                         //round 2, search for nbs
 
-
-                        for (int nbx=-searchStep.height/2; nbx<= searchStep.height/2; nbx+=1) //change from < to <=, Nov 10,2012
-                          for (int nby=-searchStep.width/2; nby<= searchStep.width/2; nby+=1)
-                            {
+                        int nbx = 0;
+                        int nby = 0;
+                        {
                               if (x+nbx<offsetUp||x+nbx>offsetDown||y+nby<offsetLeft||y+nby>offsetRight) //20131227, make sure searching in neighborhood do not voilate search range constrain
                                 continue;
                               if (x+nbx<offsetUp+p*brows||x+nbx>=offsetUp+(p+1)*brows) //no duplicate search in different threads
                                 continue;
                               if (IsInsideCausalRegion(cv::Point3i(nbx+x,nby+y,0),qNode,3))
                                 {
-                                  double mse = metric::ComputeMSE(VV,TT);
-                                  mse /= 65025; //normalize
-                                  if (mse>matching_thrd) //2nd trim: discard large side mse candidate
-                                    continue;
+                                  thrdfile<<qNode.offset().x<<","<<qNode.offset().y<<","<<x<<","<<y<<","<<var_tar_left<<","<<var_tar_up<<","<<var_blk_left<<","<<var_blk_up<<","<< diff_left <<","<<diff_up<<",";
+
+                                  rst.Ref(Cube(Point3i(x+nbx,y+nby,t),qNode.leftBound.size()),B_left);//candLeftLocal);
+                                  rst.Ref(Cube(Point3i(x+nbx,y+nby,t),qNode.upBound.size()),B_up);//candUpLocal);
+                                  double mse_up = metric::ComputeMSE(T_up,B_up);
+                                  double mse_left = metric::ComputeMSE(T_left,B_left);//metric::ComputeMSE(VV,TT);
+                                  //mse /= 65025; //normalize
+                                  thrdfile<<mse_left<<","<<mse_up<<",";
                                   N=0;
                                   double score=0;
                                   double final_score=1;
@@ -918,6 +940,13 @@ namespace tensor{
                                   }
                                   //score = score/count;//average;
                                   //got the min of all scores
+                                  thrdfile<< score<<",";
+                                  Tensor<T,cn> cand;
+                                  Tensor<T,cn> org;
+                                  ensemble.Ref(Cube(qNode.offset(),qNode.size()),org);
+                                  rst.Ref(Cube(Point3i(x+nbx+qNode.overlap().height, y+nby+qNode.overlap().width,0),qNode.size()),cand);  
+                                  double temp = metric::Compare(org,cand,CompareCriteria::COMPARE_CRITERIA_SSIM,Size3(16,16,1), Size3(16,16,1),3,4,(int)FilterBoundary::FILTER_BOUND_EXTEND/*true*/,(int)FeaturePoolType::FEATURE_POOL_MIN,(int)MetricModifier::STSIM2_BASELINE,0,false);
+                                  thrdfile<<temp<<endl;                  
                                   localqueue[p]->compareInsert(final_score,cv::Point3i(x+nbx,y+nby,t));
                                   if (localqueue[p]->getLength()>candidNum/pnum&&candidNum>0)
                                     localqueue[p]->pop();
@@ -990,7 +1019,338 @@ namespace tensor{
        delete localqueue[p];
      }
 #endif
+     #if     OUTPUT_THRDFILE
+        thrdfile.close();
+#endif
+   }
 
+    else if (matching_method == MatchingMethod::MATCHING_HIERARCHY)
+      {
+        Tensor<T,cn> T_left,B_left;
+        Tensor<T,cn> T_up, B_up;
+        Tensor<T,cn> TT(Size3(qNode.size().height*2+qNode.overlap().height,qNode.overlap().width,1));
+#if !PARALLEL_MATCHING
+        Tensor<T,cn> VV(Size3(qNode.size().height*2+qNode.overlap().height,qNode.overlap().width,1));
+        Tensor<T,cn> candLeftLocal,candUpLocal;
+#endif
+        double var_blk,var_tag;
+        bool has_left=false, has_up=false;
+        double diff_up=1000, diff_left=1000;
+        double var_tar_left=-1,var_tar_up=-1, var_blk_left=-1, var_blk_up=-1;
+        Size3 oSize(max(qNode.overlap().height,subWinSize.height),max(qNode.overlap().width,subWinSize.width),1);
+        if (offsetUp + qNode.overlap().height-oSize.height<0)
+          offsetUp += oSize.height-qNode.overlap().height;
+        if (offsetLeft+qNode.overlap().width -oSize.width<0)
+          offsetLeft += oSize.width-qNode.overlap().width;
+        int shift_x = 0;
+        int shift_y = 0;
+        if (qNode.overlap().height<subWinSize.height)
+          shift_x = qNode.overlap().height-oSize.height;
+        if (qNode.overlap().width<subWinSize.width)
+          shift_y = qNode.overlap().width-oSize.width;
+
+        TT.SetBlock(tarUp.Transpose());
+        TT.SetBlock(Point3i(tarUp.size().width,0,0),tarLeft);
+        //Mt = TT.Mean();
+        double Vt = TT.Var()[0];
+        int t=0;
+        Vec<T,cn> muT,muB;
+#if     OUTPUT_THRDFILE
+        ofstream thrdfile("./thrdfile.txt",std::ios::out|std::ios::app);
+#endif
+        Tensor<T,cn> T_left_norm, T_up_norm, B_up_norm,B_left_norm;
+//        if (qNode.offset().x > 0  && qNode.offset().y>0)
+        {
+            T_up =  qNode.upBound.Clone();// qNode.upBound.Crop(Point3i(0,qNode.overlap().width,0),qNode.upBound.size()-Size3(0,qNode.overlap().width,0));
+            T_left = 	 qNode.leftBound.Clone();
+//            TT.SetBlock(T_left.Transpose());
+//            TT.SetBlock(Point3i(0,T_left.size().width,0),T_up);
+//            var_tag = TT.Var()[0];
+            var_tar_left = T_left.Var()[0];
+            var_tar_up = T_up.Var()[0];
+            //has_left = true;
+           // has_up = true;
+           // muT = TT.Mean();
+           // T_up_norm = T_up-muT;
+           // T_left_norm = T_left-muT;
+#if     OUTPUT_THRDFILE
+           thrdfile << "org: "<<qNode.offset().x<<","<<qNode.offset().y<<"var: left "<<var_tar_left<<", up "<<var_tar_up<<"----------------------------"<<endl;
+#endif
+         }
+//        else if (qNode.offset().x ==0&&qNode.offset().y>0) //only have left
+//          {
+//            T_left = qNode.leftBound.Crop(Point3i(qNode.overlap().height,0,0),qNode.leftBound.size()-Size3(qNode.overlap().height,0,0));
+//            var_tag = T_left.Var()[0];
+//            muT = T_left.Mean();
+//            var_tag_left = var_tag;
+//            has_left = true;
+//            T_left_norm = T_left-muT;
+//          }
+//        else if (qNode.offset().x>0&&qNode.offset().y==0) // only have up
+//          {
+//            T_up = qNode.upBound.Crop(Point3i(0,qNode.overlap().width,0),qNode.upBound.size()-Size3(0,qNode.overlap().width,0));
+//            var_tag = T_up.Var()[0];
+//            var_tag_up = var_tag;
+//            has_up = true;
+//            muT = T_up.Mean();
+//            T_up_norm=T_up-muT;
+//          }
+//        else
+//          {
+//            CV_Error(CV_StsNotImplemented,"no boundary for matching");
+//            return sideMatchAddr;
+//          }
+        //cv::Mat gaussKernel = mylib::GenGaussKer(3,double(3)/6.0,CV_64F);
+        //Tensor<T,cn> T0_low=T0.Filter2D(gaussKernel,FILTER_BOUND_VALID);
+        //Tensor<T,cn> T1_low=T1.Filter2D(gaussKernel,FILTER_BOUND_VALID);
+        //Tensor<T,cn> T0_Lap=T0.Laplacian();
+        //Tensor<T,cn> T1_Lap=T1.Laplacian();
+        //Tensor<T,cn> filterBD,lowBD;
+
+#if PARALLEL_MATCHING
+        int pnum = 4;
+        vector<thread> threads;
+#else
+        Tensor<T,cn> tarSide(oSize);
+        Tensor<T,cn> canSide(oSize);
+        int pnum =1;// thread::hardware_concurrency();
+#endif
+        vector<LinkArray*> localqueue(pnum);
+        int brows = (offsetDown - offsetUp)/searchStep.height/pnum;
+        for (int p=0; p<pnum; p++)
+        {
+#if PARALLEL_MATCHING
+
+          threads.push_back(thread([&](int p, int t){
+          Tensor<T,cn> tarSide(oSize);
+          Tensor<T,cn> canSide(oSize);
+          Tensor<T,cn> VV(Size3(qNode.size().height*2+qNode.overlap().height,qNode.overlap().width,1));
+          Tensor<T,cn> candLeftLocal,candUpLocal;
+          localqueue[p] = new LinkArray();
+#else
+          localqueue[p] = queue;
+#endif
+          for (int x=offsetUp+p*brows; x< min(offsetDown,offsetUp+(p+1)*brows); x+=searchStep.height)
+            for (int y=offsetLeft; y< offsetRight; y+=searchStep.width)
+              {
+                if (IsInsideCausalRegion(cv::Point3i(x,y,0),qNode,3))
+                  {
+                    diff=0;
+                    N=0;
+                    //20140127 use varratio
+                    rst.Ref(Cube(Point3i(x,y,t),qNode.leftBound.size()),B_left);//candLeftLocal);
+                    //rst.Ref(Cube(Point3i(x,y+qNode.overlap().width,t),qNode.upBound.size()-Size3(0,qNode.overlap().width,0)),candUpLocal);
+                    rst.Ref(Cube(Point3i(x,y,t),qNode.upBound.size()),B_up);//candUpLocal);
+
+                    //VV.SetBlock(candUpLocal.Transpose());
+                    //VV.SetBlock(Point3i(tarUp.size().width,0,0),candLeftLocal);
+                    //get local variance
+                    //Tensor<T,cn> tempblk;
+                    //rst.Ref(Cube(Point3i(x,y,t),qNode.size()+qNode.overlap()),tempblk);
+                    //double Vb = VV.Var()[0];
+                    //double Vb = tempblk.Var()[0];//local variance is close to target side variance
+                    //double delta = abs(1-Vb/Vt);
+                    //clip
+                   // double delta_thrd = 20;//10*log10(100);
+                    //delta > delta_thrd? delta = 1 : delta=delta/delta_thrd;
+                    //double delta = abs(Vb - Vt);
+                    //cout<<"delta is "<<delta<<endl;
+//                    if (has_left && has_up)
+                      {
+//                        rst.Ref(Cube(Point3i(x,y+qNode.overlap().width,0),qNode.upBound.size()-Size3(0,qNode.overlap().width,0)),B_up);
+//                        rst.Ref(Cube(Point3i(x,y,0),qNode.leftBound.size()),B_left);
+//                        VV.SetBlock(B_left.Transpose());
+//                        VV.SetBlock(Point3i(0,T_left.size().width,0),B_up);
+//                        var_blk = VV.Var()[0];
+                          var_blk_up= B_up.Var()[0];
+                          var_blk_left = B_left.Var()[0];
+                          //muB_up = B_up.Mean();
+                         // muB_left = B_left.Mean();
+//                        muB = VV.Mean();
+                         // B_up_norm=B_up-muB_up;
+                         // B_left_norm = B_left - muB_left;
+                          //diff_up = abs(var_blk_up - var_tar_up);
+                          //diff_left = abs(var_blk_left-var_tar_left);
+                          diff_up = (var_blk_up < var_tar_up)?abs(1-var_blk_up/var_tar_up):abs(1-var_tar_up/var_blk_up);
+                          diff_left = (var_blk_left<var_tar_left)? abs(1-var_blk_left/var_tar_left):abs(1-var_tar_left/var_blk_left);
+                          //for the small variance, I want to make the diff less sensitive 20140130
+                          double adj_left = log10(var_tar_left);
+                          double adj_up = log10(var_tar_up);
+                          adj_left *= adj_left;
+                          adj_left = (adj_left>1)?1:adj_left;
+                          adj_up *= adj_up;
+                          adj_up = (adj_up>1)?1:adj_up;
+                          diff_up*=adj_up;
+                          diff_left*=adj_left;
+#if     OUTPUT_THRDFILE
+                          thrdfile<<"-- can: "<<x<<", "<<y<<"var: "<<var_blk_left<<", "<<var_blk_up<<" -- layer1: "<< diff_left <<", "<<diff_up<<endl;
+#endif
+                      }
+//                    else if (has_left)
+//                      {
+//                        rst.Ref(Cube(Point3i(x+qNode.overlap().height,y,0),qNode.leftBound.size()-Size3(qNode.overlap().height,0,0)),B_left);
+//                        var_blk = B_left.Var()[0];
+//                        var_blk_left = var_blk;
+//                        muB =B_left.Mean();
+//                        B_left_norm = B_left - muB;
+//                      }
+//                    else if (has_up)
+//                      {
+//                        rst.Ref(Cube(Point3i(x,y+qNode.overlap().width,0),qNode.upBound.size()-Size3(0,qNode.overlap().width,0)),B_up);
+//                        var_blk = B_up.Var()[0];
+//                        var_blk_up = var_blk;
+//                        muB = B_up.Mean();
+//                        B_up_norm = B_up - muB;
+//                      }
+//                    //diff = abs(var_blk-var_tag);
+//                    //diff = abs(log10(var_blk/var_tag));//change to this, Nov 10, 2012
+//                    double diff_left=0,diff_up=0;
+//                    if (has_left)
+//                    {
+//                        if (abs(var_blk_left-var_tag_left)<0.1)
+//                            diff_left =0;
+//                        else
+//                            diff_left = abs(log10((var_blk_left-var_tag_left)/var_tag_left));
+//                    }
+//                    if (has_up)
+//                    {
+//                        if (abs(var_blk_up-var_tag_up)<0.1)
+//                            diff_left = 0;
+//                        else
+//                            diff_up = abs(log10((var_blk_up-var_tag_up)/var_tag_up));
+//                    }
+                    //cout<<diff_left<<","<<diff_up<<endl;
+                    //if (delta<=varThrd1) //20140127 first trim (coarest) discard large var ratio
+                    if (diff_left < varThrd1  && diff_up < varThrd1 ) //varThrd1) //change thred, Nov 10, 2012
+                    {//gj01132013 change threahold from 0.5 to 0.2, gj01142013, change thred co
+                        //varqueue->compareInsert(diff,cv::Point3i(x,y,t));
+                        //varList.push_back(cv::Point3i(x,y,t));
+                        //round 2, search for nbs
+
+
+                        for (int nbx=-searchStep.height/2; nbx< searchStep.height/2; nbx+=1) //change from < to <=, Nov 10,2012, wrong ! 20140130
+                          for (int nby=-searchStep.width/2; nby< searchStep.width/2; nby+=1)
+                            {
+                              if (x+nbx<offsetUp||x+nbx>offsetDown||y+nby<offsetLeft||y+nby>offsetRight) //20131227, make sure searching in neighborhood do not voilate search range constrain
+                                continue;
+                              if (x+nbx<offsetUp+p*brows||x+nbx>=offsetUp+(p+1)*brows) //no duplicate search in different threads
+                                continue;
+                              if (IsInsideCausalRegion(cv::Point3i(nbx+x,nby+y,0),qNode,3))
+                                {
+                                  rst.Ref(Cube(Point3i(x+nbx,y+nby,t),qNode.leftBound.size()),B_left);//candLeftLocal);
+                                  rst.Ref(Cube(Point3i(x+nbx,y+nby,t),qNode.upBound.size()),B_up);//candUpLocal);
+                                  double mse_up = metric::ComputeMSE(T_up,B_up);
+                                  double mse_left = metric::ComputeMSE(T_left,B_left);//metric::ComputeMSE(VV,TT);
+                                  //mse /= 65025; //normalize
+                                  #if     OUTPUT_THRDFILE
+                                  thrdfile<<"---layer 2:"<<mse_left<<", "<<mse_up<<endl;
+                                   #endif
+                                  if (mse_left>matching_thrd&&mse_up>matching_thrd) //2nd trim: discard large side mse candidate
+                                    continue;
+                                  N=0;
+                                  double score=0;
+                                  double final_score=1;
+                                  int count=0;
+                                  for (int m = 0; m<qNode.leftBound.size().height-shift_x; m+=oSize.height)
+                                  {
+                                    ensemble.Ref(Cube(qNode.offset()-oSize.Point3()+Point3i(m,0,1),oSize),tarSide);
+                                    rst.Ref(Cube(Point3i(x+nbx+m+shift_x,y+nby+shift_y,t),oSize),canSide);
+                                    score=metric::Compare(tarSide,canSide,CompareCriteria::COMPARE_CRITERIA_SSIM, oSize,oSize, 3, 1, (int)FilterBoundary::FILTER_BOUND_FULL, (int)FeaturePoolType::FEATURE_POOL_MIN, (int)MetricModifier::STSIM2_PART,0,false);
+                                    if (score<final_score)
+                                      final_score= score;
+                                    count++;
+                                  }
+                                  for (int n = oSize.width; n<qNode.upBound.size().width-shift_y; n+=oSize.width)
+                                  {
+                                      ensemble.Ref(Cube(qNode.offset()-oSize.Point3()+Point3i(0,n,1),oSize),tarSide);
+                                      rst.Ref(Cube(Point3i(x+nbx+shift_x,y+nby+n+shift_y,t),oSize),canSide);
+                                      score=metric::Compare(tarSide,canSide,CompareCriteria::COMPARE_CRITERIA_SSIM, oSize, oSize,3, 1, (int)FilterBoundary::FILTER_BOUND_FULL, (int)FeaturePoolType::FEATURE_POOL_MIN, (int)MetricModifier::STSIM2_PART,0,false);
+                                      if (score<final_score)
+                                        final_score= score;
+                                      count++;
+                                  }
+                                  //score = score/count;//average;
+                                  //got the min of all scores
+                                  #if     OUTPUT_THRDFILE
+                                  thrdfile<<"---layer 3:"<<x+nbx<<", "<<y+nby<<" score: "<< score<<endl;
+                                  if (qNode.offset().x == DEBUG_X && qNode.offset().y==DEBUG_Y&&x+nbx==18 && y+nby==292)
+                                    cout<<"x,y "<<x<<", "<<y<<endl;
+                                  #endif
+                                  localqueue[p]->compareInsert(final_score,cv::Point3i(x+nbx,y+nby,t));
+                                  if (localqueue[p]->getLength()>candidNum/pnum&&candidNum>0)
+                                    localqueue[p]->pop();
+//                                  if (has_left && has_up)
+//                                    {
+//                                      mse_diff = 0;
+//                                      rst.Ref(Cube(Point3i(x+nbx,y+nby+qNode.overlap().width,0),qNode.upBound.size()-Size3(0,qNode.overlap().width,0)),B_up);
+//                                      rst.Ref(Cube(Point3i(x+nbx,y+nby,0),qNode.leftBound.size()),B_left);
+//#if DEBUG_20131226
+//                                      B_up.Print();
+//                                      B_left.Print();
+//#endif
+//                                      double diff_up =   metric::Compare(T_up,B_up,CompareCriteria::COMPARE_CRITERIA_MSE);
+//                                      double diff_left = metric::Compare(T_left,B_left,CompareCriteria::COMPARE_CRITERIA_MSE);
+//                                      //Compare normalize the value, it's not correct
+//                                      //so fix it
+//                                      diff_up*=(double)T_up.size().area();
+//                                      diff_left*=(double)T_left.size().area();
+//                                      mse_diff = diff_up+diff_left;
+//                                      N+= T_up.size().volumn();
+//                                      N+= T_left.size().volumn();
+//                                    }
+//                                  else if (has_left)
+//                                    {
+//                                      mse_diff = 0;
+//                                      rst.Ref(Cube(Point3i(x+nbx+qNode.overlap().height,y+nby,0),qNode.leftBound.size()-Size3(qNode.overlap().height,0,0)),B_left);
+//                                      mse_diff+= metric::Compare(T_left_norm, B_left_norm,CompareCriteria::COMPARE_CRITERIA_MSE);
+//                                      N+= T_left.size().volumn();
+//                                    }
+//                                  else if (has_up)
+//                                    {
+//                                      mse_diff=0;
+//                                      rst.Ref(Cube(Point3i(x+nbx,y+nby+qNode.overlap().width,0),qNode.upBound.size()-Size3(0,qNode.overlap().width,0)),B_up);
+//                                      mse_diff+= metric::Compare(T_up_norm,B_up_norm,CompareCriteria::COMPARE_CRITERIA_MSE);
+//                                      N+= T_up.size().volumn();
+//                                    }
+//                                  mse_diff/=double(N);
+//#if DEBUG_20131226
+//                                  cout<<x+nbx<<","<<y+nby<<endl;
+//                                  cout<<mse_diff<<endl;
+//                                  T_up.Print();
+//                                  T_left.Print();
+//#endif
+//                                  mse_diff/=65025;//normalize 255^2
+//#if DEBUG_20131226
+//                                  cout<<mse_diff<<endl;
+//#endif
+//                                  if (mse_diff<=matching_thrd)
+//                                    queue->compareInsert(-mse_diff,Point3i(x+nbx,y+nby,0));
+//                                  if (queue->getLength()>candidNum&&candidNum>0)
+//                                    queue->pop();
+                                }
+                            }
+                      }
+                  }
+              }
+#if PARALLEL_MATCHING
+       },p,t));
+#endif
+     }
+#if PARALLEL_MATCHING
+     for (int p=0; p<pnum; p++)
+     {
+       auto& thread = threads[p];
+       thread.join();
+       for (int ii=0; ii<localqueue[p]->getLength(); ii++)
+       {
+           queue->compareInsert(localqueue[p]->getData(ii),localqueue[p]->GetAddress(ii));
+       }
+       delete localqueue[p];
+     }
+#endif
+     #if     OUTPUT_THRDFILE
+        thrdfile.close();
+#endif
    }
    else if (matching_method==MatchingMethod::MATCHING_STSIM)
    {

@@ -1,4 +1,4 @@
-#define  _CRT_SECURE_NO_WARNINGS
+﻿#define  _CRT_SECURE_NO_WARNINGS
 #define SQL_NOUNICODEMAP
 //#include <Windows.h>
 #ifdef WIN32
@@ -185,6 +185,10 @@ namespace mtc  {
         mylib::DisplayMat(this->iMahaCovar);
       }
     this->SAT = rst.ExtendHalfBoundary();
+#if OUTPUT_THRDFILE
+    ofstream thrdfile("thrdfile.txt",ios::out);
+    thrdfile.close();
+#endif
     //SAT.Display();
     //SAT.Display();
     //rst = ensemble;
@@ -303,6 +307,7 @@ namespace mtc  {
   }
   void MTC::UpdateLog(void)
   {
+
     time_t t = time(&stat.endT);
     tm* tt = localtime(&t);
     stat.duration = double(stat.endT - stat.beginT);
@@ -897,6 +902,8 @@ namespace mtc  {
                             cout<<"pb offset is: "<<it->first.offset<<"which  points to: "<<it->second.offset()<<endl;
                             PostBlending(it->first,it->second);//pb for different size may goes wrong!
                             pbSet.erase(it->first	,it->second);
+                            if (qTree.offset().x == 96&& qTree.offset().y == 192)
+                              rst_with_seam.SaveBlock("after_blending_left.tif");
                             //rst_with_seam.Display(1000,1);
                             UpdateSAT(qTree.offset(),qTree.size());
                           }
@@ -905,6 +912,8 @@ namespace mtc  {
                           {
                             PostBlending(it->first,it->second);
                             pbSet.erase(it->first,it->second);
+                            if (qTree.offset().x == 96&& qTree.offset().y == 192)
+                              rst_with_seam.SaveBlock("after_blending_up.tif");
                             //rst_with_seam.Display(1000,1);
                             UpdateSAT(qTree.offset(),qTree.size());
                           }
@@ -1558,7 +1567,8 @@ QTree<MTC::T,MTC::cn>& MTC::ComputeJPEG(QTree<MTC::T,MTC::cn>& qNode)
   QNode<T,cn> org = ensemble.Crop(qNode.offset(),qNode.size());
   /////////// if using Watson quan table , convert to YCbCr first
   Tensor<float,cn> floatVerNode(org.size());
-
+  if (qNode.offset().x==DEBUG_X&&qNode.offset().y==DEBUG_Y)
+     rst_with_seam.SaveBlock("temp_seam_before_jpeg.tif");
   ////floatVerNode.Print();
   //if (jpegQuanTblType == JPEG_WASTON)
   //{
@@ -1740,6 +1750,8 @@ QTree<MTC::T,MTC::cn>& MTC::ComputeJPEG(QTree<MTC::T,MTC::cn>& qNode)
 #else
   rst_with_seam.SetBlock(qNode.offset(),Tensor<T,cn>(floatVerNode).CvtColor<3>(COLOR_GRAY2RGB));
 #endif
+  if (qNode.offset().x==DEBUG_X&&qNode.offset().y==DEBUG_Y)
+    rst_with_seam.SaveBlock("temp_seam_after_jpeg.tif");
   //stat.numBlocksInLevel[qLevel]++;
   //stat.footBitInLevel[qLevel]+=codelength;
   return qNode;
@@ -2152,7 +2164,7 @@ bool MTC::TexturePrediction(QTree<T,cn>& qNode, int qLevel)
       //		(rst+128).Display();
       if (qNode.offset().x==DEBUG_X && qNode.offset().y==DEBUG_Y && qNode.size().height==DEBUG_SIZE)
         {
-          qNode.GetExtendTensor().Print("tar_to_be_match",true);
+           qNode.GetExtendTensor().Print("tar_to_be_match",true);
           //temp pause here
           /*int temp;
                         cin>>temp;*/
@@ -2437,10 +2449,7 @@ bool MTC::TexturePrediction(QTree<T,cn>& qNode, int qLevel)
 		{
 		  qNode.SetBlock(candid);
 		}
-	      if (qNode.size().height==DEBUG_SIZE&&qNode.offset().x==DEBUG_X && qNode.offset().y==DEBUG_Y)
-		{
-		  qNode.GetExtendTensor().SaveBlock("cand_blend.tif");
-		}
+
 	      //rst.SetBlock(qNode.offset(),candid);
 	      //this->UpdateRstSqr(Cube(qNode.offset()-qNode.overlap().Point3(),qNode.overlap()+qNode.size()));
 	      //this->SAT = rstSqr.ComputeSAT(this->SAT,qNode.offset()-qNode.overlap().Point3(),qNode.GetFootPos());
@@ -2457,6 +2466,7 @@ bool MTC::TexturePrediction(QTree<T,cn>& qNode, int qLevel)
 #else
 	      rst_with_seam.SetBlock(qNode.offset(),qNode.CvtColor<3>(COLOR_GRAY2RGB));
 #endif
+
               // rst.SetBlock(qNode.offset(),qNode);
               //rst.Display();
               //rst_with_seam.Display();
@@ -2490,6 +2500,12 @@ bool MTC::TexturePrediction(QTree<T,cn>& qNode, int qLevel)
 		    }
 		  rst_with_seam.SetBlock(qNode.offset() - qNode.overlap().Point3(),tempBound);
 		}
+	      if (qNode.size().height==DEBUG_SIZE&&qNode.offset().x==DEBUG_X && qNode.offset().y==DEBUG_Y)
+	      {
+			       this->rst_with_seam.SaveBlock("temp_seam.tif");
+			       qNode.GetExtendTensor().SaveBlock("cand_blend.tif");
+
+	      }
 	      //	rst.Display();
 	      // rst_with_seam.Display(0);
 	      //qNode.Print();
@@ -2510,6 +2526,7 @@ bool MTC::TexturePrediction(QTree<T,cn>& qNode, int qLevel)
               sprintf(idxstr,"rst_%04d",acount);
               acount++;
               rst.SaveBlock(extra_path+idxstr+".bmp");
+              rst_with_seam.SaveBlock(extra_path+"seam_"+idxstr+".png");
 #endif
 	    }
 	  else
@@ -2548,6 +2565,10 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
   double lightPSNRThrd = 10*log10(255*255/30); //db
   everything.open("./everything/everything.txt",ios::app);
 #endif
+  int tempx = qNode.offset().x;
+  int tempy = qNode.offset().y;
+  if (tempx==DEBUG_X&&tempy==DEBUG_Y)
+     cout<<"debug stop here"<<endl;
   auto footEntry = FootTable.end();
   int N = (qNode.size().height*qNode.overlap().width+qNode.size().width*qNode.overlap().height);
 
@@ -2567,7 +2588,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
   else
     {
       //get extra border for PLC
-#ifndef METRIC_PARALLEL
+#if  !PARALLEL_METRIC
       //if (lightCorrectionType == POISSON_LC)
       //{
       //    //if (criteria == COMPARE_CRITERIA_SSIM || criteria == COMPARE_CRITERIA_MAHALANOBIS||criteria==COMPARE_CRITERIA_LRI)
@@ -2609,7 +2630,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
         }
 
 #else
-#     ifdef RECORD_EVERYTHING
+#ifdef RECORD_EVERYTHING
       string extra_path = "./everything/";
       mkdir(extra_path.c_str(),0755);
       char posstr[20];
@@ -2632,7 +2653,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
             orgtemp.GetExtendTensor(1,1,0,0).Crop(Point3i(0,0,0),qNode.size()+qNode.size()/4).SaveBlock(extra_path+"org"+string(posstr)+".png");
         }
       everything<<"org size "<<qNode.size().height<<" with LU:("<<orgtemp.offset().x<<","<<orgtemp.offset().y<<") matches:"<<endl;
-#     endif
+#endif
 #endif
       vector<double> vdist(matchCandid.size());
       vector<double> ldist(matchCandid.size());
@@ -2640,7 +2661,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
       for (int i=0; i< (int)matchCandid.size(); i++)
         {
 
-#ifdef METRIC_PARALLEL
+#if PARALLEL_METRIC
 	  threads.push_back(thread([&](const int i, vector<double>::iterator tempdist, vector<double>::iterator lightdist){
 	      QNode<T,cn> candid;
 	      QNode<T,cn> org;
@@ -2718,6 +2739,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
 	      //}
 	      //else
 	      //{
+
 
 	      //20130605 candid = this->GetValidCandid(matchCandid[i],qNode);
 	      candid = this->GetValidCandidSimple(matchCandid[i],qNode);
@@ -2853,11 +2875,11 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
 	      templight.push_back(tpss);
 	      templight.push_back(candTPSS);
 	      candTPSS.DisplayAll(templight,2,2);*/
-	#ifdef METRIC_PARALLEL
+#if PARALLEL_METRIC
 	*lightdist = metric::ComputePSNR(tpss, candTPSS);
-	#else
+#else
 	ldist[i] = metric::ComputePSNR(tpss, candTPSS);
-	#endif
+#endif
 	/*double lightPSNRBeforePLC = tpss.ComputePSNR(candTPSSBefore);
 	if (lightPSNRBeforePLC>lightPSNR)
 	lightPSNR = lightPSNRBeforePLC;*/
@@ -2964,7 +2986,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
                   Tensor<T,cn> canPd = candidExt.Crop((orgExt.size()/5).Point3(),orgExt.size()/5*4+Size3(0,0,1));
                   //orgPd.Print("orgPd");
                   //canPd.Print("canPd");
-                  temp = metric::Compare(orgPd,canPd,criteria,this->subSize, this->subStep,3,4,(int)FilterBoundary::FILTER_BOUND_FULL/*true*/,(int)stsim2PoolType,(int)metricModifier,0,debugsignal);
+                  temp = metric::Compare(orgPd,canPd,criteria,this->subSize, this->subStep,3,4,(int)FilterBoundary::FILTER_BOUND_EXTEND/*true*/,(int)stsim2PoolType,(int)metricModifier,0,debugsignal);
                   //cout<<"20130912 i="<<i<<", temp"<<temp<<endl;
                 }
               //temp = org.Compare(candid,criteria,3,4,FILTER_BOUND_FULL/*true*/,stsim2PoolType,metricModifier);
@@ -2973,9 +2995,9 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
                   //candid.Print("cand",true);
                   //org.Print("org",true);
                   //candid.debugtrigger=true;
-                  temp = metric::Compare(org, candid,criteria,this->subSize, this->subStep,3,4,(int)FilterBoundary::FILTER_BOUND_FULL/*true*/,(int)stsim2PoolType,(int)metricModifier,0,debugsignal);
+                  temp = metric::Compare(org, candid,criteria,this->subSize, this->subStep,3,4,(int)FilterBoundary::FILTER_BOUND_EXTEND/*true*/,(int)stsim2PoolType,(int)metricModifier,0,debugsignal);
                 }
-#ifdef METRIC_PARALLEL
+#if PARALLEL_METRIC
               *tempdist = temp;
 #else
               vdist[i]=temp;
@@ -3008,11 +3030,11 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
             }
           //print all candidates
           vdist[i]=temp;
-#ifdef METRIC_PARALLEL
+#if PARALLEL_METRIC
             },i,vdist.begin()+i,ldist.begin()+i));
 #endif
         }
-#ifdef METRIC_PARALLEL
+#if PARALLEL_METRIC
       for (auto& t:threads)
         t.join();
 #endif
@@ -3047,7 +3069,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
       int accepted = -1;
 
 
-#   ifdef METRIC_PARALLEL
+#if PARALLEL_METRIC
       distance = vdist[0];
       index = 0;
       for (int idx = 1; idx< candidNum; idx++)
@@ -3058,7 +3080,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
               index = idx;
             }
         }
-#   endif
+#endif
 
       if (criteria == CompareCriteria::COMPARE_CRITERIA_MAHALANOBIS)
         {
@@ -3111,15 +3133,26 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
 
           //! 20130916 compute var
           //cout<<this->qfactor<<endl;
-#if METRIC_PARALLEL
+#if PARALLEL_METRIC
           Tensor<double,1> org = ensemble.Crop(qNode.offset(),qNode.size());
 #endif
           double orgvar = org.Var()[0];
           double orgmean = org.Mean()[0];
+          double b = 1.01;
+          double t = 1.05;
+          double l = 2000;
+          double r = 5000;
+          double a = (t-b)/(log(r)-log(l));
+          double c = b - a*log(l);
+          double varadaptor = 1;
+          if (orgvar>2000&&orgvar<5000)
+            varadaptor = a*log(orgvar)+c;
           if (/*orgvar > 10 &&*/ orgvar <200/* && orgmean>200*/)//incease threaold
             thresholdAdaptor*=1.02;
           if (level<0 && orgvar < 100 ) //herustic set use PLC for smooth region
             accepted = -1;
+          else if (varadaptor>1&& distance >= this->qualityThrd/varadaptor)
+            accepted = index;
           else if(qNode.size().height ==blockSize.height && distance >= this->qualityThrd*thresholdAdaptor*lightAdaptor) //good
             accepted = index; //return index;
           else if (distance >= this->qualityThrd * this->qfactor*thresholdAdaptor*lightAdaptor)//increase the quality in small block
@@ -3344,6 +3377,10 @@ void MTC::CodingJPEG(QTree<T,cn>& qTree, int qLevel)
 #else
           rst_with_seam.SetBlock(qTree.offset(),Tensor<T,cn>(floatVerNode).CvtColor<3>(COLOR_GRAY2RGB));
 #endif
+	  if (qTree.offset().x == DEBUG_X && qTree.offset().y==DEBUG_Y)
+	  {
+	    rst_with_seam.SaveBlock("temp_seam_jpeg.tif");
+	  }
 	  stat.numBlocksInLevel[qLevel]++;
 	  stat.footBitInLevel[qLevel]+=codelength;
 	}
@@ -5311,6 +5348,8 @@ void MTC::ScanLine(string& line)
             temp = MatchingMethod::MATCHING_MSE_CONSTRAINT;
           else if (value=="MATCHING_HIERARCHY")
             temp = MatchingMethod::MATCHING_HIERARCHY;
+          else if (value=="MATCHING_STAT")
+            temp = MatchingMethod::MATCHING_STAT;
           else if (value=="MATCHING_OPENCV")
             temp = MatchingMethod::MATCHING_OPENCV;
           else if (value=="MATCHING_DIRECT")
