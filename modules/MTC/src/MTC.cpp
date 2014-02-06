@@ -5348,6 +5348,8 @@ void MTC::ScanLine(string& line)
             temp = MatchingMethod::MATCHING_MSE_CONSTRAINT;
           else if (value=="MATCHING_HIERARCHY")
             temp = MatchingMethod::MATCHING_HIERARCHY;
+          else if (value=="MATCHING_HIERARCHY2")
+            temp = MatchingMethod::MATCHING_HIERARCHY2;
           else if (value=="MATCHING_STAT")
             temp = MatchingMethod::MATCHING_STAT;
           else if (value=="MATCHING_OPENCV")

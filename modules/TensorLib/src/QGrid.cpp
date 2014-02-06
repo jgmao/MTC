@@ -1180,8 +1180,9 @@ namespace tensor{
                           adj_left = (adj_left>1)?1:adj_left;
                           adj_up *= adj_up;
                           adj_up = (adj_up>1)?1:adj_up;
-                          diff_up*=adj_up;
-                          diff_left*=adj_left;
+                          //20140205 tempdisable
+                          //diff_up*=adj_up;
+                          //diff_left*=adj_left;
 #if     OUTPUT_THRDFILE
                           thrdfile<<"-- can: "<<x<<", "<<y<<"var: "<<var_blk_left<<", "<<var_blk_up<<" -- layer1: "<< diff_left <<", "<<diff_up<<endl;
 #endif
@@ -1352,6 +1353,152 @@ namespace tensor{
         thrdfile.close();
 #endif
    }
+  else if (matching_method == MatchingMethod::MATCHING_HIERARCHY2)
+      {
+  //matching stsim first then do constraint matching
+        Tensor<T,cn> T_left,B_left;
+        Tensor<T,cn> T_up, B_up;
+        Tensor<T,cn> TT(Size3(qNode.size().height*2+qNode.overlap().height,qNode.overlap().width,1));
+#if !PARALLEL_MATCHING
+        Tensor<T,cn> VV(Size3(qNode.size().height*2+qNode.overlap().height,qNode.overlap().width,1));
+        Tensor<T,cn> candLeftLocal,candUpLocal;
+#endif
+        double var_blk,var_tag;
+        bool has_left=false, has_up=false;
+        double diff_up=1000, diff_left=1000;
+        double var_tar_left=-1,var_tar_up=-1, var_blk_left=-1, var_blk_up=-1;
+        Size3 oSize(max(qNode.overlap().height,subWinSize.height),max(qNode.overlap().width,subWinSize.width),1);
+        if (offsetUp + qNode.overlap().height-oSize.height<0)
+          offsetUp += oSize.height-qNode.overlap().height;
+        if (offsetLeft+qNode.overlap().width -oSize.width<0)
+          offsetLeft += oSize.width-qNode.overlap().width;
+        int shift_x = 0;
+        int shift_y = 0;
+        if (qNode.overlap().height<subWinSize.height)
+          shift_x = qNode.overlap().height-oSize.height;
+        if (qNode.overlap().width<subWinSize.width)
+          shift_y = qNode.overlap().width-oSize.width;
+
+        TT.SetBlock(tarUp.Transpose());
+        TT.SetBlock(Point3i(tarUp.size().width,0,0),tarLeft);
+        //Mt = TT.Mean();
+        double Vt = TT.Var()[0];
+        int t=0;
+        Vec<T,cn> muT,muB;
+#if     OUTPUT_THRDFILE
+        ofstream thrdfile("./thrdfile.txt",std::ios::out|std::ios::app);
+#endif
+        Tensor<T,cn> T_left_norm, T_up_norm, B_up_norm,B_left_norm;
+        {
+            T_up =  qNode.upBound.Clone();
+            T_left = 	 qNode.leftBound.Clone();
+            var_tar_left = T_left.Var()[0];
+            var_tar_up = T_up.Var()[0];
+#if     OUTPUT_THRDFILE
+           thrdfile << "org: "<<qNode.offset().x<<","<<qNode.offset().y<<"var: left "<<var_tar_left<<", up "<<var_tar_up<<"----------------------------"<<endl;
+#endif
+         }
+#if PARALLEL_MATCHING
+        int pnum = 4;
+        vector<thread> threads;
+#else
+        Tensor<T,cn> tarSide(oSize);
+        Tensor<T,cn> canSide(oSize);
+        int pnum =1;// thread::hardware_concurrency();
+#endif
+        vector<LinkArray*> localqueue(pnum);
+        int brows = (offsetDown - offsetUp)/searchStep.height/pnum;
+        for (int p=0; p<pnum; p++)
+        {
+#if PARALLEL_MATCHING
+
+          threads.push_back(thread([&](int p, int t){
+          Tensor<T,cn> tarSide(oSize);
+          Tensor<T,cn> canSide(oSize);
+          Tensor<T,cn> VV(Size3(qNode.size().height*2+qNode.overlap().height,qNode.overlap().width,1));
+          Tensor<T,cn> candLeftLocal,candUpLocal;
+          localqueue[p] = new LinkArray();
+#else
+          localqueue[p] = queue;
+#endif
+          for (int x=offsetUp+p*brows; x< min(offsetDown,offsetUp+(p+1)*brows); x+=searchStep.height)
+            for (int y=offsetLeft; y< offsetRight; y+=searchStep.width)
+              {
+                if (IsInsideCausalRegion(cv::Point3i(x,y,0),qNode,3))
+                  {
+                    diff=0;
+                    N=0;
+                    double score;
+                    double final_score=1;
+                    int count = 0;
+                    for (int m = 0; m<qNode.leftBound.size().height-shift_x; m+=oSize.height)
+                    {
+                          ensemble.Ref(Cube(qNode.offset()-oSize.Point3()+Point3i(m,0,1),oSize),tarSide);
+                          rst.Ref(Cube(Point3i(x+m+shift_x,y+shift_y,t),oSize),canSide);
+                          score=metric::Compare(tarSide,canSide,CompareCriteria::COMPARE_CRITERIA_SSIM, oSize,oSize, 3, 1, (int)FilterBoundary::FILTER_BOUND_FULL, (int)FeaturePoolType::FEATURE_POOL_MIN, (int)MetricModifier::STSIM2_PART,0,false);
+                          if (score<final_score)
+                            final_score= score;
+                          count++;
+                    }
+                    for (int n = oSize.width; n<qNode.upBound.size().width-shift_y; n+=oSize.width)
+                    {
+                            ensemble.Ref(Cube(qNode.offset()-oSize.Point3()+Point3i(0,n,1),oSize),tarSide);
+                            rst.Ref(Cube(Point3i(x+shift_x,y+n+shift_y,t),oSize),canSide);
+                            score=metric::Compare(tarSide,canSide,CompareCriteria::COMPARE_CRITERIA_SSIM, oSize, oSize,3, 1, (int)FilterBoundary::FILTER_BOUND_FULL, (int)FeaturePoolType::FEATURE_POOL_MIN, (int)MetricModifier::STSIM2_PART,0,false);
+                            if (score<final_score)
+                              final_score= score;
+                            count++;
+                    }
+                    if (final_score>matching_thrd) 
+                    {
+                        for (int nbx=-searchStep.height/2; nbx< searchStep.height/2; nbx+=1) //change from < to <=, Nov 10,2012, wrong ! 20140130
+                          for (int nby=-searchStep.width/2; nby< searchStep.width/2; nby+=1)
+                            {
+                              if (x+nbx<offsetUp||x+nbx>offsetDown||y+nby<offsetLeft||y+nby>offsetRight) //20131227, make sure searching in neighborhood do not voilate search range constrain
+                                continue;
+                              if (x+nbx<offsetUp+p*brows||x+nbx>=offsetUp+(p+1)*brows) //no duplicate search in different threads
+                                continue;
+                              if (IsInsideCausalRegion(cv::Point3i(nbx+x,nby+y,0),qNode,3))
+                                {
+                                  rst.Ref(Cube(Point3i(x+nbx,y+nby,t),qNode.leftBound.size()),B_left);//candLeftLocal);
+                                  rst.Ref(Cube(Point3i(x+nbx,y+nby,t),qNode.upBound.size()),B_up);//candUpLocal);
+                                  double mse_up = metric::ComputeMSE(T_up,B_up);
+                                  double mse_left = metric::ComputeMSE(T_left,B_left);//metric::ComputeMSE(VV,TT);
+                                  var_blk_left = B_left.Var()[0];
+                                  var_blk_up = B_up.Var()[0]; 
+                                  diff_up = abs(var_blk_up - var_tar_up);
+                                  diff_left = abs(var_blk_left<var_tar_left);
+                                   
+                                  diff = (mse_up + 0.5*diff_up) + (mse_left + 0.5*diff_left);
+                                  localqueue[p]->compareInsert(diff,cv::Point3i(x+nbx,y+nby,t));
+                                  if (localqueue[p]->getLength()>candidNum/pnum&&candidNum>0)
+                                    localqueue[p]->pop();
+                                }
+                            }
+                      }
+                  }
+              }
+#if PARALLEL_MATCHING
+       },p,t));
+#endif
+     }
+#if PARALLEL_MATCHING
+     for (int p=0; p<pnum; p++)
+     {
+       auto& thread = threads[p];
+       thread.join();
+       for (int ii=0; ii<localqueue[p]->getLength(); ii++)
+       {
+           queue->compareInsert(localqueue[p]->getData(ii),localqueue[p]->GetAddress(ii));
+       }
+       delete localqueue[p];
+     }
+#endif
+     #if     OUTPUT_THRDFILE
+        thrdfile.close();
+#endif
+   }
+
    else if (matching_method==MatchingMethod::MATCHING_STSIM)
    {
       Size3 oSize(max(qNode.overlap().height,subWinSize.height),max(qNode.overlap().width,subWinSize.width),1);
