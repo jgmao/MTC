@@ -53,6 +53,7 @@
 #include <thread>
 #include <memory>
 #include "algorithms.h"
+#include "Laplace.h"
 
 namespace tensor{
 template<class T, size_t cn>
@@ -89,7 +90,12 @@ private:
 	void InitGrid(void);
 
 protected:
-
+	Laplace L1Model[2];//left H0, up H0, left H1, up H1
+	int lenH0,lenH1;
+	std::list<bool> queueLen;
+	const uint L1_train_max =100;
+	int L1_train_len;
+	bool train;
 	//Size3 subWinSize;
 	//Size3 subWinStep;
 	string cFileName;
@@ -110,6 +116,7 @@ protected:
 	Tensor<T,cn> rstSqr;
   Tensor<T,cn> rstBorderSqr;
   std::mutex mymux;
+
 };
 }
 

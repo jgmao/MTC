@@ -2199,7 +2199,7 @@ bool MTC::TexturePrediction(QTree<T,cn>& qNode, int qLevel)
           fLevel = -1;
           index = IsAcceptPredict(matchCandid,matchScore,qNode,metricModifier,fLevel);
           //cout<<fLevel<<endl;
-          /*
+          /*nn
       if (metricModifier == M_DIST)
         index = IsAcceptPredict(matchCandid,qNode,COMPARE_CRITERIA_MAHALANOBIS,3,4);
       else if (metricModifier== LRI_METRIC)
@@ -3039,7 +3039,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
         t.join();
 #endif
 
-
+      //  }
 
       //if ( distance >= this->qualityThrd)
       //adaptive quality
@@ -3136,6 +3136,8 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
 #if PARALLEL_METRIC
           Tensor<double,1> org = ensemble.Crop(qNode.offset(),qNode.size());
 #endif
+          if (qNode.offset().x==64&&qNode.offset().y==96)
+            cout<<"debug here"<<endl;
           double orgvar = org.Var()[0];
           double orgmean = org.Mean()[0];
           double b = 1.01;
@@ -3145,6 +3147,109 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
           double a = (t-b)/(log(r)-log(l));
           double c = b - a*log(l);
           double varadaptor = 1;
+
+          if (matching_method==MatchingMethod::MATCHING_HIERARCHY3)
+            {
+              double var_tar_left = qNode.leftBound.Var()[0];
+              double var_tar_up = qNode.upBound.Var()[0];
+              Tensor<T,cn> candLeft, candUp;
+              for (uint ii=0; ii<matchCandid.size();ii++)
+                {
+                  rst.Ref(Cube(matchCandid[ii],qNode.leftBound.size()),candLeft);
+                  rst.Ref(Cube(matchCandid[ii],qNode.upBound.size()),candUp);
+                  double var_can_left = candLeft.Var()[0];
+                  double var_can_up = candUp.Var()[0];
+                  double diff_left = var_can_left - var_tar_left;
+                  double diff_up = var_can_up - var_tar_up;
+
+                  double ratio_left = std::log(var_can_left/var_tar_left);
+                  double ratio_up = std::log(var_can_up/var_tar_up);
+                  if (ratio_left<-10)
+                    ratio_left = -10;
+                  if (ratio_left>10)
+                    ratio_left = 10;
+                  if (ratio_up<-10)
+                    ratio_up = -10;
+                  if (ratio_up>10)
+                    ratio_up = 10;
+                  varadaptor = 1;
+                  thresholdAdaptor=1;
+                  lightAdaptor=1;
+                  if (orgvar>2000&&orgvar<5000)
+                    varadaptor = a*log(orgvar)+c;
+                  if (/*orgvar > 10 &&*/ orgvar <200/* && orgmean>200*/)//incease threaold
+                    thresholdAdaptor*=1.02;
+                  if (level<0 && orgvar < 100 ) //herustic set use PLC for smooth region
+                    accepted = -1;
+                  else if (varadaptor>1&& vdist[ii] >= this->qualityThrd/varadaptor)
+                    accepted = ii;
+                  else if(qNode.size().height ==blockSize.height && vdist[ii] >= this->qualityThrd*thresholdAdaptor*lightAdaptor) //good
+                    accepted = ii; //return index;
+                  else if (vdist[ii] >= this->qualityThrd * this->qfactor*thresholdAdaptor*lightAdaptor)//increase the quality in small block
+                    accepted = ii;//return index;
+                  this->queueLen.push_back(accepted>=0);
+                  if (this->queueLen.size() > this->L1_train_max)
+                  {
+                    this->queueLen.pop_front();
+                  }
+                  if (accepted<0)
+                  {
+                     // if (this->train)
+                     // {
+                          this->lenH0++;
+                          Mat tempd = (Mat_<double>(1,2)<<ratio_left,ratio_up);
+                          //this->L1Model[0].addData(diff_left);
+                          //this->L1Model[1].addData(diff_up);
+                          this->L1Model[0].addData(tempd);
+                          if (this->L1Model[0].size()>10&&this->L1Model[0].size()+this->L1Model[1].size()>this->L1_train_max)
+                          {
+                        //      this->L1Model[0].erase();
+                          }
+                          //else
+                      //this->L1_train_len++;
+
+                    //  }
+                    //  else
+                    //  {
+                    //  this->L1Model[0].progressEst(diff_left);
+                    //  this->L1Model[1].progressEst(diff_up);
+                    //  }
+                  }
+                  else
+                  {
+                      //if (this->train)
+                     // {
+                      this->lenH1++;
+                      Mat tempd = (Mat_<double>(1,2)<<ratio_left,ratio_up);
+//                      this->L1Model[2].addData(diff_left);
+//                      this->L1Model[3].addData(diff_up);
+                      this->L1Model[1].addData(tempd);
+                      if (this->L1Model[1].size()>10&&this->L1Model[1].size()+this->L1Model[0].size()>this->L1_train_max)
+                      {
+                 //         this->L1Model[1].erase();
+                      }
+                      //else
+                      //this->L1_train_len++;
+                     // }
+                     // else
+                     // {
+                     // this->L1Model[2].progressEst(diff_left);
+                     // this->L1Model[3].progressEst(diff_up);
+                     // }
+                  }
+                }
+             // if (!train)
+             // {
+             //   if (L1Model[0].size()>=10&&L1Model[1].size()>=10&&L1Model[1].size()+L1Model[0].size()>=this->L1_train_max)
+             //   {
+              //      this->L1Model[0].mle();
+             //       this->L1Model[1].mle();
+             //   }
+              //}
+            }
+          varadaptor = 1;
+          thresholdAdaptor=1;
+          lightAdaptor=1;
           if (orgvar>2000&&orgvar<5000)
             varadaptor = a*log(orgvar)+c;
           if (/*orgvar > 10 &&*/ orgvar <200/* && orgmean>200*/)//incease threaold
@@ -3158,14 +3263,15 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
           else if (distance >= this->qualityThrd * this->qfactor*thresholdAdaptor*lightAdaptor)//increase the quality in small block
             accepted = index;//return index;
           else //if not accepted, reset foottable
-            {
+          {
               if (lightCorrectionType == LightingCorrectionType::POISSON_LC) //reset the FootTable
                 {
                   if (footEntry!=FootTable.end())
                     FootTable.erase(footEntry);
                 }
               accepted = -1;//return -1;
-            }
+          }
+
         }
       else if (criteria==CompareCriteria::COMPARE_CRITERIA_MSE)
         {
@@ -5350,6 +5456,8 @@ void MTC::ScanLine(string& line)
             temp = MatchingMethod::MATCHING_HIERARCHY;
           else if (value=="MATCHING_HIERARCHY2")
             temp = MatchingMethod::MATCHING_HIERARCHY2;
+          else if (value=="MATCHING_HIERARCHY3")
+            temp = MatchingMethod::MATCHING_HIERARCHY3;
           else if (value=="MATCHING_STAT")
             temp = MatchingMethod::MATCHING_STAT;
           else if (value=="MATCHING_OPENCV")
