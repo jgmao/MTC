@@ -34,11 +34,21 @@ public:
   {
     return history.size().height;
   }
+  void mle1D(void)
+  {
+    Mat history1D = history.reshape(0,size()*2);
+    Mat var;
+    cv::meanStdDev(history1D,mu,var);
+    Mat ret;
+    cv::reduce(cv::abs(history1D-mu.at<double>(0,0)),ret,0,cv::REDUCE_SUM);
+    //cout<<ret<<endl;
+    lambda = ret.at<double>(0,0)/history1D.size().height;
+  }
 
   void mle(void)
   {
     Mat covar;
-    //cout<<history<<endl;
+   // cout<<size()<<endl;
     cv::calcCovarMatrix(history,covar,mu,cv::COVAR_NORMAL|cv::COVAR_ROWS,history.type());
     lambda = std::sqrt(determinant(covar));
     gamma = covar/lambda;
@@ -71,16 +81,33 @@ public:
  //   }
  //   b/=double(N);
  }
+  void clear(void)
+  {
+    this->mu =Mat();
+    this->gamma  =Mat();
+    this->igamma = Mat();
+    this->history = Mat();
+    lambda = 0;
+  }
 
   double pdf(Mat d)
   {
-      double q = cv::Mahalanobis(d,mu,igamma);
+    //cout<<mu<<endl;
+    //cout<<gamma<<endl;
+    //cout<<igamma<<endl;
+      double q =cv::Mahalanobis(d,mu,igamma);
       //cout<<q<<endl;
       double K = boost::math::cyl_bessel_k<double,double>(0,q);
       //cout<<K<<endl;
       return K/lambda/3.1415926;
    //return 0.5*exp(-std::abs(d-mu)/b)/b;
   }
+  double pdf1D(double d)
+  {
+    //d must 1x1 matrix
+    return std::exp(-std::abs(d-mu.at<double>(0.0))/lambda)/2/lambda;
+  }
+
   double cdfinv(double p)
   {
       return 0;

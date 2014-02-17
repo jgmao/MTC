@@ -2988,6 +2988,16 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
                   //canPd.Print("canPd");
                   temp = metric::Compare(orgPd,canPd,criteria,this->subSize, this->subStep,3,4,(int)FilterBoundary::FILTER_BOUND_EXTEND/*true*/,(int)stsim2PoolType,(int)metricModifier,0,debugsignal);
                   //cout<<"20130912 i="<<i<<", temp"<<temp<<endl;
+                  //20140214 post mse test
+                  //cout<<org.lowBound<<endl;
+                  //cout<<candid.lowBound<<endl;
+//                  double temp1 = metric::Compare(org.lowBound,candid.lowBound,CompareCriteria::COMPARE_CRITERIA_MSE);
+//                  double temp2 = metric::Compare(org.rightBound,candid.rightBound,CompareCriteria::COMPARE_CRITERIA_MSE);
+//                  if (temp1>1000||temp2>1000)
+//                    temp/=1.03;
+                  //double psnr = 10*log(255*255/( (temp1+temp2)/2));
+                  //psnr/=40;
+
                 }
               //temp = org.Compare(candid,criteria,3,4,FILTER_BOUND_FULL/*true*/,stsim2PoolType,metricModifier);
               if (temp>1)//do it again when something goes wrong
@@ -3139,6 +3149,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
           if (qNode.offset().x==64&&qNode.offset().y==96)
             cout<<"debug here"<<endl;
           double orgvar = org.Var()[0];
+          double can_var_up,can_var_left;
           double orgmean = org.Mean()[0];
           double b = 1.01;
           double t = 1.05;
@@ -3150,6 +3161,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
 
           if (matching_method==MatchingMethod::MATCHING_HIERARCHY3)
             {
+              BayesianRecord tempRecord1,tempRecord2;
               double var_tar_left = qNode.leftBound.Var()[0];
               double var_tar_up = qNode.upBound.Var()[0];
               Tensor<T,cn> candLeft, candUp;
@@ -3159,11 +3171,19 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
                   rst.Ref(Cube(matchCandid[ii],qNode.upBound.size()),candUp);
                   double var_can_left = candLeft.Var()[0];
                   double var_can_up = candUp.Var()[0];
-                  double diff_left = var_can_left - var_tar_left;
-                  double diff_up = var_can_up - var_tar_up;
-
+                  //double diff_left = var_can_left - var_tar_left;
+                  //double diff_up = var_can_up - var_tar_up;
+                  if ((int)ii ==index)
+                  {
+                    can_var_left = var_can_left;
+                    can_var_up = var_can_up;
+                  }
                   double ratio_left = std::log(var_can_left/var_tar_left);
                   double ratio_up = std::log(var_can_up/var_tar_up);
+                  double mse_up = metric::ComputeMSE(qNode.upBound,candUp);
+                  double mse_left = metric::ComputeMSE(qNode.leftBound,candLeft);
+                  mse_up = log(mse_up);
+                  mse_left = log(mse_left);
                   if (ratio_left<-10)
                     ratio_left = -10;
                   if (ratio_left>10)
@@ -3177,15 +3197,15 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
                   lightAdaptor=1;
                   if (orgvar>2000&&orgvar<5000)
                     varadaptor = a*log(orgvar)+c;
-                  if (/*orgvar > 10 &&*/ orgvar <200/* && orgmean>200*/)//incease threaold
-                    thresholdAdaptor*=1.02;
+                  if (varadaptor<1)
+                    varadaptor=1;
+                  if (/*orgvar > 10 &&*/ orgvar <600/* && orgmean>200*/||(var_tar_left<600&&var_tar_up<600))//incease threaold if the target is smooth or the candidate is smooth
+                    thresholdAdaptor*=1.03;
                   if (level<0 && orgvar < 100 ) //herustic set use PLC for smooth region
                     accepted = -1;
-                  else if (varadaptor>1&& vdist[ii] >= this->qualityThrd/varadaptor)
-                    accepted = ii;
-                  else if(qNode.size().height ==blockSize.height && vdist[ii] >= this->qualityThrd*thresholdAdaptor*lightAdaptor) //good
+                  else if(qNode.size().height ==blockSize.height && vdist[ii] >= this->qualityThrd*thresholdAdaptor*lightAdaptor/varadaptor) //good
                     accepted = ii; //return index;
-                  else if (vdist[ii] >= this->qualityThrd * this->qfactor*thresholdAdaptor*lightAdaptor)//increase the quality in small block
+                  else if (vdist[ii] >= this->qualityThrd * this->qfactor*thresholdAdaptor*lightAdaptor/varadaptor)//increase the quality in small block
                     accepted = ii;//return index;
                   this->queueLen.push_back(accepted>=0);
                   if (this->queueLen.size() > this->L1_train_max)
@@ -3198,13 +3218,17 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
                      // {
                           this->lenH0++;
                           Mat tempd = (Mat_<double>(1,2)<<ratio_left,ratio_up);
+                          Mat tempm = (Mat_<double>(1,2)<<mse_left,mse_up);
+                          tempRecord1.addData(tempd,false);
+                          tempRecord2.addData(tempm,false);
                           //this->L1Model[0].addData(diff_left);
                           //this->L1Model[1].addData(diff_up);
-                          this->L1Model[0].addData(tempd);
-                          if (this->L1Model[0].size()>10&&this->L1Model[0].size()+this->L1Model[1].size()>this->L1_train_max)
-                          {
+                       //   this->L1Model[0].addData(tempd);
+                      //    this->L2Model[0].addData(tempm);
+                         // if (this->L1Model[0].size()>10&&this->L1Model[0].size()+this->L1Model[1].size()>this->L1_train_max)
+                        //  {
                         //      this->L1Model[0].erase();
-                          }
+                         // }
                           //else
                       //this->L1_train_len++;
 
@@ -3221,13 +3245,17 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
                      // {
                       this->lenH1++;
                       Mat tempd = (Mat_<double>(1,2)<<ratio_left,ratio_up);
+                      Mat tempm = (Mat_<double>(1,2)<<mse_left,mse_up);
+                      tempRecord1.addData(tempd,true);
+                      tempRecord2.addData(tempm,true);
 //                      this->L1Model[2].addData(diff_left);
 //                      this->L1Model[3].addData(diff_up);
-                      this->L1Model[1].addData(tempd);
-                      if (this->L1Model[1].size()>10&&this->L1Model[1].size()+this->L1Model[0].size()>this->L1_train_max)
-                      {
+                      //this->L1Model[1].addData(tempd);
+                      //this->L2Model[0].addData(tempm);
+                      //if (this->L1Model[1].size()>10&&this->L1Model[1].size()+this->L1Model[0].size()>this->L1_train_max)
+                     // {
                  //         this->L1Model[1].erase();
-                      }
+                      //}
                       //else
                       //this->L1_train_len++;
                      // }
@@ -3238,6 +3266,42 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
                      // }
                   }
                 }
+
+              unsigned long key = qNode.offset().x*ensemble.size().width+qNode.offset().y;
+              //key = key*ensemble.size().area()+matchCandid[ii].x*ensemble.size().width+matchCandid[ii].y;
+              //20140213 LR 16 only
+              if (qNode.size().height==16)
+              {
+              if(this->L1Record.find(key)!=L1Record.end())
+              {
+                 // cout<<"key: "<<key<<", pos: "<<qNode.offset()<<endl;
+                  //L1Record[key]=tempRecord1;//weather or not consider lighting , prob not
+              }
+              else
+              {
+                  //    key = key+ensemble.size().area();
+                this->L1Record.insert(std::pair<unsigned long,BayesianRecord>(key,tempRecord1));
+              }
+              if(this->L2Record.find(key)!=L2Record.end())
+              {
+                 //L2Record[key]=tempRecord2;//weather or not consider lighting , prob not
+              }
+              else
+              {
+                  //    key = key+ensemble.size().area();
+                this->L2Record.insert(std::pair<unsigned long,BayesianRecord>(key,tempRecord2));
+              }
+              }//qnode =16
+//              for (auto iter = L1Record.begin(); iter!=L1Record.end(); iter++)
+//              {
+//                int zz = iter->first/ensemble.size().area();
+//                int vv = iter->first%ensemble.size().area();
+//                int xx = vv/ensemble.size().width;
+//                int yy = vv%ensemble.size().width;
+//                cout<<zz<<","<<xx<<","<<yy<<endl;
+//                iter->second.print();
+//              }
+              //tempRecord.print();
              // if (!train)
              // {
              //   if (L1Model[0].size()>=10&&L1Model[1].size()>=10&&L1Model[1].size()+L1Model[0].size()>=this->L1_train_max)
@@ -3247,20 +3311,23 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
              //   }
               //}
             }
+
+          //20140214 test post boudnarymse
+
           varadaptor = 1;
           thresholdAdaptor=1;
           lightAdaptor=1;
           if (orgvar>2000&&orgvar<5000)
             varadaptor = a*log(orgvar)+c;
-          if (/*orgvar > 10 &&*/ orgvar <200/* && orgmean>200*/)//incease threaold
-            thresholdAdaptor*=1.02;
+          if (varadaptor<1)
+            varadaptor=1;
+          if (/*orgvar > 10 &&*/ orgvar <600/* && orgmean>200*/||(can_var_left<600&&can_var_up<600))//incease threaold if the target is smooth or the candidate is smooth
+            thresholdAdaptor*=1.03;
           if (level<0 && orgvar < 100 ) //herustic set use PLC for smooth region
             accepted = -1;
-          else if (varadaptor>1&& distance >= this->qualityThrd/varadaptor)
-            accepted = index;
-          else if(qNode.size().height ==blockSize.height && distance >= this->qualityThrd*thresholdAdaptor*lightAdaptor) //good
+          else if(qNode.size().height ==blockSize.height && distance >= this->qualityThrd*thresholdAdaptor*lightAdaptor/varadaptor) //good
             accepted = index; //return index;
-          else if (distance >= this->qualityThrd * this->qfactor*thresholdAdaptor*lightAdaptor)//increase the quality in small block
+          else if (distance >= this->qualityThrd * this->qfactor*thresholdAdaptor*lightAdaptor/varadaptor)//increase the quality in small block
             accepted = index;//return index;
           else //if not accepted, reset foottable
           {

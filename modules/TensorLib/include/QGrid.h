@@ -54,8 +54,33 @@
 #include <memory>
 #include "algorithms.h"
 #include "Laplace.h"
-
+#include "Gaussian.h"
 namespace tensor{
+
+class BayesianRecord
+{
+public:
+  //BayesianRecord(int d){
+  Mat data0;
+  Mat data1;
+  void addData(Mat d,bool h)
+  {
+    if(h) //H1
+    {
+      data1.push_back(d);
+    }
+    else
+      data0.push_back(d);
+  }
+  void print(void)
+  {
+    if (data0.size().height>0)
+      cout<<"H0----\n"<<data0<<endl;
+    if (data1.size().height>0)
+      cout<<"H1----\n"<<data1<<endl;
+  }
+};
+
 template<class T, size_t cn>
 class QGrid
 {
@@ -90,12 +115,15 @@ private:
 	void InitGrid(void);
 
 protected:
-	Laplace L1Model[2];//left H0, up H0, left H1, up H1
+	Laplace L1Model[2];//H0, H1
+	Gaussian L2Model[2];//H0, H1
 	int lenH0,lenH1;
 	std::list<bool> queueLen;
 	const uint L1_train_max =100;
+	std::map<unsigned long,BayesianRecord> L1Record;
+	std::map<unsigned long,BayesianRecord> L2Record;
 	int L1_train_len;
-	bool train;
+	bool train1,train2;
 	//Size3 subWinSize;
 	//Size3 subWinStep;
 	string cFileName;
