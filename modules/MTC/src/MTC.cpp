@@ -3146,7 +3146,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
 #if PARALLEL_METRIC
           Tensor<double,1> org = ensemble.Crop(qNode.offset(),qNode.size());
 #endif
-          if (qNode.offset().x==64&&qNode.offset().y==96)
+          if (qNode.offset().x==64&&qNode.offset().y==448)
             cout<<"debug here"<<endl;
           double orgvar = org.Var()[0];
           double can_var_up,can_var_left;
@@ -3171,6 +3171,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
                   rst.Ref(Cube(matchCandid[ii],qNode.upBound.size()),candUp);
                   double var_can_left = candLeft.Var()[0];
                   double var_can_up = candUp.Var()[0];
+
                   //double diff_left = var_can_left - var_tar_left;
                   //double diff_up = var_can_up - var_tar_up;
                   if ((int)ii ==index)
@@ -3309,19 +3310,53 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
               //      this->L1Model[0].mle();
              //       this->L1Model[1].mle();
              //   }
+
               //}
             }
 
           //20140214 test post boudnarymse
 
+
+//          Mat grad_x, grad_y;
+//          Mat abs_grad_x, abs_grad_y;
+//          Mat grad_org,grad_cand;
+//          double scale=1;
+//          double delta=0;
+//            /// Gradient X
+            //Scharr( src_gray, grad_x, ddepth, 1, 0, scale, delta, BORDER_DEFAULT );
+//          Sobel( org, grad_x,CV_64F, 1, 0, 3, scale, delta, BORDER_DEFAULT );
+//          convertScaleAbs( grad_x, abs_grad_x );
+
+//            /// Gradient Y
+//            //Scharr( src_gray, grad_y, ddepth, 0, 1, scale, delta, BORDER_DEFAULT );
+//            Sobel( org, grad_y, CV_64F, 0, 1, 3, scale, delta, BORDER_DEFAULT );
+//            convertScaleAbs( grad_y, abs_grad_y );
+//          addWeighted( abs_grad_x, 0.5, abs_grad_y, 0.5, 0, grad_org );
+
+
+//          Sobel( candid, grad_x, CV_64F, 0, 1, 3, scale, delta, BORDER_DEFAULT );
+//          convertScaleAbs( grad_x, abs_grad_x );
+
+//            /// Gradient Y
+//            //Scharr( src_gray, grad_y, ddepth, 0, 1, scale, delta, BORDER_DEFAULT );
+//            Sobel( candid, grad_y, CV_64F, 0, 1, 3, scale, delta, BORDER_DEFAULT );
+//            convertScaleAbs( grad_y, abs_grad_y );
+//          addWeighted( abs_grad_x, 0.5, abs_grad_y, 0.5, 0, grad_cand );
+//          cout<<"grad mse: "<<metric::ComputeMSE(grad_cand,grad_org)<<endl;
+          Tensor<T,cn> candLeft,candUp;
+          rst.Ref(Cube(matchCandid[index],qNode.leftBound.size()),candLeft);
+          rst.Ref(Cube(matchCandid[index],qNode.upBound.size()),candUp);
+          double mu_can_up = candUp.Mean()[0];
+          double mu_can_left = candLeft.Mean()[0];
           varadaptor = 1;
           thresholdAdaptor=1;
           lightAdaptor=1;
-          if (orgvar>2000&&orgvar<5000)
-            varadaptor = a*log(orgvar)+c;
+          //if (orgvar>2000&&orgvar<5000)
+          //  varadaptor = a*log(orgvar)+c;
           if (varadaptor<1)
             varadaptor=1;
-          if (/*orgvar > 10 &&*/ orgvar <600/* && orgmean>200*/||(can_var_left<600&&can_var_up<600))//incease threaold if the target is smooth or the candidate is smooth
+
+          if ((orgvar > 10 && orgvar <200 && orgmean>100)||(can_var_left<200&&can_var_up<200&&mu_can_left>100&&mu_can_up>100))//incease threaold if the target is smooth or the candidate is smooth
             thresholdAdaptor*=1.03;
           if (level<0 && orgvar < 100 ) //herustic set use PLC for smooth region
             accepted = -1;

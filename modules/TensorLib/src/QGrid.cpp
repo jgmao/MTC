@@ -136,7 +136,7 @@ namespace tensor{
     //for post blending, overlap*2
     //to avoid boundary overlap add additional 1 overlap size
 
-    Size3 temp = nd.overlap()*multiBound+ nd.size() + curPos - Size3(1,1,1);
+     Size3 temp = nd.overlap()*multiBound+ nd.size() + curPos - Size3(1,1,1);
     Point3i tempPos(temp.height,temp.width,temp.depth);
     if (tempPos.x>=absBoundary.height ||
         tempPos.y>=absBoundary.width||
@@ -218,7 +218,7 @@ namespace tensor{
     fstream logfile;
     logfile.open("./temp/matching.txt",ios::app);
 
-    if (qNode.offset().x ==416 && qNode.offset().y==352)
+    if (qNode.offset().x ==32 && qNode.offset().y==64)
       tempMap = Tensor<double,cn>(rst.size());
     //! 20130916 use opencv template matching
     Tensor<T,cn> tarUp , tarLeft;
@@ -536,7 +536,7 @@ namespace tensor{
                   queue->compareInsert(localdiff,cv::Point3i(x,y,t));
 				else{
                     if (localdiff<=matching_thrd||matching_thrd==0)//0 means accept all
-				      queue->compareInsert(-localdiff,cv::Point3i(x,y,t));
+                                      queue->compareInsert(localdiff,cv::Point3i(x,y,t));
 				  }
 				if (/*myqueue*/queue->getLength()>candidNum&&candidNum>0)
 				  /*myqueue*/queue->pop();
