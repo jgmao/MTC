@@ -11,6 +11,7 @@
 #include "algorithms.h"
 #include <Granulate.h>
 #include <opencv2/opencv.hpp>
+#include <Steerable2.h>
 #include <Metric.h>
 using namespace std;
 using namespace tensor;
@@ -37,6 +38,7 @@ public:
 	void TestFilter2D(void);
 	//void TestKmeans(void);
 	//void TestHuffTree(void);
+	void Testfftwpp(void);
 	void TestEncoding(int argc, char* argv[]);
 	//void Test3DMat(void);
 	//void TestPoisson(void);

@@ -6,7 +6,7 @@ include_directories(${MTC_TENSORLIB_DIR}/include ${MTC_UTILITY_DIR}/include ${MT
 
 #link_directories(${MTC_TENSOR_DIR}/src)
 set(common_link_dir  ${MTC_TENSORLIB_DIR} ${MTC_METRIC_DIR}/src ${MTC_UTILITY_DIR})
-set(PROGRAMS Steerable LRI algorithms Granulate Metric)
+set(PROGRAMS Steerable fftw++ Steerable2 LRI algorithms Granulate Metric)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Debug/lib)
@@ -37,7 +37,7 @@ foreach(program ${PROGRAMS})
 endforeach(program)
 
 add_library(MetricLib ${all_src}) #cannot be shared libary, boost complain
-target_link_libraries(MetricLib ${OpenCV_LIBS} util ${Boost_LIBRARIES} TensorLib)
+target_link_libraries(MetricLib ${OpenCV_LIBS} util ${Boost_LIBRARIES} TensorLib fftw3 fftw3_omp)
 
 
 

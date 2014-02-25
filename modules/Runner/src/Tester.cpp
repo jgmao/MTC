@@ -8,7 +8,7 @@
 #include <sys/types.h>
 //#include <process.h>
 //#include <Metric.h>
-
+#include <Steerable2.h>
 using namespace std;
 using namespace tensor;
 using namespace metric;
@@ -20,6 +20,20 @@ Tester::Tester(void)
 Tester::~Tester(void)
 {
 }
+void Tester::Testfftwpp(void)
+{
+
+  Tensor<double,1> im("/home/guoxin/Projects/Steerable/SteerableR/disk.tif");
+  metric::Steerable2 steer(im);
+  Mat L0[10];
+  Mat L1[11];
+  Mat B[12];
+  Mat A[10];
+  steer.decompose(3,4,im,L0,L1,B,A);
+
+
+}
+
 /*
 void Tester::TestInterp(string filename)
 {

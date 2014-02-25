@@ -51,8 +51,8 @@ set(CMAKE_CXX_COMPILER "g++")
 endif()
 message("${CMAKE_CXX_COMPILER}")
 
-set(CMAKE_CXX_FLAGS_DEBUG "-std=c++11 -pthread -O0 -g3 -Wall -Wno-unused-variable -Wno-unused-but-set-variable -fPIC")
-set(CMAKE_CXX_FLAGS_RELEASE   "-std=c++11 -pthread -O3  -DNDEBUG -Wall -Wno-unused-variable -Wno-unused-but-set-variable -fPIC")
+set(CMAKE_CXX_FLAGS_DEBUG "-std=c++11 -lm -lfftw3 -lfftw3_omp -fopenmp -ffast-math -msse2 -O0 -g3 -Wall -Wno-unused-variable -Wno-unused-but-set-variable -fPIC")
+set(CMAKE_CXX_FLAGS_RELEASE   "-std=c++11 -lm -lfftw3 -lfftw3_omp -fopenmp -ffast-math -msse2 -O3  -DNDEBUG -Wall -Wno-unused-variable -Wno-unused-but-set-variable -fPIC")
 
 if( NOT CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Debug CACHE STRING

@@ -12,6 +12,7 @@
 #include <stdlib.h>
 
 #include <cmath>
+#ifdef WIN32
 #define EXPORTLIB __declspec(dllexport)
 #else
 #define EXPORTLIB
@@ -30,7 +31,7 @@ public:
 public:
 	EXPORTLIB Steerable2(void);
 	EXPORTLIB ~Steerable2(void);
-	Steerable(c_real_ref im); //input must be a 1-channel image
+	Steerable2(c_real_ref im); //input must be a 1-channel image
 protected:
 	int max_ht;
 	int order;
@@ -73,18 +74,18 @@ public:
 	int  reconststep(fftw_complex *fourtmp, fftw_complex *fourBP, double *BPr, double *BPc, int w, int h);
 	int reconststepa(fftw_complex *fourtmp, fftw_complex *fourBP, double *BP, int w, int h);
 	void expand (double *inputar, double *outputar, int w, int h, int rr);
-	int kanaal(double *out, int w, int h, ImlibImage *im) ;
+	//int kanaal(double *out, int w, int h, ImlibImage *im) ;
 	int genHPfilter(double *HP,  int w, int h, double x1, double x2);
 	int genLPfilter(double *LP0, int w, int h, double x1, double x2);
+	int decompose(int maxscale, int K, Mat im, Mat* L0, Mat* L1, Mat* B, Mat* A);
+	//int decompose(int maxscale, int K, double *kanaal, int w, int h, double **L0, double **L1, double *H0,
+//			double ***Br, double ***Bc, double  **Ar, double  **Ac, ImlibData  *id, ImlibImage *im);
 
-	int decompose(int maxscale, int K, double *kanaal, int w, int h, double **L0, double **L1, double *H0,
-			double ***Br, double ***Bc, double  **Ar, double  **Ac, ImlibData  *id, ImlibImage *im);
+//	int reconstruct(int maxscale, int K, double *kanaal, int w, int h, double **L0, double **L1, double *H0,
+		//	double ***Br, double ***Bc, double  **Ar, double  **Ac,
+			//ImlibData  *id, ImlibImage *im);
 
-	int reconstruct(int maxscale, int K, double *kanaal, int w, int h, double **L0, double **L1, double *H0,
-			double ***Br, double ***Bc, double  **Ar, double  **Ac,
-			ImlibData  *id, ImlibImage *im);
-
-	int variance(double *arin, double *var, int w, int h);
+	//int variance(double *arin, double *var, int w, int h);
 
 
 	//STBlock DisplayLevel(int n, vector<STBlock> & pyr);

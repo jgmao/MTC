@@ -422,8 +422,11 @@ namespace metric
     //B.Print("B");
     if (boundary_cut == FilterBoundary::FILTER_BOUND_EXTEND)
     {
-        A = A.ExtendBoundary(A.size()/2);
-        B = B.ExtendBoundary(B.size()/2);
+        Mat tempA, tempB;
+        cv::copyMakeBorder(A,tempA,A.size().height/2,A.size().height/2,A.size().width/2,A.size().width/2,cv::BORDER_REFLECT);
+        A = Tensor<double,2>(tempA);
+        cv::copyMakeBorder(B,tempB,B.size().height/2,B.size().height/2,B.size().width/2,B.size().width/2,cv::BORDER_REFLECT);
+        B  = Tensor<double,2>(tempB);
     }
     spA.buildSCFpyr(A,nLevel,nDir,1,downsample);//A = this is orgExt
     spB.buildSCFpyr(B,nLevel,nDir,1,downsample);//B = ts is candExt

@@ -60,6 +60,7 @@ int main(int argc, char* argv[])
   //test.TestQuilting("..\\images\\training\\8064_1_g.tiff","..\\images\\training\\42-17730995_0_d_g.tiff");
   //test.TestEmbedding("..\\images\\training\\8064_1_g.tiff","..\\images\\training\\42-17730995_0_d_g.tiff");
   //test.TestSpeed();
+  test.Testfftwpp();
   test.TestEncoding(argc,argv);
   //test.StudyMetricFeatures();
   //test.debugBlock(448,320,16);

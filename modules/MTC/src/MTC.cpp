@@ -3351,8 +3351,8 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
           varadaptor = 1;
           thresholdAdaptor=1;
           lightAdaptor=1;
-          //if (orgvar>2000&&orgvar<5000)
-          //  varadaptor = a*log(orgvar)+c;
+          if (orgvar>2000&&orgvar<5000)
+            varadaptor = a*log(orgvar)+c;
           if (varadaptor<1)
             varadaptor=1;
 
