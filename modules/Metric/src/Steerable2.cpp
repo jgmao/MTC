@@ -1,6 +1,8 @@
 #include <Steerable2.h>
 #include <fftw++.h>
+#include <Imlib.h>
 #include <Array.h>
+#include <output.h>
 namespace metric{
 Steerable2::Steerable2()
 {
@@ -8,60 +10,126 @@ Steerable2::Steerable2()
 }
 Steerable2::Steerable2(c_real_ref im)
 {
-        this->im = im;
+  this->im = im;
+  h = im.size().height;
+  w = im.size().width;
+  align = sizeof(FComplex);
+  K = 4;
+  maxscale = 3;
+  int h1 = h;
+  int w1 = w;
+  L0 = vector<Ac*>(maxscale);
+  L1 = vector<Ac*>(maxscale+1);
+  finput = vector<Ac*>(maxscale);
+  fim = vector<Ac*>(maxscale);
+  conv = vector<Ac*>(maxscale);
+  ftmp = vector<Ac*>(maxscale);
+
+  for (int i=0; i<maxscale;i++)
+  {
+
+      w1 = w/pow(2.0,i);
+      h1 = h/pow(2.0,i);
+      finput[i]=new Ac(h1,w1,align);
+      fim[i] = new Ac(h1,w1,align);
+      conv[i] = new Ac(h1,w1,align);
+      ftmp[i] = new Ac(h1,w1,align);
+      L0[i] = new Ac(h1,w1,align);
+      L1[i] = new Ac(h1,w1,align);
+
+  }
+
+  w1 = w/pow(2.0,maxscale);
+  h1 = h/pow(2.0,maxscale);
+
+  L1[maxscale] = new Ac(h,w,align);
+  B = vector<Ac*>(maxscale);
+  B0 = vector<Ac*>(maxscale);
+  B1 = vector<Ac*>(maxscale);
+  B2 = vector<Ac*>(maxscale);
+  A = vector<Ac*>(K);
+
+  for (int i = 0; i <maxscale; i++)
+  {
+      h1 = h / pow(2.0, i);
+      w1 = w / pow(2.0, i);
+    //  B[i] = vector<Ac*>(K);
+
+      for (int j = 0; j < K; j++)
+      {
+
+        B[K*i+j] = new Ac(h1,w1,align);
+        //B.push_back(Ac(h1,w1,align));
+        if (i==0)
+          A[j] = new Ac(h,w,align);
+        if (i==0)
+          B0[j] = new Ac(h1,w1,align);
+        if (i==1)
+          B1[j] = new Ac(h1,w1,align);
+        if (i==2)
+          B2[j] = new Ac(h1,w1,align);
+      }
+
+  }
+
+  for (int i=0; i< h; i++)
+    for (int j=0; j<w;j++)
+    {
+      (*finput[0])(i,j).re=im.at<double>(i,j);
+      (*finput[0])(i,j).im=0.0;
+
+      (*L1[0])(i,j).re = im.at<double>(i,j);
+      (*L1[0])(i,j).im = 0.0;
+    }
 }
 
 Steerable2::~Steerable2()
 {
+        //free(finput);
+  for (int i=0; i<maxscale;i++)
+  {
 
+      delete finput[i];
+      delete fim[i];
+      delete conv[i];
+      delete ftmp[i];
+      delete L0[i];
+      delete L1[i];
+      for (int j=0; j<K;j++)
+      {
+        delete B[i][j];
+
+        if (i==0)
+          delete A[j];
+      }
+  }
+  for (int j=0; j<K;j++)
+  {
+    delete B0[j];
+    delete B1[j];
+    delete B2[j];
+  }
+  delete L1[maxscale];
 }
 
-int Steerable2::decompose(int maxscale, int K, Mat im, Mat* L0, Mat* L1, Mat* B, Mat* A)
-//  int decompose(int maxscale, int K, double *kanaal, int w, int h, double **L0, double **L1, double *H0,
-//                  double ***B, double  **A, ImlibData  *id, ImlibImage *im)
+int Steerable2::decompose()
   {
+          int i, j, k, t, w1, h1, w2, h2, scale;
+          double a, normfactor;
+          normfactor = sqrt(2.0 * K - 1) * exp(lgamma(K)) / sqrt(K * (exp(lgamma(2.0 * K))));
           fftwpp::fftw::maxthreads = get_max_threads();
-          unsigned int h = im.size().height;
-          int w = im.size().width;
-          size_t align = sizeof(FComplex);
-          Array::array2<double> finput(h,w,align);
-          Array::array2<FComplex> fim(h,w/2+1,align);
-          fftwpp::rcfft2d plan(h,w,finput,fim);
-          fftwpp::crfft2d ifft(h,w,fim,finput);
-          for (unsigned int i=0; i< h; i++)
-            for (unsigned int j=0; j<w;j++)
-              finput(i,j)=im.at<double>(i,j);
-          cout<<finput<<endl;
 
-          plan.fft(finput,fim);
-          cout<<fim<<endl;
-          ifft.fftNormalized(fim,finput);
-          cout<<finput<<endl;
-          unsigned int nx=h, ny=w;
-          unsigned int nyp=ny/2+1;
+          fftwpp::fft2d Forward(h,w,-1,*finput[0],*fim[0]);
+//          fftwpp::crfft2d ifft(h,w,fim,finput);
+          cout<<*finput[0]<<endl;
 
-          Array::array2<double> f(nx,ny,align);
-          Array::array2<FComplex> g(nx,nyp,align);
+          Forward.fft(*finput[0],*fim[0]); //forward
+          cout<<*fim[0]<<endl;
+          //ifft.fftNormalized(fim,finput);
+          //cout<<finput<<endl;
 
-          fftwpp::rcfft2d Forward(nx,ny,f,g);
-          fftwpp::crfft2d Backward(nx,ny,g,f);
 
-          for(unsigned int i=0; i < nx; i++)
-            for(unsigned int j=0; j < ny; j++)
-              f(i,j)=im.at<double>(i,j);//i+j;
-
-          cout << f << endl;
-
-          Forward.fft(f,g);
-
-          cout << g << endl;
-
-          Backward.fftNormalized(g,f);
-
-          cout << f << endl;
-//          fftw_plan p;
-//          fftw_complex *fim, *conv, *ftmp, *finput;
-
+          //fftw_complex *fim, *conv, *ftmp, *finput;
 
 
 //          int i, j, k, t, w1, h1, w2, h2, scale;
@@ -96,93 +164,108 @@ int Steerable2::decompose(int maxscale, int K, Mat im, Mat* L0, Mat* L1, Mat* B,
 //          //scale = 0
 //          //=========
 
-//          a = w / 2;
+          a = w / 2;
 
 //          p = fftw_plan_dft_2d(h, w, finput, fim, -1, FFTW_ESTIMATE); //1st fft
 //          fftw_execute(p);
+          Array::array2<double> fLP0(h,w,align);
+          Array::array2<double> fHP0(h,w,align);
+          Array::array2<double> fHPtmp(h,w,align);
+          Array::array2<double> fLPtmp(h,w,align);
+          //Array::array2<double> tmparall(h,w,align);
 
-//          fLP0     = malloc(sizeof(double) * w * h);
-//          fHP0     = malloc(sizeof(double) * w * h);
-//          fLPtmp   = malloc(sizeof(double) * w * h);
-//          fHPtmp   = malloc(sizeof(double) * w * h);
-//          tmparL   = malloc(sizeof(double) * w * h);
-//          tmparH   = malloc(sizeof(double) * w * h);
-//          tmparall = malloc(sizeof(double) * w * h);
+          vector<Array::array2<double>> fB(K,Array::array2<double>(h,w,align));
+          //vector<Array::array2<double>> tmpar(K,Array::array2<double>(h,w,align));
 
-//          fB    = malloc(sizeof(double *) * K);
-//          tmpar = malloc(sizeof(double *) * K);
+          Tensor<double,1> temp(h,w);
+          genLPfilter(fLP0,   w, h, a/2, a);
+          genHPfilter(fHP0,   w, h, a/2, a);
+          genHPfilter(fHPtmp, w, h, a/4, a/2);
+          genLPfilter(fLPtmp, w, h, a/4, a/2);
+          //cout<<fLP0<<endl<<fHP0<<endl<<fHPtmp<<endl<<fLPtmp<<endl;
 
+          for (j=0; j<h;j++)
+            for (i=0;i<w;i++)
+              temp(j,i) = 255*fLP0(j,i);
+          temp.SaveBlock("fLP0.tif");
+          for (j=0; j<h;j++)
+            for (i=0;i<w;i++)
+              temp(j,i) = 255*fHP0(j,i);
+          temp.SaveBlock("fHP0.tif");
+          for (j=0; j<h;j++)
+            for (i=0;i<w;i++)
+              temp(j,i) = 255*fLPtmp(j,i);
+          temp.SaveBlock("fLPtmp0.tif");
+          for (j=0; j<h;j++)
+            for (i=0;i<w;i++)
+              temp(j,i) = 255*fHPtmp(j,i);
+          temp.SaveBlock("fHPtmp0.tif");
 
-//          for (k = 0; k < K; k ++)
-//            {
-//              fB[k]    = malloc(sizeof(double) * w * h);
-//              tmpar[k] = malloc(sizeof(double) * w * h);
-//            }
+          for (j = 0; j < h; j++)
+            for (i = 0; i < w; i++)
+            {
+               int k, l, m, n, t, index2, index3;
+               double theta;
+               if (i <  w/2) {k =     i;}
+               if (i >= w/2) {k = i - w;}
+               if (j <  h/2) {l =     j;}
+               if (j >= h/2) {l = j - h;}
 
-//          tmparL = malloc(sizeof(double) * w * h);
-//          tmparH = malloc(sizeof(double) * w * h);
+               if (i <  w/2) {m = i + w/2;}
+               if (i >= w/2) {m = i - w/2;}
+               if (j <  h/2) {n = j + h/2;}
+               if (j >= h/2) {n = j - h/2;}
 
-
-//          genLPfilter(fLP0,   w, h, a/2, a);
-//          genHPfilter(fHP0,   w, h, a/2, a);
-//          genHPfilter(fHPtmp, w, h, a/4, a/2);
-//          genLPfilter(fLPtmp, w, h, a/4, a/2);
-
+               for (t = 0; t < K; t ++)
+               {
+                  theta = std::atan2(l, k) - t * M_PI / K;
+                  fB[t](j,i) = normfactor * pow(2.0 * cos(theta), K-1);
+                  //tmpar[t](n,m) = fB[t](j,i) * fLP0(j,i) * fHPtmp(j,i);
+               }
+            }
 //          for (j = 0; j < h; j++)
+//            for (i = 0; i < w; i++)
 //            {
-//              for (i = 0; i < w; i++)
-//                {
-//                  int index = i + w * j;
-//                  int k, l, m, n, t, index2, index3;
-//                  double theta;
-//                  if (i <  w/2) {k =     i;}
-//                  if (i >= w/2) {k = i - w;}
-//                  if (j <  h/2) {l =     j;}
-//                  if (j >= h/2) {l = j - h;}
+//              double ttemp;
+//              ttemp = 0.0;
+//              for (t = 0; t < K; t ++)
+//              {
+//                ttemp += pow(fB[t](j,i), 2.0);
+//              }
+//              tmparall(j,i) =   pow(fHP0(j,i), 2.0)
+//                                  + (ttemp * pow(fHPtmp(j,i), 2.0)
+//                                  + pow(fLPtmp(j,i), 2.0)) * pow(fLP0(j,i), 2.0);
 
-//                  if (i <  w/2) {m = i + w/2;}
-//                  if (i >= w/2) {m = i - w/2;}
-//                  if (j <  h/2) {n = j + h/2;}
-//                  if (j >= h/2) {n = j - h/2;}
-
-//                  index2 = k + w * l;
-//                  index3 = m + w * n;
-
-//                  for (t = 0; t < K; t ++)
-//                    {
-//                      theta = atan2(l, k) - t * M_PI / K;
-//                      fB[t][index] = normfactor * pow(2.0 * cos(theta), K-1);
-//                      tmpar[t][index3] = fB[t][index] * fLP0[index] * fHPtmp[index];
-//                    }
-//               }
 //            }
-//          for (j = 0; j < h; j++)
-//            {
-//              for (i = 0; i < w; i++)
-//                {
-//                  int index = i + w * j;
-//                  double ttemp;
-//                  ttemp = 0.0;
-//                  for (t = 0; t < K; t ++)
-//                    {
-//                      ttemp += pow(fB[t][index], 2.0);
-//                    }
-//                  tmparall[index] =   pow(fHP0[index], 2.0)
-//                                    + (ttemp * pow(fHPtmp[index], 2.0)
-//                                    + pow(fLPtmp[index], 2.0)) * pow(fLP0[index], 2.0);
+//          cout<<"tmpar[0]--------------\n";
+//          cout<<tmpar[0]<<endl;
+//          for (j=0; j<h;j++)
+//            for (i=0;i<w;i++)
+//              temp(j,i) = tmparall(j,i);
+//          double mintmp;// = temp.Min()[0];
+//          double maxtmp;// = cv::max(temp);
 
-//                }
-//            }
-//          output (tmparall, w, h, id, im, "fBPcheck.ppm", 1);
-
-
-//                      output (tmpar[0], w, h, id, im, "fB1new.ppm", 1);
-//          if (K > 1) {output (tmpar[1], w, h, id, im, "fB2new.ppm", 1);}
-//          if (K > 2) {output (tmpar[2], w, h, id, im, "fB3new.ppm", 1);}
-//          if (K > 3) {output (tmpar[3], w, h, id, im, "fB4new.ppm", 1);}
-//          if (K > 4) {output (tmpar[4], w, h, id, im, "fB5new.ppm", 1);}
-//          if (K > 5) {output (tmpar[5], w, h, id, im, "fB6new.ppm", 1);}
-
+//         minMaxLoc( temp, &mintmp, &maxtmp );
+//         for (j=0; j<h;j++)
+//            for (i=0;i<w;i++)
+//              temp(j,i) = 255*(temp(j,i)[0]-mintmp)/(maxtmp-mintmp);
+//          temp.SaveBlock("fBPcheck0.tif");
+//          for (j=0; j<h;j++)
+//            for (i=0;i<w;i++)
+//              temp(j,i) = 255*tmpar[0](j,i);
+//          temp.SaveBlock("fB1new0.tif");
+//          for (j=0; j<h;j++)
+//            for (i=0;i<w;i++)
+//              temp(j,i) = 255*tmpar[1](j,i);
+//          temp.SaveBlock("fB2new0.tif");
+//          for (j=0; j<h;j++)
+//            for (i=0;i<w;i++)
+//              temp(j,i) = 255*tmpar[2](j,i);
+//          temp.SaveBlock("fB3new0.tif");
+//          for (j=0; j<h;j++)
+//            for (i=0;i<w;i++)
+//              temp(j,i) = 255*tmpar[3](j,i);
+//          temp.SaveBlock("fB4new0.tif");
 //          //...
 
 //          output (tmparL, w, h, id, im, "fLnew.ppm", 1);
@@ -190,59 +273,73 @@ int Steerable2::decompose(int maxscale, int K, Mat im, Mat* L0, Mat* L1, Mat* B,
 
 //          free(tmpar);  	free(tmparL);	free(tmparH);
 
-//          for (t = 0; t < K; t ++)
-//            {
-//               fourier2spatialband2BP(K, w, h, fHP0, fB[t],  A[t], conv, fim, ftmp);
-//               fourier2spatialband3BP(K, w, h, fLP0, fHPtmp, fB[t], B[t][0], conv, fim, ftmp);
-//            }
+          for (t = 0; t < K; t ++)
+          {
 
-//          fourier2spatialband2LP(K, w, h, fLP0, fLPtmp, L1[0], conv, fim, ftmp);
-
+            //fourier2spatialband2BP(K, w, h, fHP0, fB[t],  *A[t], *conv[0], *fim[0], *ftmp[0]);
+            fourier2spatialband3(K, w, h, fLP0, fHPtmp, fB[t], *B[t], *conv[0], *fim[0], *ftmp[0]);
+            cout<<"B"<<t<<endl;
+            cout<<B[t]<<endl;
+          }
+          fourier2spatialband2(w, h, fLP0, fLPtmp, *L1[0], *conv[0], *fim[0], *ftmp[0]);
+          cout<<"conv0"<<endl;
+          cout<<*conv[0]<<endl;
 //          //subsampling for the next scale
 //          //==============================
 
-//          w2 = w / pow(2, 1);
-//          h2 = h / pow(2, 1);
+          w2 = w / 2;
+          h2 = h / 2;
 
 //          for (j = 0; j < h2; j ++)
+//          {
+//            for (i = 0; i < w2; i ++)
 //            {
-//              for (i = 0; i < w2; i ++)
-//                {
-//                   L1[1][i + w2 * j] = L1[0][2 * (i + 2 * w2 * j)];
-//                }
+//                L1[1]->operator()(j,i) = L1[0]->operator()(2*j,2*i);
 //            }
+//          }
+
 
 //          fftw_free(fim);	fftw_free(conv);	fftw_free(ftmp);	fftw_free(finput);
 //          free(fLP0);	free(fHP0);	free(fLPtmp);	free(fHPtmp);	free(fB);
 
 //          //iterative part of the decomposition
 //          //===================================
+            w1 = w;
+            h1 = h;
+            for (scale = 1; scale < maxscale; scale ++)
+            {
+               down2Freq(*conv[scale-1],*fim[scale],h1,w1);
+               w1 /=2 ;//current level size
+               h1 /=2 ;
 
-//          for (scale = 1; scale < maxscale; scale ++)
-//            {
-//               w1 = w / pow(2, scale);
-//               h1 = h / pow(2, scale);
+               a = w1 / 2;
 
-//               printf("Scale = %d\n", scale);
-
-//               a = w1 / 2;
-
-//               fim    = fftw_malloc(sizeof(fftw_complex) * (w1  * h1));
-//               conv   = fftw_malloc(sizeof(fftw_complex) * (w1  * h1));
-//               ftmp   = fftw_malloc(sizeof(fftw_complex) * (w1  * h1));
-//               finput = fftw_malloc(sizeof(fftw_complex) * (w1  * h1));
+               //fim    = fftw_malloc(sizeof(fftw_complex) * (w1  * h1));
+               //conv   = fftw_malloc(sizeof(fftw_complex) * (w1  * h1));
+               //ftmp   = fftw_malloc(sizeof(fftw_complex) * (w1  * h1));
+               //finput = fftw_malloc(sizeof(fftw_complex) * (w1  * h1));
 
 //               for (j = 0; j < h1; j++)
+//                 for (i = 0; i < w1; i++)
 //                 {
-//                   for (i = 0; i < w1; i++)
-//                     {
-//                        int index = i + w1 * j;
-//                        finput[index][0] = L1[scale][index];
-//                        finput[index][1] = 0.0;
-//                     }
+//                   finput[scale]->operator()(j,i) = L1[scale-1]->operator()(j,i);
 //                 }
+//               cout<<"down2 in spatial"<<endl;
+//               cout<<*finput[scale]<<endl;
 
+            //   Array::array2<FComplex> temp(h1,w1,align);
+            //   fftwpp::fft2d fft2(h1,w1,-1,*finput[scale],temp);
+            //   fft2.fft(*finput[scale],temp);
+            //   cout<<"use fft-ifft-fft"<<endl;
+            //   cout<<temp<<endl;
+
+               cout<<"d2 in freq"<<endl;
+               cout<<*fim[scale]<<endl;
 //               p = fftw_plan_dft_2d(h1, w1, finput, fim, -1, FFTW_ESTIMATE); fftw_execute(p);
+               Array::array2<double> fHPtmp(h1,w1,align);
+               Array::array2<double> fLPtmp(h1,w1,align);
+
+               vector<Array::array2<double>> fB(K,Array::array2<double>(h1,w1,align));
 
 //               fLPtmp = malloc(sizeof(double) * w1 * h1);
 //               fHPtmp = malloc(sizeof(double) * w1 * h1);
@@ -253,33 +350,31 @@ int Steerable2::decompose(int maxscale, int K, Mat im, Mat* L0, Mat* L1, Mat* B,
 //                   fB[k] = malloc(sizeof(double) * w1 * h1);
 //                 }
 
-//               genHPfilter(fHPtmp, w1, h1, a/4, a/2);
-//               genLPfilter(fLPtmp, w1, h1, a/4, a/2);
+               genHPfilter(fHPtmp, w1, h1, a/4, a/2);
+               genLPfilter(fLPtmp, w1, h1, a/4, a/2);
 
-//               for (j = 0; j < h1; j++)
-//                 {
-//                   for (i = 0; i < w1; i++)
-//                     {
-//                        int index = i + w1 * j;
-//                        int k, l, t;
-//                        double theta;
-//                        if (i <  w1/2) {k =     i;}
-//                        if (i >= w1/2) {k = i - w1;}
-//                        if (j <  h1/2) {l =     j;}
-//                        if (j >= h1/2) {l = j - h1;}
+               for (j = 0; j < h1; j++)
+                   for (i = 0; i < w1; i++)
+                   {
+                        int k, l, t;
+                        double theta;
+                        if (i <  w1/2) {k =     i;}
+                        if (i >= w1/2) {k = i - w1;}
+                        if (j <  h1/2) {l =     j;}
+                        if (j >= h1/2) {l = j - h1;}
 
-//                        for (t = 0; t < K; t ++)
-//                          {
-//                            theta = atan2(l, k) - t * M_PI / K;
-//                            fB[t][index] = normfactor * pow(2.0 * cos(theta), K-1);
-//                          }
-//                    }
-//                 }
-//               for (t = 0; t < K; t ++)
-//                 {
-//                   fourier2spatialband2BP(K, w1, h1, fHPtmp, fB[t], B[t][scale], conv, fim, ftmp);
-//                 }
-//               fourier2spatialband1LP(K, w1, h1, fLPtmp, L1[scale], conv, fim, ftmp);
+                        for (t = 0; t < K; t ++)
+                        {
+                            theta = atan2(l, k) - t * M_PI / K;
+                            fB[t](j,i) = normfactor * pow(2.0 * cos(theta), K-1);
+                        }
+                    }
+               for (t = 0; t < K; t ++)
+               {
+                   Array::array2<FComplex> tempArr(h1,w1,align);
+                   fourier2spatialband2(w1, h1, fHPtmp, fB[t], *B[t+scale*K], *conv[scale], *fim[scale], *ftmp[scale]);
+               }
+               fourier2spatialband1(w1, h1, fLPtmp, *L1[scale], *conv[scale], *fim[scale], *ftmp[scale]);
 
 //               //subsampling for the next scale
 //               //==============================
@@ -288,19 +383,220 @@ int Steerable2::decompose(int maxscale, int K, Mat im, Mat* L0, Mat* L1, Mat* B,
 //               h2 = h / pow(2, scale+1);
 
 //               for (j = 0; j < h2; j ++)
+//                 for (i = 0; i < w2; i ++)
 //                 {
-//                   for (i = 0; i < w2; i ++)
-//                     {
-//                        L1[scale + 1][i + w2 * j] = L1[scale][2 * (i + 2 * w2 * j)];
-//                     }
+//                   L1[scale + 1]->operator()(j,i) = L1[scale]->operator()(2*j,2*i);
 //                 }
 
 //               fftw_free(fim);	fftw_free(conv);	fftw_free(ftmp);	fftw_free(finput);
 //               free(fLPtmp);	free(fHPtmp);		free(fB);
-//            }
+          }
+
           return 1;
-   }
+  }
+
+int Steerable2::down2Freq(Array::array2<FComplex>& L0, Array::array2<FComplex>&L1, int h0, int w0)
+{
+  //L0 is prior level
+  //w0 and h0 are width and height of L0
+  //L1 is next level
+  //this only useful when using fftw++ for represent half (left w/2+1) real to complex fft
+  int h1 = h0/2;
+  int w1 = w0/2;
+  int i,j;
+  for (j=0; j<h1/2+1;j++)
+    for (i=0; i< w1/2+1; i++)
+      L1(j,i) = L0(j,i);
+
+  for (j=h1/2+1; j<h1;j++)
+    for (i=0; i<w1/2+1; i++)
+      L1(j,i) = L0(j+h1,i);
+
+  for (j=0; j<h1/2+1;j++)
+    for (i=w1/2+1; i<w1; i++)
+      L1(j,i) = L0(j,i+w1);
+
+  for (j=h1/2+1; j<h1;j++)
+    for (i=w1/2+1;i<w1;i++)
+      L1(j,i) = L0(j+h1,i+w1);
+  return 1;
+}
+
+int Steerable2::genLPfilter(Array::array2<double>& LP0, int w, int h, double x1, double x2)
+  {
+     double r, x;
+     int i, j, k, l;
+
+     for (j = 0; j < h; j++)
+       {
+          for (i = 0; i < w; i++)
+            {
+              if (i <= w/2) {k = i;}
+              if (i >  w/2) {k = i - w;}
+
+	      if (j <= h/2) {l = j;}
+	      if (j >  h/2) {l = j - h;}
+
+	      r = sqrt(k*k + l*l);
+
+	      if (r < x1) {LP0(j,i) = 1.0;}
+	      if (r > x2) {LP0(j,i) = 0.0;}
+
+	      if ((r >= x1) && (r <= x2))
+		{
+		  x = M_PI / 4.0 * (1.0 + (r - x1) / (x2 - x1));
+		  LP0(j,i) = cos(M_PI / 2.0 * (log(x * 4.0 / M_PI)/ log(2.0)));
+		}
+	    }
+      }
+    return 1;
+  }
+
+  int Steerable2::genHPfilter(Array::array2<double>& HP, int w, int h, double x1, double x2)
+  {
+     double r, x;
+     int i, j, k, l;
+
+     for (j = 0; j < h; j++)
+       {
+          for (i = 0; i < w; i++)
+            {
+
+	      if (i <= w/2) {k = i;}
+	      if (i >  w/2) {k = i - w;}
+
+	      if (j <= h/2) {l = j;}
+	      if (j >  h/2) {l = j - h;}
+
+	      r = sqrt(k*k + l*l);
+
+	      if (r < x1) {HP(j,i) = 0.0;}
+	      if (r > x2) {HP(j,i) = 1.0;}
+	      if ((r >= x1) && (r <= x2))
+		{
+		  x = M_PI / 4.0 * (1.0 + (r - x1) / (x2 - x1));
+		  HP(j,i) = cos(M_PI / 2.0 * (log (x * 2.0 / M_PI) / log(2.0)));
+		}
+	  }
+      }
+    return 1;
+  }
 
 
+
+  int Steerable2::fourier2spatialband3(int K, int w, int h,
+                                         Array::array2<double>& otf1,
+                                         Array::array2<double>& otf2,
+                                         Array::array2<double>& otf3,
+                                         Array::array2<FComplex>& BP,
+                                         Array::array2<FComplex>& conv,
+                                         Array::array2<FComplex>& fim,
+                                         Array::array2<FComplex>& ftmp)
+     {
+        int i, j;
+        div_t tmp = div(K, 2);
+        //int wp = w/2+1;
+        cout<<"otf1"<<endl;
+        cout<<otf1<<endl;
+        cout<<"otf2"<<endl;
+        cout<<otf2<<endl;
+        cout<<"otf3"<<endl;
+        cout<<otf3<<endl;
+        cout<<"fim"<<endl;
+        cout<<fim<<endl;
+        for (j = 0; j < h; j++)
+        {
+            for (i = 0; i < w; i++)
+              {
+                int x = h-j-1;
+                int y = w-i-1;
+                conv(j,i).re = fim(j,i).re * otf1(x,y) * otf2(x,y) * otf3(x,y);
+                conv(j,i).im = fim(j,i).im * otf1(x,y) * otf2(x,y) * otf3(x,y);
+              }
+        }
+        cout<<"conv"<<endl;
+        cout<<conv<<endl;
+        fftwpp::fft2d Backward(h,w,1,conv,BP);
+        Backward.fftNormalized(conv,BP);
+        cout<<"BP"<<endl;
+        cout<<BP<<endl;
+//        if (tmp.rem == 1)
+//          {
+//            for (j = 0; j < h; j++)
+//              {
+//                for (i = 0; i < w; i++)
+//                {
+//                  BP[i + w * j] = ftmp[i + w * j][0];
+//                }
+//              }
+//          }
+//        if (tmp.rem == 0)
+//          {
+//            for (j = 0; j < h; j++)
+//            {
+//              for (i = 0; i < w; i++)
+//                {
+//                  BP[i + w * j] = ftmp[i + w * j][1];
+//                }
+//            }
+//          }
+        return 1;
+     }
+
+  int Steerable2::fourier2spatialband2(int w, int h, Array::array2<double>& otf1,
+                                         Array::array2<double>& otf2, Array::array2<FComplex>& BP,
+                                         Array::array2<FComplex>& conv, Array::array2<FComplex>& fim,
+                                         Array::array2<FComplex>& ftmp
+                                         )
+  {
+        int i, j;
+        //int wp = w/2+1;
+        cout<<"otf1"<<endl;
+        cout<<otf1<<endl;
+        cout<<"otf2"<<endl;
+        cout<<otf2<<endl;
+        cout<<"fim"<<endl;
+        cout<<fim<<endl;
+        for (j = 0; j < h; j++)
+        {
+            for (i = 0; i < w; i++)
+              {
+                int x = h-j-1;
+                int y = w-i-1;
+                conv(j,i).re = fim(j,i).re * otf1(x,y) * otf2(x,y);
+                conv(j,i).im = fim(j,i).im * otf1(x,y) * otf2(x,y);
+              }
+        }
+        cout<<"conv"<<endl;
+        cout<<conv<<endl;
+        fftwpp::fft2d Backward(h,w,1,conv,BP);
+        Backward.fftNormalized(conv,BP);
+        cout<<"BP"<<endl;
+        cout<<BP<<endl;
+        return 1;
+  }
+
+  int Steerable2::fourier2spatialband1(int w, int h, Array::array2<double>& otf1,
+                                         Array::array2<FComplex>& BP,
+                                         Array::array2<FComplex>& conv, Array::array2<FComplex>& fim,
+                                        Array::array2<FComplex>& ftmp
+                                         )
+  {
+        int i, j;
+//        int wp = w/2+1;
+        for (j = 0; j < h; j++)
+        {
+            for (i = 0; i < w; i++)
+              {
+                int x = h-j-1;
+                int y = w-i-1;
+                conv(j,i).re = fim(j,i).re * otf1(x,y);
+                conv(j,i).im = fim(j,i).im * otf1(x,y);
+              }
+        }
+        fftwpp::fft2d Backward(h,w,1,conv,BP);
+        Backward.fftNormalized(conv,BP);
+        return 1;
+  }
 
 }

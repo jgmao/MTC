@@ -475,7 +475,7 @@ class array2 : public array1<T> {
   array2<T>& operator = (const array2<T>& A) {
     __checkEqual(nx,A.Nx(),2,1);
     __checkEqual(ny,A.Ny(),2,2);
-    Load(A());
+    this->Load(A());
     A.Purge();
     return *this;
   }

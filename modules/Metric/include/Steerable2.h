@@ -7,10 +7,10 @@
 #include "TensorLite.h"
 #include "MyLib.h"
 #include <vector>
-#include <fftw3.h>
+#include <fftw++.h>
 #include <math.h>
 #include <stdlib.h>
-
+#include <Array.h>
 #include <cmath>
 #ifdef WIN32
 #define EXPORTLIB __declspec(dllexport)
@@ -28,11 +28,32 @@ public:
 	typedef const data_type&  c_data_ref;
 	typedef data_type& data_ref;
 	typedef const real_data_type& c_real_ref;
+	typedef vector<Array::array2<double>> Vd;
+	typedef vector<Array::array2<FComplex>> Vc;
+	typedef Array::array2<double> Ad;
+	typedef Array::array2<FComplex> Ac;
 public:
 	EXPORTLIB Steerable2(void);
 	EXPORTLIB ~Steerable2(void);
 	Steerable2(c_real_ref im); //input must be a 1-channel image
 protected:
+
+	int maxscale;
+	int K;//orientation
+	//Array::array2<double>** L0, L1, B, A;
+	vector<Ac*> finput;
+	vector<Ac*> L0,L1;
+	vector<Ac*> A;
+	vector<Ac*> B;
+	vector<Ac*> B0,B1,B2,LH;
+	vector<Ac> test;
+	int h,w;
+	//for each scale there is a set of temp Ac s
+	vector<Ac*> fim;
+	vector<Ac*> conv;
+	vector<Ac*> ftmp;
+
+	size_t align;
 	int max_ht;
 	int order;
 	int twidth;
@@ -66,18 +87,32 @@ public:
 	//STBlock DFTShift(STBlock & A);	//only works when size is even
 	double steera(double theta, double *B1, double *B2, double *B3, double *B4, int w, int h, int x, int y);
 	double steerb(double theta, double *hB1, double *hB2, double *hB3, double *hB4, double *hB5, int w, int h, int x, int y);
+	int down2Freq(Array::array2<FComplex>& L0, Array::array2<FComplex>&L1, int h0, int w0);
+	int fourier2spatialband2(int w, int h, Array::array2<double>& otf1,
+						 Array::array2<double>& otf2, Array::array2<FComplex>& BP,
+						 Array::array2<FComplex>& conv, Array::array2<FComplex>& fim,
+						 Array::array2<FComplex>& ftmp);
+	int fourier2spatialband3(int K, int w, int h,
+				    Array::array2<double>& otf1,
+				    Array::array2<double>& otf2,
+				    Array::array2<double>& otf3,
+				    Array::array2<FComplex>& BP,
+				    Array::array2<FComplex>& conv,
+				    Array::array2<FComplex>& fim,
+				    Array::array2<FComplex>& ftmp);
 
-	int fourier2spatialband1(int w, int h, double *otf1, double *BP, fftw_complex *conv, fftw_complex *fim, fftw_complex *ftmp);
-	int fourier2spatialband2(int w, int h, double *otf1, double *otf2, double *BPr, double *BPc, fftw_complex *conv, fftw_complex *fim, fftw_complex *ftmp);
-	int fourier2spatialband2a(int w, int h, double *otf1, double *otf2, double *BP, fftw_complex *conv, fftw_complex *fim, fftw_complex *ftmp);
-	int fourier2spatialband3(int w, int h, double *otf1, double *otf2, double *otf3, double *BPr, double *BPc, fftw_complex *conv, fftw_complex *fim, fftw_complex *ftmp);
+	int fourier2spatialband1(int w, int h, Array::array2<double>& otf1,
+					       Array::array2<FComplex>& BP,
+					       Array::array2<FComplex>& conv, Array::array2<FComplex>& fim,
+					       Array::array2<FComplex>& ftmp);
+
 	int  reconststep(fftw_complex *fourtmp, fftw_complex *fourBP, double *BPr, double *BPc, int w, int h);
 	int reconststepa(fftw_complex *fourtmp, fftw_complex *fourBP, double *BP, int w, int h);
 	void expand (double *inputar, double *outputar, int w, int h, int rr);
 	//int kanaal(double *out, int w, int h, ImlibImage *im) ;
-	int genHPfilter(double *HP,  int w, int h, double x1, double x2);
-	int genLPfilter(double *LP0, int w, int h, double x1, double x2);
-	int decompose(int maxscale, int K, Mat im, Mat* L0, Mat* L1, Mat* B, Mat* A);
+	int genHPfilter(Array::array2<double>& HP,  int w, int h, double x1, double x2);
+	int genLPfilter(Array::array2<double>& LP0, int w, int h, double x1, double x2);
+	int decompose(void);
 	//int decompose(int maxscale, int K, double *kanaal, int w, int h, double **L0, double **L1, double *H0,
 //			double ***Br, double ***Bc, double  **Ar, double  **Ac, ImlibData  *id, ImlibImage *im);
 

@@ -23,13 +23,9 @@ Tester::~Tester(void)
 void Tester::Testfftwpp(void)
 {
 
-  Tensor<double,1> im("/home/guoxin/Projects/Steerable/SteerableR/disk.tif");
+  Tensor<double,1> im("/home/guoxin/Projects/Steerable/SteerableR/disk.png");
   metric::Steerable2 steer(im);
-  Mat L0[10];
-  Mat L1[11];
-  Mat B[12];
-  Mat A[10];
-  steer.decompose(3,4,im,L0,L1,B,A);
+  steer.decompose();
 
 
 }
