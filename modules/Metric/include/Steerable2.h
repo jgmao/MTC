@@ -32,6 +32,7 @@ public:
 	typedef vector<Array::array2<FComplex>> Vc;
 	typedef Array::array2<double> Ad;
 	typedef Array::array2<FComplex> Ac;
+
 public:
 	EXPORTLIB Steerable2(void);
 	EXPORTLIB ~Steerable2(void);
@@ -47,6 +48,11 @@ protected:
 	vector<Ac*> B;
 	vector<Ac*> B0,B1,B2,LH;
 	vector<Ac> test;
+	Ac* Lp, *Hp;
+	vector<Ad*> fLP;//set of LP filters
+	vector<Ad*> fHP;//set of HP filters
+	Ad *fLP0,*fHP0,*fHPtmp,*fLPtmp;
+	vector<Ad*> fB;
 	int h,w;
 	//for each scale there is a set of temp Ac s
 	vector<Ac*> fim;
@@ -87,6 +93,9 @@ public:
 	//STBlock DFTShift(STBlock & A);	//only works when size is even
 	double steera(double theta, double *B1, double *B2, double *B3, double *B4, int w, int h, int x, int y);
 	double steerb(double theta, double *hB1, double *hB2, double *hB3, double *hB4, double *hB5, int w, int h, int x, int y);
+	int buildFilters(int maxscale, int K, int h, int w);
+	int deleteFilters(void);
+	void saveBand(Ad& band, string name);
 	int down2Freq(Array::array2<FComplex>& L0, Array::array2<FComplex>&L1, int h0, int w0);
 	int fourier2spatialband2(int w, int h, Array::array2<double>& otf1,
 						 Array::array2<double>& otf2, Array::array2<FComplex>& BP,

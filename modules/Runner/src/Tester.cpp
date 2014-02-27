@@ -24,7 +24,10 @@ void Tester::Testfftwpp(void)
 {
 
   Tensor<double,1> im("/home/guoxin/Projects/Steerable/SteerableR/disk.png");
-  metric::Steerable2 steer(im);
+  Mat pad;
+  int rr = im.size().height/2;
+  cv::copyMakeBorder(im,pad,rr,rr,rr,rr,cv::BORDER_CONSTANT,0);
+  metric::Steerable2 steer(pad);
   steer.decompose();
 
 
