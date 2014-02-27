@@ -3,7 +3,7 @@
 #define  _CRT_SECURE_NO_WARNINGS
 #ifndef STEERABLE2_H
 #define STEERABLE2_H
-
+#define STEER_DBG 1
 #include "TensorLite.h"
 #include "MyLib.h"
 #include <vector>

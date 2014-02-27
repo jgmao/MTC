@@ -14,7 +14,7 @@ Steerable2::Steerable2(c_real_ref im)
   h = im.size().height;
   w = im.size().width;
   align = sizeof(FComplex);
-  K = 4;
+  K = 1;
   maxscale = 3;
   int h1 = h;
   int w1 = w;
@@ -60,13 +60,11 @@ Steerable2::Steerable2(c_real_ref im)
   {
       h1 = h; // pow(2.0, i);
       w1 = w; // pow(2.0, i);
-    //  B[i] = vector<Ac*>(K);
 
       for (int j = 0; j < K; j++)
       {
 
         B[K*i+j] = new Ac(h1,w1,align);
-        //B.push_back(Ac(h1,w1,align));
         if (i==0)
           A[j] = new Ac(h,w,align);
       }
@@ -108,7 +106,7 @@ Steerable2::~Steerable2()
           }
       }
   }
-  for (int i=0; i< B.size();i++)
+  for (int i=0; i<(int) B.size();i++)
     delete B[i];
   delete L1[maxscale];
 }
@@ -147,7 +145,6 @@ int Steerable2::buildFilters(int maxscale, int K, int h, int w)
           {
             theta = std::atan2(l, k) - t * M_PI / K;
             (*fB[t])(j,i) = normfactor * pow(2.0 * cos(theta), K-1);
-            //(*tmpar[t])(n,m) = (*fB[t])(j,i) * (*fLP0)(j,i) * (*fHPtmp)(j,i);
           }
       }
   return 1;
@@ -155,116 +152,29 @@ int Steerable2::buildFilters(int maxscale, int K, int h, int w)
 
 int Steerable2::deleteFilters(void)
 {
-  for (int i=0; i<fLP.size();i++)
+  for (int i=0; i<(int)fLP.size();i++)
     delete fLP[i];
-  for (int j=0; j<fHP.size();j++)
+  for (int j=0; j<(int)fHP.size();j++)
     delete fHP[j];
   for (int k=0; k<K; k++)
     delete fB[k];
+  return 1;
 }
 
 int Steerable2::decompose()
   {
           int i, j, k, t, w1, h1, w2, h2, scale;
           double a, normfactor;
-
-//          unsigned int nx=16, ny=16;
-
-//          Ac f(nx,ny,align);
-
-//          fftwpp::fft2d Forward2(nx,ny,-1,f);
-//          fftwpp::fft2d Backward2(nx,ny,1,f);
-
-//          for(unsigned int i=0; i < nx; i++)
-//            for(unsigned int j=0; j < ny; j++)
-//              f(i,j)=0;
-//          f(8,8)=256;
-
-//          cout << f << endl;
-
-//          Forward2.fft(f);
-
-//          cout << f << endl;
-
-//          Backward2.fftNormalized(f);
-
-//          cout << f << endl;
-
-
-         // normfactor = sqrt(2.0 * K - 1) * exp(lgamma(K)) / sqrt(K * (exp(lgamma(2.0 * K))));
           fftwpp::fftw::maxthreads = get_max_threads();
-
           fftwpp::fft2d Forward(h,w,-1,*finput[0],*fim[0]);
-//          fftwpp::crfft2d ifft(h,w,fim,finput);
+#if STEER_DBG
           cout<<*finput[0]<<endl;
-//test
-
-
-
+#endif
           Forward.fft(*finput[0],*fim[0]); //forward
+
+#if STEER_DBG
           cout<<*fim[0]<<endl;
-          //ifft.fftNormalized(fim,finput);
-          //cout<<finput<<endl;
-
-          Ac testAc(h,w,align);
-          fftwpp::fft2d Backward(h,w,1,*fim[0],testAc);
-          Backward.fftNormalized(*fim[0],testAc);
-          cout<<testAc<<endl;
           Tensor<double,1> temp(h,w);
-          //fftw_complex *fim, *conv, *ftmp, *finput;
-
-
-//          int i, j, k, t, w1, h1, w2, h2, scale;
-//          Mat fLP0, fHP0, fLPtmp, fHPtmp;
-//          Mat fB, tmpar, tmparL, tmparH, tmparall;
-//          double a, normfactor;
-
-//          //exp(lgamma(x)) = (x-1)!
-//          //=======================
-
-//          normfactor = sqrt(2.0 * K - 1) * exp(lgamma(K)) / sqrt(K * (exp(lgamma(2.0 * K))));
-
-//          f
-//          fim    = fftw_malloc(sizeof(fftw_complex) * w  * h);
-//          conv   = fftw_malloc(sizeof(fftw_complex) * w  * h);
-//          ftmp   = fftw_malloc(sizeof(fftw_complex) * w  * h);
-//          finput = fftw_malloc(sizeof(fftw_complex) * w  * h);
-
-//          //initialize input
-//          //================
-
-//          for (j = 0; j < h; j++)
-//            {
-//              for (i = 0; i < w; i ++)
-//                {
-//                  L1[0][i + w * j] = im(i,j);
-//                  finput[i + w * j][0] = im(i,j);
-//                  finput[i + w * j][1] = 0.0;
-//                }
-//            }
-
-//          //scale = 0
-//          //=========
-
-          a = w / 2;
-
-//          p = fftw_plan_dft_2d(h, w, finput, fim, -1, FFTW_ESTIMATE); //1st fft
-//          fftw_execute(p);
-//          Array::array2<double> fLP0(h,w,align);
-//          Array::array2<double> fHP0(h,w,align);
-//          Array::array2<double> fHPtmp(h,w,align);
-//          Array::array2<double> fLPtmp(h,w,align);
-          //Array::array2<double> tmparall(h,w,align);
-
-          //vector<Array::array2<double>> fB(K,Array::array2<double>(h,w,align));
-          //vector<Array::array2<double>> tmpar(K,Array::array2<double>(h,w,align));
-
-          //genLPfilter(*fLP0,   w, h, a/2, a);
-          //genHPfilter(*fHP0,   w, h, a/2, a);
-          //genHPfilter(*fHPtmp, w, h, a/4, a/2);
-          //genLPfilter(*fLPtmp, w, h, a/4, a/2);
-          //cout<<fLP0<<endl<<fHP0<<endl<<fHPtmp<<endl<<fLPtmp<<endl;
-
           for (j=0; j<h;j++)
             for (i=0;i<w;i++)
               temp(j,i) = 255*(*fLP[0])(j,i);
@@ -283,7 +193,6 @@ int Steerable2::decompose()
             for (i = 0; i < w; i++)
               {
                 int k, l, m,n,t;
-                //double theta;
                 if (i <  w/2) {k =     i;}
                 if (i >= w/2) {k = i - w;}
                 if (j <  h/2) {l =     j;}
@@ -294,10 +203,8 @@ int Steerable2::decompose()
                 if (j <  h/2) {n = j + h/2;}
                 if (j >= h/2) {n = j - h/2;}
                 (*tmpar[K])(n,m) = (*fHP[0])(j,i);
-                //cout<<(*fHP[0])(j,i)<<","<<(*tmpar[K])(n,m)<<endl;
               }
           saveBand(*tmpar[K],"fB0Hp.tif");
-          //cout<<*tmpar[K]<<endl;
           for (j = 0; j < h; j++)
             for (i = 0; i < w; i++)
             {
@@ -317,98 +224,31 @@ int Steerable2::decompose()
                   (*tmpar[t])(n,m) = (*fB[t])(j,i) * (*fLP[0])(j,i) * (*fHP[1])(j,i);
                }
             }
-          saveBand(*tmpar[0],"fB00.tif");
-          saveBand(*tmpar[1],"fB01.tif");
-          saveBand(*tmpar[2],"fB02.tif");
-          saveBand(*tmpar[3],"fB03.tif");
-
-         // for (int k=0; k<K;k++)
-         // {
-         //     cout<<"fB "<<k<<endl<<*fB[k]<<endl;
-         // }
-//          for (j = 0; j < h; j++)
-//            for (i = 0; i < w; i++)
-//            {
-//              double ttemp;
-//              ttemp = 0.0;
-//              for (t = 0; t < K; t ++)
-//              {
-//                ttemp += pow(fB[t](j,i), 2.0);
-//              }
-//              tmparall(j,i) =   pow(fHP0(j,i), 2.0)
-//                                  + (ttemp * pow(fHPtmp(j,i), 2.0)
-//                                  + pow(fLPtmp(j,i), 2.0)) * pow(fLP0(j,i), 2.0);
-
-//            }
-//          cout<<"tmpar[0]--------------\n";
-//          cout<<tmpar[0]<<endl;
-//          for (j=0; j<h;j++)
-//            for (i=0;i<w;i++)
-//              temp(j,i) = tmparall(j,i);
-//          double mintmp;// = temp.Min()[0];
-//          double maxtmp;// = cv::max(temp);
-
-//         minMaxLoc( temp, &mintmp, &maxtmp );
-//         for (j=0; j<h;j++)
-//            for (i=0;i<w;i++)
-//              temp(j,i) = 255*(temp(j,i)[0]-mintmp)/(maxtmp-mintmp);
-//          temp.SaveBlock("fBPcheck0.tif");
-//          for (j=0; j<h;j++)
-//            for (i=0;i<w;i++)
-//              temp(j,i) = 255*tmpar[0](j,i);
-//          temp.SaveBlock("fB1new0.tif");
-//          for (j=0; j<h;j++)
-//            for (i=0;i<w;i++)
-//              temp(j,i) = 255*tmpar[1](j,i);
-//          temp.SaveBlock("fB2new0.tif");
-//          for (j=0; j<h;j++)
-//            for (i=0;i<w;i++)
-//              temp(j,i) = 255*tmpar[2](j,i);
-//          temp.SaveBlock("fB3new0.tif");
-//          for (j=0; j<h;j++)
-//            for (i=0;i<w;i++)
-//              temp(j,i) = 255*tmpar[3](j,i);
-//          temp.SaveBlock("fB4new0.tif");
-//          //...
-
-//          output (tmparL, w, h, id, im, "fLnew.ppm", 1);
-//          output (tmparH, w, h, id, im, "fHnew.ppm", 1);
-
-//          free(tmpar);  	free(tmparL);	free(tmparH);
-          //get Hp
+          for (int t=0; t<K;t++)
+            saveBand(*tmpar[t],"fB0"+std::to_string(t)+".tif");
+#endif
+         //get Hp
           fourier2spatialband1(w,h,*fHP[0],*B[K*maxscale],*conv[0],*fim[0],*ftmp[0]);
-
-
           for (t = 0; t < K; t ++)
           {
-
-            //fourier2spatialband2BP(K, w, h, fHP0, fB[t],  *A[t], *conv[0], *fim[0], *ftmp[0]);
             fourier2spatialband3(K, w, h, *fLP[0], *fHP[1], *fB[t], *B[t], *conv[0], *fim[0], *ftmp[0]);
+#if STEER_DBG
             cout<<"conv"<<t<<endl;
             cout<<*conv[0]<<endl;
             cout<<"B "<<t<<endl;
             cout<<*B[t]<<endl;
+#endif
           }
           fourier2spatialband1(w, h, *fLP[1], *L1[0], *conv[0], *fim[0], *ftmp[0]);
+#if STEER_DBG
           cout<<"conv_next"<<endl;
           cout<<*conv[0]<<endl;
+#endif
 //          //subsampling for the next scale
 //          //==============================
 
           w2 = w; // 2;
           h2 = h; // 2;
-
-//          for (j = 0; j < h2; j ++)
-//          {
-//            for (i = 0; i < w2; i ++)
-//            {
-//                L1[1]->operator()(j,i) = L1[0]->operator()(2*j,2*i);
-//            }
-//          }
-
-
-//          fftw_free(fim);	fftw_free(conv);	fftw_free(ftmp);	fftw_free(finput);
-//          free(fLP0);	free(fHP0);	free(fLPtmp);	free(fHPtmp);	free(fB);
 
 //          //iterative part of the decomposition
 //          //===================================
@@ -424,48 +264,7 @@ int Steerable2::decompose()
                    (*fim[scale])(j,i) = (*conv[scale-1])(j,i);
                //w1 /=2 ;//current level size
                //h1 /=2 ;
-
-               //a = w1 / 2;
-               a = w / pow(2.0,scale+1);
-               //fim    = fftw_malloc(sizeof(fftw_complex) * (w1  * h1));
-               //conv   = fftw_malloc(sizeof(fftw_complex) * (w1  * h1));
-               //ftmp   = fftw_malloc(sizeof(fftw_complex) * (w1  * h1));
-               //finput = fftw_malloc(sizeof(fftw_complex) * (w1  * h1));
-
-//               for (j = 0; j < h1; j++)
-//                 for (i = 0; i < w1; i++)
-//                 {
-//                   finput[scale]->operator()(j,i) = L1[scale-1]->operator()(j,i);
-//                 }
-//               cout<<"down2 in spatial"<<endl;
-//               cout<<*finput[scale]<<endl;
-
-            //   Array::array2<FComplex> temp(h1,w1,align);
-            //   fftwpp::fft2d fft2(h1,w1,-1,*finput[scale],temp);
-            //   fft2.fft(*finput[scale],temp);
-            //   cout<<"use fft-ifft-fft"<<endl;
-            //   cout<<temp<<endl;
-
-             //   cout<<"d2 in freq"<<endl;
-           //    cout<<*fim[scale]<<endl;
-//               p = fftw_plan_dft_2d(h1, w1, finput, fim, -1, FFTW_ESTIMATE); fftw_execute(p);
-               //Array::array2<double> fHPtmp(h1,w1,align);
-               //Array::array2<double> fLPtmp(h1,w1,align);
-
-              // vector<Array::array2<double>> fB(K,Array::array2<double>(h1,w1,align));
-
-//               fLPtmp = malloc(sizeof(double) * w1 * h1);
-//               fHPtmp = malloc(sizeof(double) * w1 * h1);
-
-//               fB = malloc(sizeof(double *) * K);
-//               for (k = 0; k < K; k ++)
-//                 {
-//                   fB[k] = malloc(sizeof(double) * w1 * h1);
-//                 }
-
-               //genHPfilter(*fHPtmp, w1, h1, a/4, a/2);
-               //genLPfilter(*fLPtmp, w1, h1, a/4, a/2);
-
+               #if STEER_DBG
                for (j=0; j<h;j++)
                  for (i=0;i<w;i++)
                    temp(j,i) = 255*(*fLP[scale])(j,i);
@@ -497,10 +296,9 @@ int Steerable2::decompose()
                             (*tmpar[t])(n,m) = (*fB[t])(j,i) * (*fLP[scale])(j,i) * (*fHP[scale+1])(j,i);
                         }
                     }
-               saveBand(*tmpar[0],"fB"+std::to_string(scale)+"0.tif");
-               saveBand(*tmpar[1],"fB"+std::to_string(scale)+"1.tif");
-               saveBand(*tmpar[2],"fB"+std::to_string(scale)+"2.tif");
-               saveBand(*tmpar[3],"fB"+std::to_string(scale)+"3.tif");
+               for (t=0;t<K;t++)
+                 saveBand(*tmpar[0],"fB"+std::to_string(scale)+std::to_string(t)+".tif");
+#endif
                for (t = 0; t < K; t ++)
                {
                    fourier2spatialband2(w1, h1, *fHP[scale+1], *fB[t], *B[t+scale*K], *conv[scale], *fim[scale], *ftmp[scale]);
@@ -508,6 +306,7 @@ int Steerable2::decompose()
                if (scale==maxscale-1)//get LP
                {
                  fourier2spatialband1(w1, h1, *fLP[maxscale], *B[maxscale*K+1], *conv[scale], *fim[scale], *ftmp[scale]);
+#if STEER_DBG
                  for (j = 0; j < h1; j++)
                    for (i = 0; i < w1; i++)
                      {
@@ -525,29 +324,16 @@ int Steerable2::decompose()
                        (*tmpar[K])(n,m) = (*fLP[scale+1])(j,i);
                      }
                      saveBand(*tmpar[K],"fB3Lp.tif");
+#endif
                }
                else
                  fourier2spatialband1(w1, h1, *fLP[scale+1], *L1[scale], *conv[scale], *fim[scale], *ftmp[scale]);
 
-//               //subsampling for the next scale
-//               //==============================
-
-//               w2 = w / pow(2, scale+1);
-//               h2 = h / pow(2, scale+1);
-
-//               for (j = 0; j < h2; j ++)
-//                 for (i = 0; i < w2; i ++)
-//                 {
-//                   L1[scale + 1]->operator()(j,i) = L1[scale]->operator()(2*j,2*i);
-//                 }
-
-//               fftw_free(fim);	fftw_free(conv);	fftw_free(ftmp);	fftw_free(finput);
-//               free(fLPtmp);	free(fHPtmp);		free(fB);
           }
 
          // convert to Mat
           int hb,wb;
-          for (k=0;k<B.size();k++)
+          for (k=0;k<(int)B.size();k++)
           {
             hb = B[k]->Nx();
             wb = B[k]->Ny();
@@ -558,6 +344,7 @@ int Steerable2::decompose()
                   pyr_space[k](j,i)=Vec<double,2>((*B[k])(j,i).re,(*B[k])(j,i).im);
               }
             pyr_space[k]=pyr_space[k].Crop(Point3i(h/4,w/4,0),Size3(h/2,w/2,1));
+#if STEER_DBG
             Tensor<double,1> absband = pyr_space[k].Abs().Real();
             double mintmp,maxtmp;
             cv::minMaxLoc(absband,&mintmp,&maxtmp);
@@ -566,10 +353,13 @@ int Steerable2::decompose()
             absband = absband*255;
 
             absband.SaveBlock("band"+std::to_string(k)+".tif");
+#endif
           }
+          #if STEER_DBG
           cout<<"input"<<endl;
           cout<<im<<endl;
           pyr_space[13].Print("LP");
+#endif
           return 1;
   }
 
