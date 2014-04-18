@@ -43,6 +43,7 @@ public:
 	//void Test3DMat(void);
 	//void TestPoisson(void);
   	//void TestCovar(void);
+        void TestLRI(void);
   //void TestSTSIMBorder(void);
   //void TestVarLenFunction(void);
   //void TestMatching(void);

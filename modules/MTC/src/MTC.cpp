@@ -37,6 +37,13 @@ namespace mtc  {
 
   MTC::~MTC(void)
   {
+    //for (int i=0; i< (int)steerA.size(); i++)
+    //{
+        //steerA[i]->deleteFilters();
+        //steerB[i]->deleteFilters();
+//        delete steerA[i];
+//        delete steerB[i];
+  //  }
   }
   MTC::MTC(const string& imageName, CodingMode codemode):QGrid<MTC::T,MTC::cn>(imageName)
   {
@@ -181,6 +188,7 @@ namespace mtc  {
       ComputeEnsembleDCT(8);
     if (this->metricModifier == MetricModifier::MAHALANOBIS_DIST) //MAHALANOBIS
       {
+
         this->iMahaCovar = metric::EstimateVarForMahalanobis(ensemble,this->GetSubWinSize(),this->GetSubWinStep());
         mylib::DisplayMat(this->iMahaCovar);
       }
@@ -1632,9 +1640,11 @@ QTree<MTC::T,MTC::cn>& MTC::ComputeJPEG(QTree<MTC::T,MTC::cn>& qNode)
         quanRst(x,y,0) = qNode.UniformQuantize(floatVerNode(x,y,0),(*currentTbl)[x*qNode.size().width+y]);
         floatVerNode(x,y,0) = quanRst(x,y,0).mul(Vec<T,cn>::all((*currentTbl)[x*qNode.size().width+y]));
         //quanRst(x,y,0)/JpegQuanTbl[x*qNode.size().width+y];
+       // cout<<(*currentTbl)[x*qNode.size().width+y]<<" & ";
       }
-  //quanRst.Print();
+
   //floatVerNode.Print();
+  //quanRst.Print();
   ////coding DC component
   ///treat different in different position, necessary recompute the dct
   Vec<T,cn> prevBlockDC;
@@ -2902,8 +2912,10 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
         //org.Display();
         if (criteria == CompareCriteria::COMPARE_CRITERIA_LRI)
         {
-          candidExt = candid.GetExtendTensor(1,1,0,0).GetBlock(Cube(qNode.overlap().Point3(),qNode.size()+qNode.overlap()));
-          orgExt = org.GetExtendTensor(1,1,0,0).GetBlock(Cube(qNode.overlap().Point3(),qNode.size()+qNode.overlap()));
+          //candidExt = candid.GetExtendTensor(1,1,0,0).GetBlock(Cube(qNode.overlap().Point3(),qNode.size()+qNode.overlap()));
+          candidExt = candid;
+          orgExt = org;
+          //orgExt = org.GetExtendTensor(1,1,0,0).GetBlock(Cube(qNode.overlap().Point3(),qNode.size()+qNode.overlap()));
         }
         else
         {
@@ -2987,6 +2999,8 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
                   //orgPd.Print("orgPd");
                   //canPd.Print("canPd");
                   temp = metric::Compare(orgPd,canPd,criteria,this->subSize, this->subStep,3,4,(int)FilterBoundary::FILTER_BOUND_EXTEND/*true*/,(int)stsim2PoolType,(int)metricModifier,0,debugsignal);
+                  //int filterIdx = log2(initSize.height/orgPd.size().height);
+                  //temp = metric::Compare(orgPd,canPd,criteria, *steerA[filterIdx], *steerB[filterIdx], this->subSize, this->subStep, (int)FilterBoundary::FILTER_BOUND_EXTEND, (int)stsim2PoolType, (int)metricModifier, 0, debugsignal);
                   //cout<<"20130912 i="<<i<<", temp"<<temp<<endl;
                   //20140214 post mse test
                   //cout<<org.lowBound<<endl;
@@ -3200,7 +3214,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
                     varadaptor = a*log(orgvar)+c;
                   if (varadaptor<1)
                     varadaptor=1;
-                  if (/*orgvar > 10 &&*/ orgvar <600/* && orgmean>200*/||(var_tar_left<600&&var_tar_up<600))//incease threaold if the target is smooth or the candidate is smooth
+                  if (orgvar > 10 && orgvar <200 && orgmean>100)//||(var_tar_left<600&&var_tar_up<600))//incease threaold if the target is smooth or the candidate is smooth
                     thresholdAdaptor*=1.03;
                   if (level<0 && orgvar < 100 ) //herustic set use PLC for smooth region
                     accepted = -1;
@@ -3271,7 +3285,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
               unsigned long key = qNode.offset().x*ensemble.size().width+qNode.offset().y;
               //key = key*ensemble.size().area()+matchCandid[ii].x*ensemble.size().width+matchCandid[ii].y;
               //20140213 LR 16 only
-              if (qNode.size().height==16)
+              //if (qNode.size().height==16)
               {
               if(this->L1Record.find(key)!=L1Record.end())
               {
@@ -3356,7 +3370,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
           if (varadaptor<1)
             varadaptor=1;
 
-          if ((orgvar > 10 && orgvar <200 && orgmean>100)||(can_var_left<200&&can_var_up<200&&mu_can_left>100&&mu_can_up>100))//incease threaold if the target is smooth or the candidate is smooth
+          if ((orgvar > 10 && orgvar <200 && orgmean>100))//||(can_var_left<200&&can_var_up<200&&mu_can_left>100&&mu_can_up>100))//incease threaold if the target is smooth or the candidate is smooth
             thresholdAdaptor*=1.03;
           if (level<0 && orgvar < 100 ) //herustic set use PLC for smooth region
             accepted = -1;
@@ -3398,15 +3412,22 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
         }
       else if (criteria ==CompareCriteria::COMPARE_CRITERIA_LRI)
         {
-          if (distance>qualityThrd)
+          double thrd = qualityThrd;
+
+                  if (qNode.size().height==16)
+                    thrd = 5.0;
+                  else
+                    thrd = 5.5;
+                  //if (distance>qualityThrd)
+                  if (distance>thrd)
+          //if (distance>qualityThrd)
             accepted=index;
         }
       else if (criteria ==CompareCriteria::COMPARE_CRITERIA_SVM)
-        {
-          //if (distance>qualityThrd)
+      {
           if (distance>qualityThrd)
             accepted = index;
-        }
+      }
 
       if (debugsignal)
         scorefile.close();
@@ -5202,6 +5223,20 @@ void MTC::UpdateParameters(void)
         }
 
     }
+  //update filterbank parameters
+  //20140227  update global steerable2, allow expand
+
+//  int temp = initSize.height*2; // min size 16
+//  steerA = vector<metric::Steerable2*>(log2(temp/16));
+//  steerB = vector<metric::Steerable2*>(log2(temp/16));
+//  for (int i=0; i< (int)steerA.size(); i++)
+//  {
+//    steerA[i] = new metric::Steerable2(Tensor<T,cn>(temp,temp,1));
+//    steerA[i]->buildFilters(3,4);
+//    steerB[i] = new metric::Steerable2(Tensor<T,cn>(temp,temp,1));
+//    steerB[i]->buildFilters(3,4);
+//    temp/=2;
+//  }
 }
 
 void MTC::CollectLighing(void)

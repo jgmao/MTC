@@ -26,6 +26,7 @@
 #include <sys/stat.h>
 #include <TensorHelper.h>
 #include "HuffTree.h"
+#include <Steerable2.h>
 using namespace std;
 namespace mtc{
 
@@ -80,6 +81,8 @@ public:
         EXPORTLIB Size3 GetSubWinSize() const;
         EXPORTLIB Size3 GetSubWinStep() const;
   protected:
+       // vector<metric::Steerable2*> steerA; // a set of filters with different init size
+       // vector<metric::Steerable2*> steerB;
 	//i/o parameters: include path, filename and storage modifier
 	string prefix; //prefix of output
 	string path; //output path

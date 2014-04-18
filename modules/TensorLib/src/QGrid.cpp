@@ -499,7 +499,7 @@ namespace tensor{
 				    //normalize mse, since mse is bounded to 255^2, done above gj20130116
 				    //diff = diff/255/255;
 				    //clip delta and normalize it
-				    double delta_thrd = 100;
+				    double delta_thrd = log(100);
 				    delta > delta_thrd? delta = 1 : delta=delta/delta_thrd;
 				    //d1 > delta_thrd? d1 = 1 : d1 = d1/delta_thrd;
 				    //d0 > delta_thrd? d0 = 1 : d0 = d0/delta_thrd;
@@ -533,10 +533,10 @@ namespace tensor{
 //cout<<matching_thrd<<endl;
 
 				if (matching_method == MatchingMethod::MATCHING_DIRECT)
-                  queue->compareInsert(localdiff,cv::Point3i(x,y,t));
+		  queue->compareInsert(localdiff,cv::Point3i(x,y,t));
 				else{
                     if (localdiff<=matching_thrd||matching_thrd==0)//0 means accept all
-                                      queue->compareInsert(localdiff,cv::Point3i(x,y,t));
+                                      queue->compareInsert(-localdiff,cv::Point3i(x,y,t));
 				  }
 				if (/*myqueue*/queue->getLength()>candidNum&&candidNum>0)
 				  /*myqueue*/queue->pop();
@@ -1593,9 +1593,10 @@ else if (matching_method == MatchingMethod::MATCHING_HIERARCHY3)
 
         Ph0 = L1Model[0].size();
         Ph1 = L1Model[1].size();
-        if (qNode.size().height>16) //only consider 16x16 for Bayesian
-          train1 = true;
-        else if
+        //if (qNode.size().height>16) //only consider 16x16 for Bayesian
+        //  train1 = true;
+        //else
+        if
         (L1Model[0].size()<2||L1Model[1].size()<2||Ph1<10)
         {
             train1 = true;
@@ -1622,14 +1623,14 @@ else if (matching_method == MatchingMethod::MATCHING_HIERARCHY3)
         L2Model[1].clear();
         L2Model[0].addData(tempRecord2.data0);
         L2Model[1].addData(tempRecord2.data1);
-        tempRecord2.print();
+        //tempRecord2.print();
         Ph0 = L2Model[0].size();
         Ph1 = L2Model[1].size();
         //20140213 LR 16 only
-        if (qNode.size().height>16)
-          train2=true;
+        //if (qNode.size().height>16)
+        //  train2=true;
         //else if
-        else if(L2Model[0].size()<2||L2Model[1].size()<2||Ph1<10)
+        if(L2Model[0].size()<2||L2Model[1].size()<2||Ph1<10)
         {
             train2 = true;
         }
@@ -1926,7 +1927,7 @@ else if (matching_method == MatchingMethod::MATCHING_HIERARCHY3)
                     //if (delta<=varThrd1) //20140127 first trim (coarest) discard large var ratio
                     //test, make case 1 always fail and only test case 2
                     //dec1 = false;train1 = true;
-                    if (dec1||(train1&&abs(ratio_left)<log(10.0/7.0)&&abs(ratio_up)<log(10.0/7.0))) //varThrd1) //change thred, Nov 10, 2012
+                    if (dec1||(train1&&abs(ratio_left)<log(3.0)&&abs(ratio_up)<log(3.0))) //varThrd1) //change thred, Nov 10, 2012
                     {//gj01132013 change threahold from 0.5 to 0.2, gj01142013, change thred co
                         //varqueue->compareInsert(diff,cv::Point3i(x,y,t));
                         //varList.push_back(cv::Point3i(x,y,t));

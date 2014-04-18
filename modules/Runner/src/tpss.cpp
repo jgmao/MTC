@@ -10,5 +10,4 @@ int main(int argc, char* argv[])
     Tensor<double,1> out = lighting::ComputeTPSS(im,0.01);
     out.SaveBlock(outname);
     return 0;
-
 }

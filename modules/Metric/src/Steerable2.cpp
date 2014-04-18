@@ -10,27 +10,80 @@ Steerable2::Steerable2()
 }
 Steerable2::Steerable2(c_real_ref im)
 {
+  //when init, make sure the imput im is already extended!
+  //all the following size is same as this initialization
+
   this->im = im;
   h = im.size().height;
   w = im.size().width;
   align = sizeof(FComplex);
-  K = 1;
-  maxscale = 3;
+  //buildFilters(maxscale,K,h,w);
+
+}
+
+Steerable2::~Steerable2()
+{
+        //free(finput);
+  for (int i=0; i<maxscale;i++)
+  {
+
+      delete finput[i];
+      delete fim[i];
+      delete conv[i];
+      delete ftmp[i];
+      delete L0[i];
+      delete L1[i];
+      for (int j=0; j<K;j++)
+      {
+        if (i==0)
+          {
+            //delete fB[j];
+          delete A[j];
+          }
+      }
+  }
+  for (int i=0; i<(int) B.size();i++)
+    delete B[i];
+  delete L1[maxscale];
+  deleteFilters();
+}
+int Steerable2::expand(int rh, int rw, int border, value_type value)
+{
+    cv::copyMakeBorder(this->im,this->im,rh,rh,rw,rw,border,value);
+    this->h = im.size().height;
+    this->w = im.size().width;
+    return 1;
+}
+
+int Steerable2::buildFilters(int maxscale, int K)
+{
+  CV_Assert(h==w);
+
+//  //automatic expanding
+  rr = max(h,w);//max(h*2,w*2);
+  if (rr<(int)align)
+    rr = align;
+
+  h = rr;
+  w = rr;
+
+
   int h1 = h;
   int w1 = w;
-
-  fLP0 = new  Ad(h,w,align);
-  fHP0 = new Ad(h,w,align);
-  fHPtmp = new Ad(h,w,align);
-  fLPtmp = new Ad(h,w,align);
+  this->maxscale = maxscale;
+  this->K = K;
+  //fLP0 = new  Ad(h,w,align);
+  //fHP0 = new Ad(h,w,align);
+  //fHPtmp = new Ad(h,w,align);
+  //fLPtmp = new Ad(h,w,align);
   L0 = vector<Ac*>(maxscale);
   L1 = vector<Ac*>(maxscale+1);
   finput = vector<Ac*>(maxscale);
   fim = vector<Ac*>(maxscale);
   conv = vector<Ac*>(maxscale);
   ftmp = vector<Ac*>(maxscale);
-  Hp = new Ac(h,w,align);
-  Lp = new Ac(h,w,align);
+  //Hp = new Ac(h,w,align);
+  //Lp = new Ac(h,w,align);
   fB = vector<Ad*>(K);
   for (int k=0; k<K;k++)
     fB[k] = new Ad(h,w,align);
@@ -48,7 +101,7 @@ Steerable2::Steerable2(c_real_ref im)
 
   }
   for (int k=0; k<maxscale*K+2;k++)
-    pyr_space.push_back(Tensor<double,2>(h,w));
+    pyr_space.push_back(Tensor<double,2>(h/2,w/2)); //makesure only take center part
   //w1 = w/pow(2.0,maxscale);
   //h1 = h/pow(2.0,maxscale);
 
@@ -82,42 +135,34 @@ Steerable2::Steerable2(c_real_ref im)
       (*L1[0])(i,j).re = im.at<double>(i,j);
       (*L1[0])(i,j).im = 0.0;
     }
-  buildFilters(maxscale,K,h,w);
-}
-
-Steerable2::~Steerable2()
-{
-        //free(finput);
-  for (int i=0; i<maxscale;i++)
-  {
-
-      delete finput[i];
-      delete fim[i];
-      delete conv[i];
-      delete ftmp[i];
-      delete L0[i];
-      delete L1[i];
-      for (int j=0; j<K;j++)
-      {
-        if (i==0)
-          {
-            delete fB[j];
-          delete A[j];
-          }
-      }
-  }
-  for (int i=0; i<(int) B.size();i++)
-    delete B[i];
-  delete L1[maxscale];
-}
-int Steerable2::buildFilters(int maxscale, int K, int h, int w)
-{
-  CV_Assert(h==w);
   //note there is no downsampling
   double normfactor = sqrt(2.0 * K - 1) * exp(lgamma(K)) / sqrt(K * (exp(lgamma(2.0 * K))));
   fLP = vector<Ad*>(maxscale+1);
   fHP = vector<Ad*>(maxscale+1);
   int a = w;
+  Ad* tempHP = new Ad(h,w,align);
+  Ad* tempHP2 = new Ad(h,w,align);
+  genHPfilter(*tempHP,w,h,a/2,a);
+#if STEER_DBG
+  for (int j = 0; j < h; j++)
+      for (int i = 0; i < w; i++)
+        {
+          int k, l, m, n, t;
+          double theta;
+          if (i <  w/2) {k =     i;}
+          if (i >= w/2) {k = i - w;}
+          if (j <  h/2) {l =     j;}
+          if (j >= h/2) {l = j - h;}
+
+          if (i <  w/2) {m = i + w/2;}
+          if (i >= w/2) {m = i - w/2;}
+          if (j <  h/2) {n = j + h/2;}
+          if (j >= h/2) {n = j - h/2;}
+          (*tempHP2)(j,i) = (*tempHP)(n,m);
+            }
+  saveBand(*tempHP2,"tempHP.tif");
+#endif
+
   for (int i=0; i<maxscale+1;i++)
   {
       a /=2;
@@ -164,8 +209,9 @@ int Steerable2::deleteFilters(void)
 int Steerable2::decompose()
   {
           int i, j, k, t, w1, h1, w2, h2, scale;
-          double a, normfactor;
-          fftwpp::fftw::maxthreads = get_max_threads();
+          //startLevel = ()
+
+fftwpp::fftw::maxthreads = get_max_threads();
           fftwpp::fft2d Forward(h,w,-1,*finput[0],*fim[0]);
 #if STEER_DBG
           cout<<*finput[0]<<endl;
@@ -297,7 +343,10 @@ int Steerable2::decompose()
                         }
                     }
                for (t=0;t<K;t++)
-                 saveBand(*tmpar[0],"fB"+std::to_string(scale)+std::to_string(t)+".tif");
+               {
+                 //cout<<"fB"<<t<<endl<<  *fB[t] <<endl;
+                 saveBand(*tmpar[t],"fB"+std::to_string(scale)+std::to_string(t)+".tif");
+               }
 #endif
                for (t = 0; t < K; t ++)
                {
@@ -338,12 +387,12 @@ int Steerable2::decompose()
             hb = B[k]->Nx();
             wb = B[k]->Ny();
             //pyr_space.push_back(Tensor<double,2>(h,w));
-            for (int j=0; j<hb;j++)
-              for (int i=0; i<wb; i++)
+            for (int j=0; j<hb/2;j++)
+              for (int i=0; i<wb/2; i++)
               {
-                  pyr_space[k](j,i)=Vec<double,2>((*B[k])(j,i).re,(*B[k])(j,i).im);
+                  pyr_space[k](j,i)=Vec<double,2>((*B[k])(j+h/4,i+w/4).re,(*B[k])(j+h/4,i+w/4).im);
               }
-            pyr_space[k]=pyr_space[k].Crop(Point3i(h/4,w/4,0),Size3(h/2,w/2,1));
+            //pyr_space[k]=pyr_space[k].Crop(Point3i(h/4,w/4,0),Size3(h/2,w/2,1));
 #if STEER_DBG
             Tensor<double,1> absband = pyr_space[k].Abs().Real();
             double mintmp,maxtmp;
@@ -355,11 +404,6 @@ int Steerable2::decompose()
             absband.SaveBlock("band"+std::to_string(k)+".tif");
 #endif
           }
-          #if STEER_DBG
-          cout<<"input"<<endl;
-          cout<<im<<endl;
-          pyr_space[13].Print("LP");
-#endif
           return 1;
   }
 
@@ -388,6 +432,14 @@ int Steerable2::down2Freq(Array::array2<FComplex>& L0, Array::array2<FComplex>&L
     for (i=w1/2+1;i<w1;i++)
       L1(j,i) = L0(j+h1,i+w1);
   return 1;
+}
+int Steerable2::getDir()
+{
+  return K;
+}
+int Steerable2::getLevel()
+{
+  return maxscale;
 }
 
 int Steerable2::genLPfilter(Array::array2<double>& LP0, int w, int h, double x1, double x2)
@@ -450,7 +502,34 @@ int Steerable2::genLPfilter(Array::array2<double>& LP0, int w, int h, double x1,
     return 1;
   }
 
+  int Steerable2::updateData(c_data_ref data)
+  {
+    this->im  = data.Clone();
+    int hi = im.size().height;
+    int wi = im.size().width;
+    if (hi<h||wi<w)
+    {
+      expand((rr-hi)/2, (rr-wi)/2, cv::BORDER_CONSTANT,0);
+    }
 
+    for (int i=0; i< hi; i++)
+      for (int j=0; j<wi;j++)
+      {
+        (*finput[0])(i,j).re=im.at<double>(i,j);
+        (*finput[0])(i,j).im=0.0;
+
+        (*L1[0])(i,j).re = im.at<double>(i,j);
+        (*L1[0])(i,j).im = 0.0;
+      }
+    return 1;
+  }
+
+  int Steerable2::setSize(int h, int w)
+  {
+    this->h = h;
+    this->w = w;
+    return 1;
+  }
 
   int Steerable2::fourier2spatialband3(int K, int w, int h,
                                          Array::array2<double>& otf1,
@@ -582,5 +661,8 @@ int Steerable2::genLPfilter(Array::array2<double>& LP0, int w, int h, double x1,
     temp = temp*255;
     temp.SaveBlock(name);
   }
-
+  vector<Steerable2::data_type>& Steerable2::getSpaceDomainPyr(void)
+  {
+          return this->pyr_space;
+  }
 }

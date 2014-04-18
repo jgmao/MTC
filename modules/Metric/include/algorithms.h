@@ -2,6 +2,7 @@
 #include <TensorLite.h>
 #include <LRI.h>
 #include <MetricData.h>
+#include <Steerable2.h>
 #ifdef WIN32
 #define EXPORTLIB __declspec(dllexport)
 #else
@@ -28,6 +29,16 @@ namespace metric{
                              FeaturePoolType stsim2_pool_type = FeaturePoolType::FEATURE_POOL_MIN,
                              MetricModifier stsim2_modifer = MetricModifier::STSIM2_BASELINE,
                              bool debug=false);
+  EXPORTLIB double ComputeSTSIM2(const Mat& tsA, const Mat& tsB,
+                                 FilterBank& filterA, FilterBank& filterB,
+                             const Size3& subWinSize = Size3(8,8,1),
+                             const Size3& subWinStep = Size3(1,1,1),
+                             bool downsample = false,
+                             FilterBoundary boundary_cut = FilterBoundary::FILTER_BOUND_HALF,
+                             FeaturePoolType stsim2_pool_type = FeaturePoolType::FEATURE_POOL_MIN,
+                             MetricModifier stsim2_modifer = MetricModifier::STSIM2_BASELINE,
+                             bool debug=false);
+
   EXPORTLIB double ComputeSTSIM3_LSE(const Mat& tsA, const Mat& tsB, 
                              const Size3& subWinSize = Size3(8,8,1),
                              const Size3& subWinStep = Size3(1,1,1),
@@ -66,6 +77,14 @@ namespace metric{
                          Printable_t param2=Printable_t(0), Printable_t param3=Printable_t(0),
                          Printable_t param4=Printable_t(0), Printable_t param5=Printable_t(0),
                          Printable_t param6=Printable_t(0),
+                         bool debug=false);
+  //another compare, where the filterband is given instand of initiated in the compare
+  EXPORTLIB double Compare(const Mat& tsA, const Mat& tsB, CompareCriteria criteria,
+                           FilterBank& filterA, FilterBank& filterB,
+                           const Size3& subWinSize=Size3(16,16,1), const Size3& subWinStep=Size3(16,16,1),
+                         Printable_t param1=Printable_t(0),
+                         Printable_t param2=Printable_t(0), Printable_t param3=Printable_t(0),
+                         Printable_t param4=Printable_t(0),
                          bool debug=false);
 
   EXPORTLIB cv::Mat EstimateVarForMahalanobis(const Mat& ts, Size3 wsize, Size3 stepsize);

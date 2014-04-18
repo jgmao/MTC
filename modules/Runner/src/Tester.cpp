@@ -22,18 +22,50 @@ Tester::~Tester(void)
 }
 void Tester::Testfftwpp(void)
 {
+  Tensor<double,1> im1("/home/guoxin/Projects/Steerable/SteerableR/impulse.tif");
+  //int rr = im.size().height/2;
+  Tensor<double,1> pad1 = im1.ExtendBoundary(im1.size()/2,0);
+  Tensor<double,1> im2("/home/guoxin/Projects/Steerable/SteerableR/texture1.png");
+  Tensor<double,1> pad2 = im2.ExtendBoundary(im2.size()/2,0);
 
-  Tensor<double,1> im("/home/guoxin/Projects/Steerable/SteerableR/disk.png");
-  Mat pad;
-  int rr = im.size().height/2;
-  cv::copyMakeBorder(im,pad,rr,rr,rr,rr,cv::BORDER_CONSTANT,0);
-  metric::Steerable2 steer(pad);
-  steer.decompose();
+  metric::Steerable2 *steer = new metric::Steerable2(pad2);
+  steer->buildFilters(3,4);
+  steer->decompose();
+  for (int i=0;i<3;i++)
+  {
+    if (i%2==0)
+      steer->updateData(pad2);
+    else
+      steer->updateData(pad1);
+    steer->decompose();
+  }
+
+ //im.ExtendBoundary(Size3(rr,rr,0),0);
+  //metric::Steerable2 *steer = new metric::Steerable2(im);
+  //steer->setSize(im.size().height,im.size().width);
+  //steer->buildFilters(3,4);
+  //steer->updateData(im);
+  //steer->expand(rr,rr,cv::BORDER_CONSTANT,0);
+  //steer->decompose();
 
 
 }
-
-/*
+void Tester::TestLRI()
+{
+  Tensor<double,1> a("/home/guoxin/Projects/MTC/data/a.tif");
+  Tensor<double,1> b("/home/guoxin/Projects/MTC/data/b.tif");
+ Tensor<double,1> c("/home/guoxin/Projects/MTC/data/c.tif");
+ Tensor<double,1> d("/home/guoxin/Projects/MTC/data/d.tif");
+ Tensor<double,1> e("/home/guoxin/Projects/MTC/data/e.tif");
+ Tensor<double,1> f("/home/guoxin/Projects/MTC/data/f.tif");
+ double test1 = metric::ComputeLRI(a,b);
+ double test2 = metric::ComputeLRI(c,d);
+ double test3 = metric::ComputeLRI(a,c);
+ double test4 = metric::ComputeLRI(a,e);
+ double test5 = metric::ComputeLRI(a,f);
+ cout<<test1<<","<<test2<<","<<test3<<","<<test4<<","<<test5<<endl;
+}
+ /*
 void Tester::TestInterp(string filename)
 {
 	typedef double T;
@@ -252,7 +284,7 @@ void Tester::TestSTSIMBorder(void)
     cand(count/dbsize,count%dbsize,0)=temp;
     count++;
   }
-  
+
   //cand.Display();
   //cand.Print();
   cand_ctr=cand(Cube(bsize/2,bsize/2,0,bsize,bsize,1));
