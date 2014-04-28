@@ -1,6 +1,7 @@
 #include "Metric.h"
 #include <dirent.h>
 #include <sys/stat.h>
+
 namespace metric{
 
 
@@ -30,7 +31,9 @@ bool Metric::readFiles(string path, string searchPattern, string searchExt)
   char endwith = *path.rbegin();
   if (endwith!='/')
     path=path+"/";
-  this->clustercount=0;
+  this->clustercount=clusternames.size();
+  int count=0;
+  int offset = filenames.size();
   string filename;
 #ifdef WIN32
   string fullSearchPath = path + searchPattern+"*"+searchExt;
@@ -42,12 +45,13 @@ bool Metric::readFiles(string path, string searchPattern, string searchExt)
     cout << "Error searching directory\n";
     return false;
   }
+  while( FindNextFile(hFind, &FindData) > 0 )
 #else
   DIR *dir;
   struct dirent *ent;
   dir = opendir(path.c_str());
+  while ((ent = readdir(dir)) !=NULL)
 #endif
-  do
   {
 #ifdef WIN32
       filename = FindData.cFileName;
@@ -59,26 +63,35 @@ bool Metric::readFiles(string path, string searchPattern, string searchExt)
       unsigned long found = file_name.rfind("."+searchExt);
       if (found!=std::string::npos)
       {
-          filename = path + "/" + file_name;
+          filename = path +file_name;
           filenames.push_back(filename);
           cout<<"Got: "<<file_name<<endl;
       }
 #endif
-    std::smatch res;
-    std::regex rx(searchPattern+"_([^]*)_(\\d+)"+searchExt);
-    std::regex_search(filename,res,rx);
-    std::cout << "class: "<<res[1] << " , num: " << res[2] << "\n";
+    count++;
+    boost::smatch res;
+    boost::regex rx(searchPattern+searchExt);//"\\b([^,]+)");
+    boost::regex_search(file_name,res,rx);
+    //std::smatch res;
+    //std::regex rx(searchPattern"_([^]*)_(\\d+)"+searchExt);
+    //std::regex_search(file_name,res,rx);
+    cout<<res[1]<<endl;
+    std::cout << "class: "<<res[1] << " , num: " << res[2] <<endl;
     if (clusternames.find(res[1])==clusternames.end())
     {
       clusternames.insert(pair<string,int>(res[1],clustercount));
+      labelindex.push_back(clustercount);
       clustercount++;
+    }
+    else
+    {
+      labelindex.push_back(clusternames.find(res[1])->second);
     }
   }
 #ifdef WIN32
-  while( FindNextFile(hFind, &FindData) > 0 );
+
   FindClose(path);
 #else
-  while ((ent = readdir(dir)) !=NULL);
   closedir(dir);
 #endif
 
@@ -91,8 +104,16 @@ bool Metric::readFiles(string path, string searchPattern, string searchExt)
   else
   {
 #endif
-    pairNum = filenames.size()*(filenames.size()-1)/2;
-    label = Mat(pairNum,1,CV_8S);
+    //pairNum = filenames.size()*(filenames.size()-1)/2;
+    //pairNum = filenames.size();//no pair, just # of files
+    //Mat temp=Mat(count+label.size().height,1,CV_8U);
+    //temp(Rect(0,0,1,label.size().height))=label.clone();
+    //cout<<temp<<endl;
+    //label = temp.clone();
+    label = Mat(filenames.size(),1,CV_32S);
+    for (unsigned int i=0; i<filenames.size();i++)
+      label.at<int>(i,0)=labelindex[i];
+    cout<<label<<endl;
     return true;
 #ifdef WIN32
   }
@@ -520,12 +541,56 @@ int Metric::computeFeatures(string searchPattern, string searchExt)
  // mylib::DisplayMat(f1(Rect(0,0,2,coeffcount1)),"f1",true);
   return sameCount+diffCount;
 }
+int Metric::computeFeatures(void)
+{
+
+  for (unsigned int i=0; i< filenames.size(); i++)
+  {
+    Tensor<double,1> temp(filenames[i]);
+    stats.push_back(ComputeStatistics(temp,subwinSize,subwinStep,false,false,3,4,FilterBoundary::FILTER_BOUND_EXTEND));
+    for (auto t : stats[0])
+    {
+       // t.Print();
+      coeffNum += t.size().area();
+      coeff_in_band.push_back( t.size().area() );
+    }
+    cout<<i<<endl;
+  }
+  f = Mat(filenames.size()*coeff_in_band[0],(Nsc*Nor+2)*featureNum*2,CV_64F);
+  //Rect roi;
+  for (unsigned int i = 0; i<filenames.size();i++)
+    for (unsigned int k=0;k<stats[i].size();k++)
+    {
+      //roi = Rect(k*2,0,2,coeff_in_band[k]);
+      Vec2d t = stats[i][k](0,0);
+      f.at<double>(i,2*k) = t[0];
+      f.at<double>(i,2*k+1) = t[1];
+    }
+  //return computeFeatures(stats);
+  ofstream fs("/home/guoxin/Projects/MTC/data.txt",ios::out);
+  ofstream ls("/home/guoxin/Projects/MTC/label.txt",ios::out);
+  //fs<<"D_32"<<f;
+  for (int i =0; i< f.size().height;i++)
+  {
+    for (int j=0; j<f.size().width; j++)
+    {
+      fs<<f.at<double>(i,j)<<",";
+    }
+    fs<<endl;
+    ls<<label.at<int>(i,0)<<endl;
+  }
+  fs.close();
+  ls.close();
+  return f.size().height;
+}
 
 int Metric::computeFeatures(const vector<vector<Tensor<double,2>>>& stats)
 {
  // cout<<pairNum<<","<<featureNum<<","<<coeff_in_band[0]<<endl;
   //cout<<"number of features are"<<  stats[0].size()<<endl;
-  f = Mat(pairNum*coeff_in_band[0],(Nsc*Nor+2)*featureNum*2+2*(mylib::combination(Nor,2)*Nsc+(Nsc-1)*Nor),CV_64F);
+
+   f = Mat(pairNum*coeff_in_band[0],(Nsc*Nor+2)*featureNum*2+2*(mylib::combination(Nor,2)*Nsc+(Nsc-1)*Nor),CV_64F);
+
   //cout<<(Nsc*Nor+2)*featureNum*2+2*(mylib::combination(Nor,2)*Nsc+(Nsc-1)*Nor)<<endl;
   Rect roi;
    for (unsigned int k=0; k<stats[0].size(); k++)

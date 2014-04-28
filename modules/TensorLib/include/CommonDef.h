@@ -132,6 +132,7 @@ enum class CompareCriteria :int {COMPARE_CRITERIA_MSE,
          bool    b;
          cv::Mat *m;
          Printable_t(int a_):i(a_){};
+         Printable_t(cv::Mat*m_):m(m_){};
   };
 
 #endif
@@ -146,6 +147,7 @@ enum class MetricModifier :int {STSIM2_BASELINE,
                                 MSE_BASELINE,
                                 SAD_BASELINE,
                                 MAHALANOBIS_DIST,
+                                STSIM_I,
                                 LRI_METRIC,
                                 SE_MSE,
                                 STSIM2_SE_MSE,

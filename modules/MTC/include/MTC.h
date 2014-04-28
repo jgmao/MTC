@@ -27,6 +27,7 @@
 #include <TensorHelper.h>
 #include "HuffTree.h"
 #include <Steerable2.h>
+#include "IO.h"
 using namespace std;
 namespace mtc{
 
@@ -156,7 +157,8 @@ public:
 	int nPQILFSize;
 	Tensor<T,cn> SAT;
 	bool acceptDirect;
-  cv::Mat iMahaCovar;
+	cv::Mat iMahaCovar;
+	vector<cv::Mat> MahaCovars;//0 --> 16x16, 1 --> 32x32, 2-->64x64, ...
   //list<FootItem> FootTable;
   std::mutex foot_lock;
         std::map<Point3i,FootItem,ComparePoint3i> FootTable;

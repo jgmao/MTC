@@ -95,6 +95,7 @@ public:
   double computeMetric(const Tensor<double,1>& im1, const Tensor<double,1>& im2);
   double computeMetricLSE(const Tensor<double,1>& im1, const Tensor<double,1>& im2);
   int computeStats(string path, string searchPattern, string searchExt);
+  int computeFeatures(void);
   int computeFeatures(string searchPattern, string searchExt);
   int computeFeatures(const vector<vector<Tensor<double,2>>>& stats);
   Mat& computeSTSIM2Terms(const Tensor<double,1>& im1, const Tensor<double,1>& im2,FeaturePoolType pooltype=FeaturePoolType::FEATURE_POOL_MIN);
@@ -127,6 +128,7 @@ protected:
   vector<Tensor<double,2>> r10;
   vector<string> filenames;
   map<string,int> clusternames;
+  vector<int> labelindex;
   int clustercount;
   int coeffcount0, coeffcount1;
   int sameCount,diffCount;

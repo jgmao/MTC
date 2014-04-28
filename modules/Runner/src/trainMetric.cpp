@@ -9,7 +9,9 @@ using namespace std;
 using namespace metric;
 int main(void)
 {
-Metric mc;
+  Metric mc;
+
+
   mc.subwinSize = Size3(16,16,1);
   mc.subwinStep = Size3(16,16,1);
   //mc.subsample = true;

@@ -5,7 +5,7 @@
 #include <direct.h>
 #endif
 
-#include <MTC.h>
+#include "MTC.h"
 #include  "jpeglib.h"
 #include "JpegAddon.h"
 #include <bitset>
@@ -188,10 +188,18 @@ namespace mtc  {
       ComputeEnsembleDCT(8);
     if (this->metricModifier == MetricModifier::MAHALANOBIS_DIST) //MAHALANOBIS
       {
-
         this->iMahaCovar = metric::EstimateVarForMahalanobis(ensemble,this->GetSubWinSize(),this->GetSubWinStep());
         mylib::DisplayMat(this->iMahaCovar);
       }
+    if (this->metricModifier==MetricModifier::STSIM_I)
+    {
+        //read mahalanobis.txt to get the variances
+        metric::readMahalanobis2(this->MahaCovars,"mahalanobis2.txt");
+//        for (Mat& tmat:this->MahaCovars)
+//        {
+//                mylib::DisplayMat(tmat);
+//        }
+    }
     this->SAT = rst.ExtendHalfBoundary();
 #if OUTPUT_THRDFILE
     ofstream thrdfile("thrdfile.txt",ios::out);
@@ -2142,7 +2150,7 @@ bool MTC::TexturePrediction(QTree<T,cn>& qNode, int qLevel)
     {
       tempAccept = false;
     }
-  else if (qNode.size().height <= 8 && qNode.size().width <= 8)//force to set min blk size 32
+  else if (qNode.size().height <= 8 && qNode.size().width <= 8)//force to set min blk size
     {
       tempAccept =false;
     }
@@ -2553,8 +2561,8 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
 {
   double distance = INT_MIN, temp;
   CompareCriteria criteria = ParseCriteria(metricModifier);
-  if (metricModifier == MetricModifier::MAHALANOBIS_DIST)
-    distance = INT_MAX;
+ // if (metricModifier == MetricModifier::MAHALANOBIS_DIST)
+ //   distance = INT_MAX;
   int index = -1;
 #if !PARALLEL_METRIC
   QNode<T,cn> candid;
@@ -2998,6 +3006,13 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
                   Tensor<T,cn> canPd = candidExt.Crop((orgExt.size()/5).Point3(),orgExt.size()/5*4+Size3(0,0,1));
                   //orgPd.Print("orgPd");
                   //canPd.Print("canPd");
+//                  int temp1 = qNode.size().height/16;
+//                  int tempScale=1;
+//                  while(temp1>1)
+//                  {
+//                      tempScale++;
+//                      temp1 = temp1>>1;
+//                  }
                   temp = metric::Compare(orgPd,canPd,criteria,this->subSize, this->subStep,3,4,(int)FilterBoundary::FILTER_BOUND_EXTEND/*true*/,(int)stsim2PoolType,(int)metricModifier,0,debugsignal);
                   //int filterIdx = log2(initSize.height/orgPd.size().height);
                   //temp = metric::Compare(orgPd,canPd,criteria, *steerA[filterIdx], *steerB[filterIdx], this->subSize, this->subStep, (int)FilterBoundary::FILTER_BOUND_EXTEND, (int)stsim2PoolType, (int)metricModifier, 0, debugsignal);
@@ -3036,8 +3051,26 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
                   temp= metric::Compare(orgExt.GetBlock(Cube(8,8,0,48,48,1)), candidExt.GetBlock(Cube(8,8,0,48,48,1)),criteria);
                 }
             }
+          else if (criteria == CompareCriteria::COMPARE_CRITERIA_MAHALANOBIS)
+          {
+              if (metricModifier==MetricModifier::STSIM_I)
+              {
+                int mm=0;
+                if (qNode.size().height==16)
+                  mm=0;
+                else if (qNode.size().height==32)
+                  mm=1;
+                else
+                  mm=2;
+                temp = -metric::Compare(org,candid,criteria,qNode.size(),qNode.size(),&(this->MahaCovars[mm]));
+              }
+              else
+              {
+                temp = -metric::Compare(org,candid,criteria,qNode.size(),qNode.size(),&(this->iMahaCovar));
+              }
+          }
           else
-            temp = metric::Compare(orgExt, candidExt,criteria);
+            temp = metric::Compare(org, candid,criteria);
           //temp = orgPadding.Compare(candPadding,criteria,param1,param2,true,stsim2PoolType,metricModifier, this->iMahaCovar);
           if (debugsignal)
             {
@@ -3045,7 +3078,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
               scorefile<<"cand"<<i<<"_PLC score:"<<temp<<endl;
 
             }
-          if (((temp > distance)&&(criteria != CompareCriteria::COMPARE_CRITERIA_MAHALANOBIS)) ||((temp<distance)&&(criteria == CompareCriteria::COMPARE_CRITERIA_MAHALANOBIS)))
+          if (((temp > distance)))//&&(criteria != CompareCriteria::COMPARE_CRITERIA_MAHALANOBIS)) ||((temp<distance)&&(criteria == CompareCriteria::COMPARE_CRITERIA_MAHALANOBIS)))
             {
               distance = temp;
               index = i;
@@ -3109,9 +3142,9 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
       if (criteria == CompareCriteria::COMPARE_CRITERIA_MAHALANOBIS)
         {
 
-          if(qNode.size().height >16 && distance <= this->qualityThrd) //good
+          if(qNode.size().height >16 && -distance <= this->qualityThrd) //good
             accepted = index; //return index;
-          else if (distance <= this->qualityThrd * this->qfactor)//increase the quality in small block
+          else if (-distance <= this->qualityThrd)//increase the quality in small block
             accepted = index;//return index;
           else
             {
@@ -5681,6 +5714,8 @@ void MTC::ScanLine(string& line)
             temp = MetricModifier::MSE_BASELINE;
           else if (value=="M_DIST")
             temp=MetricModifier::MAHALANOBIS_DIST;
+          else if (value=="STSIM_I")
+            temp=MetricModifier::STSIM_I;
           else if (value=="LRI_METRIC")
             temp=MetricModifier::LRI_METRIC;
           else if (value=="SE_MSE")
@@ -5834,7 +5869,7 @@ CompareCriteria MTC::ParseCriteria(MetricModifier metricModifer)
     return CompareCriteria::COMPARE_CRITERIA_LRI;
   else if(metricModifer == MetricModifier::SE_MSE||metricModifer==MetricModifier::MSE_BASELINE||metricModifer == MetricModifier::STSIM2_SE_MSE)
     return CompareCriteria::COMPARE_CRITERIA_MSE;
-  else if(metricModifer == MetricModifier::MAHALANOBIS_DIST)
+  else if(metricModifer == MetricModifier::MAHALANOBIS_DIST||metricModifier == MetricModifier::STSIM_I)
     return CompareCriteria::COMPARE_CRITERIA_MAHALANOBIS;
   else if (metricModifer == MetricModifier::SAD_BASELINE)
     return CompareCriteria::COMPARE_CRITERIA_SAD;

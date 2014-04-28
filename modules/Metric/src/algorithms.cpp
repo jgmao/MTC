@@ -102,10 +102,29 @@ namespace metric
   {
     typedef vector<Tensor<double,2> > vT;
     Steerable sp;
-    Tensor<double,2> tc = Tensor<double,1>(ts).ToComplex();
+    Tensor<double,2> A;
+    if (ts.channels()==1)
+    {
+        A = Tensor<double,1>(ts).ToComplex();
+    }
+    else
+    {
+        CV_Assert(ts.channels()==2);
+        A = Tensor<double,2>(ts);
+    }
+    Tensor<double,2> tc;
     if (boundary_cut == FilterBoundary::FILTER_BOUND_EXTEND) //zero padding and then cut center
     {
-      tc=tc.ExtendBoundary(tc.size()/2);
+      Mat tempA;
+      cv::copyMakeBorder(A,tempA,A.size().height/2,A.size().height/2,A.size().width/2,A.size().width/2,cv::BORDER_REFLECT);
+      if (tempA.size().height<64||tempA.size().width<64)
+      {
+        int lr = 64 - tempA.size().width;
+        int ud = 64 - tempA.size().height;
+        cv::copyMakeBorder(tempA,tempA,ud/2,ud/2,lr/2,lr/2,cv::BORDER_CONSTANT,0);
+      }
+      //tc=tc.ExtendBoundary(tc.size()/2);
+      tc = Tensor<double,2>(tempA);
     }
     sp.buildSCFpyr(tc,nLevel,nDir,1,subsample);
     //! instead of use Space domain, use freq domain
@@ -123,16 +142,22 @@ namespace metric
     //cout<<"print extended size: ";
     //tc.size().Print();
     if ( boundary_cut == FilterBoundary::FILTER_BOUND_HALF||boundary_cut == FilterBoundary::FILTER_BOUND_EXTEND)//modify Dec 27 2011, not cut half but cut half + boundary
-      {
+    {
         for (unsigned int i = 0; i< pyr.size(); i++)
-          {
+        {
             int hh = pyr[i].size().height/2;
             int ww = pyr[i].size().width/2;
             int dd = pyr[i].size().depth;
-            Cube roi(pyr[i].size().height/4, pyr[i].size().width/4, 0, hh,ww,dd);
+            if (ts.size().height==16)
+            {
+                hh/=2;
+                ww/=2;
+            }
+            Cube roi((pyr[i].size().height-hh)/2, (pyr[i].size().width-ww)/2, 0, hh,ww,dd);
+            //Cube roi(pyr[i].size().height/4, pyr[i].size().width/4, 0, hh,ww,dd);
             pyr[i] = pyr[i](roi);//no size changed
-          }
-      }
+        }
+    }
     else if ( boundary_cut == FilterBoundary::FILTER_BOUND_VALID)
       {
         for (unsigned int i = 0; i< pyr.size(); i++)
@@ -424,8 +449,17 @@ namespace metric
     {
         Mat tempA, tempB;
         cv::copyMakeBorder(A,tempA,A.size().height/2,A.size().height/2,A.size().width/2,A.size().width/2,cv::BORDER_REFLECT);
-        A = Tensor<double,2>(tempA);
         cv::copyMakeBorder(B,tempB,B.size().height/2,B.size().height/2,B.size().width/2,B.size().width/2,cv::BORDER_REFLECT);
+
+        //the extended block size is at least 64;
+        if (tempA.size().height<64||tempA.size().width<64)
+        {
+          int lr = 64 - tempA.size().width;
+          int ud = 64 - tempB.size().height;
+          cv::copyMakeBorder(tempA,tempA,ud/2,ud/2,lr/2,lr/2,cv::BORDER_CONSTANT,0);
+          cv::copyMakeBorder(tempB,tempB,ud/2,ud/2,lr/2,lr/2,cv::BORDER_CONSTANT,0);
+        }
+        A = Tensor<double,2>(tempA);
         B  = Tensor<double,2>(tempB);
     }
     spA.buildSCFpyr(A,nLevel,nDir,1,downsample);//A = this is orgExt
@@ -446,7 +480,14 @@ namespace metric
             int hh = pyrA[i].size().height/2;
             int ww = pyrA[i].size().width/2;
             int dd = pyrA[i].size().depth;
-            Cube roi(pyrA[i].size().height/4, pyrA[i].size().width/4, 0, hh,ww,dd);
+            if (tsA.size().height==16)
+            {
+                hh/=2;
+                ww/=2;
+            }
+
+            Cube roi((pyrA[i].size().height-hh)/2, (pyrA[i].size().width-ww)/2, 0, hh,ww,dd);
+
             //Cube roi(pyrA[i].size().height/4, pyrA[i].size().width/4, 0, pyrA[i].size().height/2, pyrA[i].size().width/2, pyrA[i].size().depth);
             pyrA[i] = pyrA[i](roi);//no size changed
             //pyrA[i].Print();
@@ -782,10 +823,13 @@ namespace metric
           tempRstMat = tempRstMat;// ((L[index]*C[index]*C01[index]*C10[index]).Pow(0.25));
         else
         {//    rstMat += ((L[index]*C[index]*C01[index]*C10[index]).Pow(0.25))*()
-           if (index == 12)
-               tempRstMat = tempRstMat*(14.0/3.0);//+= ((L[index]*C[index]*C01[index]*C10[index]).Pow(0.25))*(14.0/3);//(3.5)
+           int totalBands = pyrA.size();
+           double weight1 = double(totalBands)/3;
+           double weight2 = 2*double(totalBands)/3/double(totalBands-1);
+           if (index == totalBands-2)//low pass
+               tempRstMat = tempRstMat*weight1;//+= ((L[index]*C[index]*C01[index]*C10[index]).Pow(0.25))*(14.0/3);//(3.5)
            else
-             tempRstMat = tempRstMat*(28.0/39.0);// += ((L[index]*C[index]*C01[index]*C10[index]).Pow(0.25))*(28.0/39.0);//;*(42.0/52.0);
+             tempRstMat = tempRstMat*weight2;// += ((L[index]*C[index]*C01[index]*C10[index]).Pow(0.25))*(28.0/39.0);//;*(42.0/52.0);
         }
 
         rstMat=rstMat+tempRstMat; //gj20130120 to emphasize every term, use product instead of sum
@@ -2006,25 +2050,76 @@ namespace metric
   double ComputeMahalanobis(const Mat& tsA,const Mat& tsB, Size3 subWinSize, Size3 subWinStep, const Mat& iMcovar, FilterBoundary boundary_cut)
   {
     const double C = 0.001;
-    Steerable spA, spB;
     int nDir = 4; int nLevel = 3;
+    vector<Tensor<double, 2> >  statA = metric::ComputeStatistics(tsA,subWinSize,subWinStep,false,false,nLevel,nDir,boundary_cut);
+    vector<Tensor<double, 2> >  statB = metric::ComputeStatistics(tsB,subWinSize,subWinStep,false,false,nLevel,nDir,boundary_cut);
+    Mat fA = Mat((4*(nDir*nLevel+2)),1,CV_64F);
+    Mat fB = Mat((4*(nDir*nLevel+2)),1,CV_64F);
+    for (int i=0; i< statA.size(); i++)
+    {
+        fA.at<double>(i,0) = statA[i].Abs().Real().at<double>(0,0);
+        fB.at<double>(i,0) = statB[i].Abs().Real().at<double>(0,0);
+    }
+    return cv::Mahalanobis(fA,fB,iMcovar);
+    /*
+    Steerable spA, spB;
     int crossbandNum = nDir*(nLevel-1) + nLevel* (mylib::combination(nDir,2));
-    Tensor<double,1> A(tsA),B(tsB);
+    Tensor<double,2> A,B;
+    if (tsA.channels()==1)
+      {
+        A = Tensor<double,1>(tsA).ToComplex();
+        B = Tensor<double,1>(tsB).ToComplex();
+      }
+    else
+      {
+        CV_Assert(tsA.channels()==2);
+        A = Tensor<double,2>(tsA);
+        B = Tensor<double,2>(tsB);
+      }
+    if (boundary_cut == FilterBoundary::FILTER_BOUND_EXTEND)
+    {
+        Mat tempA, tempB;
+        cv::copyMakeBorder(A,tempA,A.size().height/2,A.size().height/2,A.size().width/2,A.size().width/2,cv::BORDER_REFLECT);
+        cv::copyMakeBorder(B,tempB,B.size().height/2,B.size().height/2,B.size().width/2,B.size().width/2,cv::BORDER_REFLECT);
+
+        //the extended block size is at least 64;
+        if (tempA.size().height<64||tempA.size().width<64)
+        {
+          int lr = 64 - tempA.size().width;
+          int ud = 64 - tempB.size().height;
+          cv::copyMakeBorder(tempA,tempA,ud/2,ud/2,lr/2,lr/2,cv::BORDER_CONSTANT,0);
+          cv::copyMakeBorder(tempB,tempB,ud/2,ud/2,lr/2,lr/2,cv::BORDER_CONSTANT,0);
+        }
+        A = Tensor<double,2>(tempA);
+        B  = Tensor<double,2>(tempB);
+    }
     spA.buildSCFpyr(A.ToComplex(),nLevel,nDir,1,false);
     spB.buildSCFpyr(B.ToComplex(),nLevel,nDir,1,false);
     vector<Tensor<double,2>>& pyrA = spA.getSpaceDomainPyr();
     vector<Tensor<double,2>>& pyrB = spB.getSpaceDomainPyr();
     //int boundary_cut = FILTER_BOUND_HALF;
-    if ( boundary_cut == FilterBoundary::FILTER_BOUND_HALF)//modify Dec 27 2011, not cut half but cut half + boundary
+
+    if ( boundary_cut == FilterBoundary::FILTER_BOUND_HALF|| boundary_cut == FilterBoundary::FILTER_BOUND_EXTEND)//modify Dec 27 2011, not cut half but cut half + boundary
       {
         for (unsigned int i = 0; i< pyrA.size(); i++)
           {
             //pyrA[i].Print();
             //dec 27 2011, extend the block by size of block size + bounday (below and right)
-            int hh = subWinSize.height*(int)ceil(float(pyrA[i].size().height)/2.0/float(subWinSize.height));
-            int ww = subWinSize.width*(int)ceil(float(pyrA[i].size().width)/2.0/float(subWinSize.width));
-            int dd = subWinSize.depth*(int)ceil(float(pyrA[i].size().depth)/2.0/float(subWinSize.depth));
-            Cube roi(pyrA[i].size().height/4, pyrA[i].size().width/4, 0, hh,ww,dd);
+            //int hh = subWinSize.height*(int)ceil(float(pyrA[i].size().height)/2.0/float(subWinSize.height));
+            //int ww = subWinSize.width*(int)ceil(float(pyrA[i].size().width)/2.0/float(subWinSize.width));
+            //int dd = subWinSize.depth*(int)ceil(float(pyrA[i].size().depth)/2.0/float(subWinSize.depth));
+            //just half, dec 28 2012
+            int hh = pyrA[i].size().height/2;
+            int ww = pyrA[i].size().width/2;
+            int dd = pyrA[i].size().depth;
+            if (tsA.size().height==16)
+            {
+                hh/=2;
+                ww/=2;
+            }
+
+            Cube roi((pyrA[i].size().height-hh)/2, (pyrA[i].size().width-ww)/2, 0, hh,ww,dd);
+
             //Cube roi(pyrA[i].size().height/4, pyrA[i].size().width/4, 0, pyrA[i].size().height/2, pyrA[i].size().width/2, pyrA[i].size().depth);
             pyrA[i] = pyrA[i](roi);//no size changed
             //pyrA[i].Print();
@@ -2032,7 +2127,30 @@ namespace metric
             //pyrB[i].Print();
           }
       }
+    else if ( boundary_cut == FilterBoundary::FILTER_BOUND_VALID)
+      {
+        for (unsigned int i = 0; i< pyrA.size(); i++)
+          {
+            int hh = pyrA[i].size().height/2 + pyrA[i].size().height/4;
+            int ww = pyrA[i].size().width/2  + pyrA[i].size().width/4;
+            int dd = pyrA[i].size().depth/2  + pyrA[i].size().depth/4;
+            if (dd<1)
+              dd=1;
+            //just half, dec 28 2012
+            //int hh = pyrA[i].size().height/2;
+            //int ww = pyrA[i].size().width/2;
+            //int dd = pyrA[i].size().depth;
+            Cube roi(pyrA[i].size().height/8, pyrA[i].size().width/8, 0, hh,ww,dd); // temporaly use this /8
+            //Cube roi(pyrA[i].size().height/4, pyrA[i].size().width/4, 0, pyrA[i].size().height/2, pyrA[i].size().width/2, pyrA[i].size().depth);
+            pyrA[i] = pyrA[i](roi);//no size changed
+            //pyrA[i].Print();
+            pyrB[i] = pyrB[i](roi);
+            //pyrB[i].Print();
+          }
+      }
+
     Size3 sz = pyrA[0].size();
+
     //Tensor<double,1> rstMat(pyrA[0].size()/subWinStep - subWinSize+Size3(1,1,1));
     Tensor<double,1> rstMat(Size3(Size3_<double>(pyrA[0].size()-subWinSize)/Size3_<double>(subWinStep)) + Size3(1,1,1));
     //rstMat.Print();
@@ -2118,6 +2236,7 @@ namespace metric
     // mylib::DisplayMat(featureB,"fb");
     // mylib::DisplayMat((featureA-featureB).t());
     // mylib::DisplayMat(iMcovar,"imcovar");
+    */
     /*  Mat temp2(1,iMcovar.size().width,CV_64F,Scalar(0));
  // mylib::DisplayMat(temp2,"temp2");
   cv::gemm(featureA-featureB,iMcovar,1,featureA.t(),0,temp2,GEMM_1_T);
@@ -2138,7 +2257,7 @@ namespace metric
   mylib::DisplayMat((featureA-featureB).t()*iMcovar);
   temp2 = (featureA - featureB).t()*iMcovar*(featureA-featureB);
   rst = temp2.at<double>(0,0);*/
-    return cv::Mahalanobis(featureA,featureB,iMcovar);
+    //return cv::Mahalanobis(featureA,featureB,iMcovar);
   }
 
   //! this is the metric parser
@@ -2284,7 +2403,8 @@ namespace metric
     else if (criteria== CompareCriteria::COMPARE_CRITERIA_MAHALANOBIS)
       {
         //CV_DbgAssert(count==2);
-        return ComputeMahalanobis(tsA,tsB,subWinSize,subWinStep,*param1.m);
+        int bd_cut = param2.i;
+        return ComputeMahalanobis(tsA,tsB,subWinSize,subWinStep,*param1.m, FilterBoundary(bd_cut));
       }
     else if (criteria== CompareCriteria::COMPARE_CRITERIA_LRI)
       {
