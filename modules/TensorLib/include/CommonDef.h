@@ -155,6 +155,7 @@ enum class MetricModifier :int {STSIM2_BASELINE,
                                 SVM_METRIC,
                                 STSIM3_LSE,
                                 STSIM2_PART,//partial STSIM2 for fast
+                                SUBJECTIVE,
                                 Q_UNDEF};
 
 #ifndef STSIM2_TYPE

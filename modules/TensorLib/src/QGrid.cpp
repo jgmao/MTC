@@ -204,7 +204,9 @@ namespace tensor{
     //LinkQueue queue(candidNum);//gj15012013  set possibility of dynamic number of candidate
     //else
     queue = new LinkArray();
-
+    vector<double> vvar_t; //vector of target side vars, length is 4 order see vmse
+    vector<double> vvar_d; //vector of t/c var differences
+    vector<double> vmse; //vector of mse , the order is (0,0,3t,t),(3t,0,2t,t), (0,t,t,2t), (0,2t,t,2t), where t is side size (bsize/4)
     LinkQueue varQueue(100);
     vector<Point3i> varList;
     Tensor<T,cn> target;
@@ -303,6 +305,17 @@ namespace tensor{
             tarDevH = qNode.ComputeBoundHorDev();
             tarDevV = qNode.ComputeBoundVerDev();
             tv = tarDevH.Pow(2).Sum()+tarDevV.Pow(2).Sum();
+
+            //20140428 separete to 4 side matching regions
+            int tt = qNode.overlap().height;
+            //0 (0,0,3t,t)
+            vvar_t.push_back(tarLeft(Cube(0,0,0,3*tt,tt,1)).Var()[0]);
+            //1 (3t,0,2t,t)
+            vvar_t.push_back(tarLeft(Cube(3*tt,0,0,2*tt,tt,1)).Var()[0]);
+            //2 (0,0,t,2t)
+            vvar_t.push_back(tarUp(Cube(0,0,0,tt,2*tt,1)).Var()[0]);
+            //3 (0,2t,t,2t))
+            vvar_t.push_back(tarUp(Cube(0,2*tt,0,tt,2*tt,1)).Var()[0]);
           }
 
         //Tensor<T,cn> T0 =  qNode.GetBoundary(0).Crop(Point3i(0,qNode.overlap().width,0),qNode.GetBoundary(0).size()-Size3(0,qNode.overlap().width,0));
@@ -446,6 +459,17 @@ namespace tensor{
                                     candDevH = cand.ComputeBoundHorDev();
                                     candDevV = cand.ComputeBoundVerDev();
                                     tv += candDevH.Pow(2).Sum()+candDevV.Pow(2).Sum();
+
+                                    //20140428 separete to 4 side matching regions
+                                    int t = (int)qNode.overlap().height;
+                                    //0 (0,0,3t,t)
+                                    vvar_d.push_back(candLeft(Cube(0,0,0,3*t,t,1)).Var()[0]);
+                                    //1 (3t,0,2t,t)
+                                    vvar_d.push_back(candLeft(Cube(3*t,0,0,2*t,t,1)).Var()[0]);
+                                    //2 (0,0,t,2t)
+                                    vvar_d.push_back(candUp(Cube(0,0,0,t,2*t,1)).Var()[0]);
+                                    //3 (0,2t,,t,2t))
+                                    vvar_d.push_back(candUp(Cube(0,2*t,0,t,2*t,1)).Var()[0]);
                                   }
 #ifdef PARALLEL_ENABLED
                                 candUp_norm = localCandUp - candUpMean;
@@ -463,6 +487,17 @@ namespace tensor{
 				    //candLeft_norm.Print();
 				    localdiff = metric::Compare(tarUp_norm,candUp_norm,CompareCriteria::COMPARE_CRITERIA_MSE) +
 					metric::Compare(tarLeft_norm, candLeft_norm, CompareCriteria::COMPARE_CRITERIA_MSE);
+
+				    //20140428 separete to 4 side matching regions
+				    int t = qNode.overlap().height;
+				    //0 (0,0,3t,t)
+				    vmse.push_back(metric::Compare(tarLeft_norm(Cube(0,0,0,3*t,t,1)),candLeft_norm(Cube(0,0,0,3*t,t,1)),CompareCriteria::COMPARE_CRITERIA_MSE));
+				    //1 (3t,0,2t,t)
+				    vmse.push_back(metric::Compare(tarLeft_norm(Cube(3*t,0,0,2*t,t,1)),candLeft_norm(Cube(3*t,0,0,2*t,t,1)),CompareCriteria::COMPARE_CRITERIA_MSE));
+				    //2 (0,0,t,2t)
+				    vmse.push_back(metric::Compare(tarUp_norm(Cube(0,0,0,t,2*t,1)),candUp_norm(Cube(0,0,0,t,2*t,1)),CompareCriteria::COMPARE_CRITERIA_MSE));
+				    //3 (0,2t,t,2t))
+				    vmse.push_back(metric::Compare(tarUp_norm(Cube(0,2*t,0,t,2*t,1)),candUp_norm(Cube(0,2*t,0,t,2*t,1)),CompareCriteria::COMPARE_CRITERIA_MSE));
 				    // cout<<"mse="<<localdiff<<endl;
 				    //else if (matching_method == MATCHING_MSE_CONSTRAINT) //	diff+= qNdoe.GetBoundary(i).Compare(target,COMPARE_CRITERIA_MSE_CONSTRAINT);
 				  }
@@ -501,6 +536,16 @@ namespace tensor{
 				    //clip delta and normalize it
 				    double delta_thrd = log(100);
 				    delta > delta_thrd? delta = 1 : delta=delta/delta_thrd;
+				    localdiff = -1;
+				    //20140428 find the max constraint diff or 4 local region(minimax)
+				    for (int kk=0; kk<vvar_d.size();kk++)
+				    {
+					vvar_d[kk] = abs(log(vvar_d[kk]/vvar_t[kk]));
+					vvar_d[kk]>delta_thrd?vvar_d[kk]=1:vvar_d[kk]/=delta_thrd;
+					vmse[kk]/=256;
+					if (localdiff<vvar_d[kk]*0.5+vmse[kk])
+					  localdiff=vvar_d[kk]*0.5+vmse[kk];
+				    }
 				    //d1 > delta_thrd? d1 = 1 : d1 = d1/delta_thrd;
 				    //d0 > delta_thrd? d0 = 1 : d0 = d0/delta_thrd;
 				    double lambda2 = 0.5;
@@ -517,13 +562,14 @@ namespace tensor{
                    // cout<<"tv="<<tv[0]<<endl;
                    // cout<<"xyH="<<(2*(tarDevH*candDevH).Sum())[0]<<endl;
                    // cout<<"xyV="<<(2*(tarDevV*candDevV).Sum())[0]<<endl;
-                   double constraint = sqrt((tv-2*(tarDevH*candDevH).Sum()-2*(tarDevV*candDevV).Sum())[0]);
-                   constraint /= (2*sqrt(2)*256);
-                    //!20131011 retray use variance
-                    localdiff/=256;
+                   //double constraint = sqrt((tv-2*(tarDevH*candDevH).Sum()-2*(tarDevV*candDevV).Sum())[0]);
+                   //constraint /= (2*sqrt(2)*256);
+                    //!20131011 retry use variance
+                    //localdiff/=256;
                    // cout<<"constr="<<constraint<<endl;
            // cout<<"diff="<<localdiff<<endl;
-                    localdiff = 1*localdiff +0.5*delta +0*constraint ;
+                    //localdiff = 1*localdiff +0.5*delta +0*constraint ;
+
           }
 				/// debug here !!!!!!!!!!!!!
 				//protect shared data here

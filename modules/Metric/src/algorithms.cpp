@@ -2393,6 +2393,7 @@ namespace metric
       }
     else if (criteria == CompareCriteria::COMPARE_CRITERIA_SUBJECTIVE)
       {
+        //20140428 start working on this
         //TBD!
         return 1.0;
       }

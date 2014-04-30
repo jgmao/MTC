@@ -5728,6 +5728,8 @@ void MTC::ScanLine(string& line)
             temp=MetricModifier::SVM_METRIC;
           else if (value=="STSIM3_LSE")
             temp=MetricModifier::STSIM3_LSE;
+          else if (value=="SUBJECTIVE")
+            temp=MetricModifier::SUBJECTIVE;
           else
             CV_Error(CV_StsBadFlag,"wrong parameter"+option+":"+value);
           this->SetMetricModifier(temp);
