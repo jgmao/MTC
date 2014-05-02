@@ -2,12 +2,28 @@
 # -*- coding: utf-8 -*-
 import subprocess
 
-print 'before open'
-p = subprocess.Popen("/home/guoxin/Projects/MTC/Debug/bin/testPythonCall",stdin=subprocess.PIPE, stdout=subprocess.PIPE);
-while True:
-#for x in xrange(11):
+def step1():
+    global p
+    print 'before open'
+    p = subprocess.Popen("/home/guoxin/Projects/MTC/Debug/bin/testPythonCall",stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    print p    
+
+def step2(): 
+    global p
+    print p
     outline = p.stdout.readline()
     print outline
+    return outline
+
+
+p = None
+
+step1()
+while True:
+#for x in xrange(11):
+    #outline = p.stdout.readline()
+    #print outline
+    outline = step2()
     print outline=='waiting input:\n'
     if outline=='waiting input:\n':
         y = raw_input("input to python: ")
@@ -25,6 +41,8 @@ while True:
             else:
             # Raise any other error.
               raise
+    elif outline=='done!\n':
+        break
     else:
         print 'error'
         continue
@@ -33,3 +51,4 @@ p.wait()
 output = p.stdout.read()
 print 'after open'
 print output
+

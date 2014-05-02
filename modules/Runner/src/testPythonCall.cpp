@@ -12,5 +12,6 @@ int main(int argc, char *argv[])
   //int key  =1;
   cout<<"the input is: "<<temp<<endl;
     }
+  cout<<"done!"<<endl;
   return 0;
 }

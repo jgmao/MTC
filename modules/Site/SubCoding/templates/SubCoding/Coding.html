@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+<html>
+<head><title></title></head>
+
+<body>
+{% block myscripts %}
+<script language="JavaScript">
+function accept_it(event){
+
+
+}
+</script>
+{% endblock %}
+{% block content %}
+
+<div id="localview"> <!-- the local view of reconscruct + candidate -->
+<!--<img src="{{STATIC_URL}}{{localview}}">-->
+</div>
+<div id="original"> <!-- original target block -->
+<img src="{{STATIC_URL}}{{org}}">
+</div>
+<div id="candidates">
+<table>
+<tr>
+Candidate APLC
+</tr>
+<tr>
+<form action = "/cand_selected/" id="candidates" method="POST">{% csrf_token %}
+{% for c in cands %}
+<td>
+<input type="image" src="{{STATIC_URL}}{{c}}" value = "{{forloop.counter0}}" name = "{{c}}">
+</td>
+{% endfor %}
+</form>
+</tr>
+</table>
+</div>
+{% endblock %}
+
+</body>
+</html>

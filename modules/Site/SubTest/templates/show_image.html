@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}
+Show Image
+{% endblock %}
+
+{% block content %}
+<table>
+{% for image in images %}
+<td>
+<embed width={{100}} height={{100}}
+    src="{{STATIC_URL}}{{image}}" type="image/tiff"
+    stretchtofit='1'>
+</td>
+{% endfor %}
+</table>
+
+{% endblock %}

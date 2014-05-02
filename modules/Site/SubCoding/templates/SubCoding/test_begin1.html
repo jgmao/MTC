@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+<html>
+<head><title></title></head>
+
+<body>
+
+{% block content %}
+
+<p>Welcome!</p>
+<p>This is the subjective MTC coder .</p>
+<p> There image to be coded is {{request.session.imagename}}.</p>
+<p> Test block size is fixed to {{request.session.initsize}}.</p>
+<div>
+<img id="imgid" src="{{STATIC_URL}}{{request.session.imagename}}.png" height="256" width="256" >
+</div>
+<form action="/codingprocess/">
+<input type="Submit" value="click to start">
+</form>
+{% endblock %}
+
+</body>
+</html>

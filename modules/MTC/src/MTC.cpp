@@ -2559,6 +2559,7 @@ bool MTC::TexturePrediction(QTree<T,cn>& qNode, int qLevel)
 
 int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double>& matchScore, QTree<T,cn>& qNode,MetricModifier metricModifier, int level)//, double param1, double param2)
 {
+   int accepted = -1;
   double distance = INT_MIN, temp;
   CompareCriteria criteria = ParseCriteria(metricModifier);
  // if (metricModifier == MetricModifier::MAHALANOBIS_DIST)
@@ -3069,6 +3070,15 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
                 temp = -metric::Compare(org,candid,criteria,qNode.size(),qNode.size(),&(this->iMahaCovar));
               }
           }
+          else if (criteria==CompareCriteria::COMPARE_CRITERIA_SUBJECTIVE)
+          {
+              //signalling python
+              cout<<"Waiting subject selection:"<<endl;
+              string temp;
+              cin>>temp;
+              accepted = std::stoi(temp);
+              break;//out the candidate loop
+          }
           else
             temp = metric::Compare(org, candid,criteria);
           //temp = orgPadding.Compare(candPadding,criteria,param1,param2,true,stsim2PoolType,metricModifier, this->iMahaCovar);
@@ -3123,7 +3133,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
         }
       everything.close();
 #   endif
-      int accepted = -1;
+
 
 
 #if PARALLEL_METRIC
@@ -5877,6 +5887,8 @@ CompareCriteria MTC::ParseCriteria(MetricModifier metricModifer)
     return CompareCriteria::COMPARE_CRITERIA_SAD;
   else if (metricModifer ==MetricModifier::SVM_METRIC)
     return CompareCriteria::COMPARE_CRITERIA_SVM;
+  else if (metricModifer ==MetricModifier::SUBJECTIVE)
+    return CompareCriteria::COMPARE_CRITERIA_SUBJECTIVE;
   else
     return CompareCriteria::COMPARE_CRITERIA_OTHER;
 

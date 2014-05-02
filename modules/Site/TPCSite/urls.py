@@ -29,6 +29,9 @@ urlpatterns = patterns('',
     url(r'^dist/(\w+)/(\d{2,3})/(\w+)/$','SubTest.views.startcompare',name='startcompare'),
     url(r'^granstart/$','GranulateStudy.views.initTestData',name='startgran'),
     url(r'^grantest/$','GranulateStudy.views.show_image',name='grantest'),
+    url(r'^subcoding/','SubCoding.views.startsession',name='subcoding'),
+    url(r'^codingprocess/','SubCoding.views.codingprocess',name='codingprocess'),
+    url(r'^cand_selected/','SubCoding.views.cand_selected',name='cand_selected'),
 )
 urlpatterns += staticfiles_urlpatterns()
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
