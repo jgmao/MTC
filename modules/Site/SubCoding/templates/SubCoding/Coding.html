@@ -4,17 +4,19 @@
 
 <body>
 {% block myscripts %}
-<script language="JavaScript">
-function accept_it(event){
-
-
-}
+<script>
+  function cand_over(x)
+  {
+    var p = document.getElementById("tobechange");
+    p.src=x;
+  }
 </script>
 {% endblock %}
 {% block content %}
 
 <div id="localview"> <!-- the local view of reconscruct + candidate -->
 <!--<img src="{{STATIC_URL}}{{localview}}">-->
+<img src="{{STATIC_URL}}{{org}}" id="tobechange">
 </div>
 <div id="original"> <!-- original target block -->
 <img src="{{STATIC_URL}}{{org}}">
@@ -28,7 +30,9 @@ Candidate APLC
 <form action = "/cand_selected/" id="candidates" method="POST">{% csrf_token %}
 {% for c in cands %}
 <td>
-<input type="image" src="{{STATIC_URL}}{{c}}" value = "{{forloop.counter0}}" name = "{{c}}">
+<div id="cand_target_{{forloop.counter0}}">
+  <input type="image" src="{{STATIC_URL}}{{c}}" value = "{{forloop.counter0}}" name = "{{c}}" onmouseover="cand_over('{{STATIC_URL}}{{c}}')">
+</div>
 </td>
 {% endfor %}
 </form>

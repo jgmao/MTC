@@ -64,6 +64,7 @@ def codingprocess(request):
                  'everything/cand_plc_64_(256_384)_(137_247)_(5)_(2).png',
                  'everything/cand_plc_64_(256_384)_(148_247)_(6)_(2).png']
         localview = 'everything/seam_rst_0335.png'
+        print request.session['cands']
         #test input
         #line = '%d\n' % int(3)
         #p.stdin.write(line)
