@@ -1,4 +1,4 @@
-include_directories(${MTC_TENSORLIB_DIR}/include ${MTC_UTILITY_DIR}/include ${MTC_MTC_DIR}/include ${MTC_LIGHTING_DIR}/include ${MTC_METRIC_DIR}/include)
+include_directories(${MTC_TENSORLIB_DIR}/include ${MTC_UTILITY_DIR}/include ${MTC_MTC_DIR}/include ${MTC_LIGHTING_DIR}/include ${MTC_METRIC_DIR}/include ${EIGEN3_INCLUDE_DIR})
 
 #link_directories(${MTC_TENSOR_DIR}/src)
 set(common_link_dir  ${MTC_TENSORLIB_DIR} ${MTC_MTC_DIR}/src ${MTC_UTILITY_DIR})

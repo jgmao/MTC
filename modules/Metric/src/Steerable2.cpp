@@ -1,8 +1,8 @@
 #include <Steerable2.h>
 #include <fftw++.h>
-#include <Imlib.h>
+//#include <Imlib.h>
 #include <Array.h>
-#include <output.h>
+//#include <output.h>
 namespace metric{
 Steerable2::Steerable2()
 {
