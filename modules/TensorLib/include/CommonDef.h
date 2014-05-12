@@ -50,7 +50,7 @@
 #ifndef COMMON_DEF_H
 #define COMMON_DEF_H
 #include <opencv2/opencv.hpp>
-#include <opencv2/gpu/gpu.hpp>
+//#include <opencv2/gpu/gpu.hpp>
 #include <vector>
 namespace tensor{
 //Marcos
@@ -83,8 +83,11 @@ namespace tensor{
 #define EXPORTLIB
 #endif
 
+#ifndef ROOT_PATH
+#define ROOT_PATH string("/home/guoxin/Projects/MTC/")
+#endif
 
-
+#ifdef USE_GPU
 #ifndef BUFFERGPU
 #define BUFFERGPU
 class BufferGPU// genearal structure
@@ -97,6 +100,7 @@ public:
   cv::gpu::Stream stream;
 };
 
+#endif
 #endif
 // 20130816 only define the Marcors and constants used in TensorLib
 #ifndef FILTER_BOUNDARY

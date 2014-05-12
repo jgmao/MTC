@@ -208,7 +208,7 @@ namespace tensor{
     EXPORTLIB Tensor<T,cn>AbsDiff(c_ref_type s) const;//@
     EXPORTLIB Tensor<T,cn>AbsDiff(const Tensor<T,cn>& ts) const;//@
     EXPORTLIB Tensor<T,cn> Square(void) const;
-    EXPORTLIB Tensor<T,cn> SquareGPU(BufferGPU& gbuf) const;
+    //EXPORTLIB Tensor<T,cn> SquareGPU(BufferGPU& gbuf) const;
     EXPORTLIB Tensor<T,cn>Conjugate(void) const;//@
 //    EXPORTLIB Tensor<T,cn> HorDev(void) const;
 //    EXPORTLIB Tensor<T,cn> VerDev(void) const;
@@ -221,10 +221,10 @@ namespace tensor{
     EXPORTLIB Vec<T,cn> URMean(void) const; //mean of lower right triangle
     EXPORTLIB Vec<T,cn> PercentageMean(double low=0, double high=1) const; //mean taken from (low - high) percentage
     EXPORTLIB Tensor<T,cn>LocalMean(const Mat& ker, const Size3& subWinStep = Size3(1,1,1)) const;//only support depth =1 kernel
-    EXPORTLIB Tensor<T,cn>LocalMeanGPU(const Mat& ker, BufferGPU& gbuf, const Size3& subWinStep = Size3(1,1,1)) const;//only support depth =1 kernel
+    //EXPORTLIB Tensor<T,cn>LocalMeanGPU(const Mat& ker, BufferGPU& gbuf, const Size3& subWinStep = Size3(1,1,1)) const;//only support depth =1 kernel
     EXPORTLIB Tensor<T,cn>LocalMean(const Size3& subWinSize,const Size3& subWinStep = Size3(1,1,1)) const;
     EXPORTLIB Tensor<T,cn>LocalVariance( const Tensor<T,cn>& mu, const Mat& ker, const Size3& subWinStep = Size3(1,1,1)) const;
-    EXPORTLIB Tensor<T,cn>LocalVarianceGPU( const Tensor<T,cn>& mu, const Mat& ker, BufferGPU& gbuf, const Size3& subWinStep = Size3(1,1,1)) const;
+    //EXPORTLIB Tensor<T,cn>LocalVarianceGPU( const Tensor<T,cn>& mu, const Mat& ker, BufferGPU& gbuf, const Size3& subWinStep = Size3(1,1,1)) const;
     EXPORTLIB Tensor<T,cn>LocalVariance( const Tensor<T,cn>& mu, const Size3& subWinSize, const Size3& subWinStep = Size3(1,1,1)) const;
     EXPORTLIB Tensor<T,cn>Pow(double p) const;//@
     EXPORTLIB Tensor<T,cn>Log(void) const;//take the ln

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load extra_tags %}
 <html>
 <head><title></title></head>
 
@@ -14,14 +15,30 @@
 {% endblock %}
 {% block content %}
 
-<div id="localview"> <!-- the local view of reconscruct + candidate -->
+<div id="localview" align="center"> <!-- the local view of reconscruct + candidate -->
+<p> local view </p>
 <!--<img src="{{STATIC_URL}}{{localview}}">-->
-<img src="{{STATIC_URL}}{{org}}" id="tobechange">
+<table>
+<tr>
+<th> To be encode </th>
+<th> Original local view </th>
+</tr>
+<tr>
+<td>
+<img src="{{STATIC_URL}}{{localview}}" id="tobechange">
+</td>
+<td>
+<img src="{{STATIC_URL}}{{localorg}}"  id="localorg">
+</td>
+</tr>
+</table>
 </div>
-<div id="original"> <!-- original target block -->
+<center><p> ---------------------------------- </p></center>
+<div id="original" align="center">
+<p> original target block </p>
 <img src="{{STATIC_URL}}{{org}}">
 </div>
-<div id="candidates">
+<div id="candidates" align="center">
 <table>
 <tr>
 Candidate APLC
@@ -31,10 +48,15 @@ Candidate APLC
 {% for c in cands %}
 <td>
 <div id="cand_target_{{forloop.counter0}}">
-  <input type="image" src="{{STATIC_URL}}{{c}}" value = "{{forloop.counter0}}" name = "{{c}}" onmouseover="cand_over('{{STATIC_URL}}{{c}}')">
+  <input type="image" src="{{STATIC_URL}}{{c}}" value = "{{forloop.counter0}}" name = "{{c}}" onmouseover="cand_over('{{STATIC_URL}}{{localviewplus|getitem:forloop.counter0}}')">
 </div>
 </td>
 {% endfor %}
+<td>
+<div id="nonegood">
+  <input type="image" src="{{STATIC_URL}}{{noneitem}}" value = "-1" name = "{{noneitem}}" onmouseover="cand_over('{{STATIC_URL}}{{localview}}')">
+</div>
+</td>
 </form>
 </tr>
 </table>

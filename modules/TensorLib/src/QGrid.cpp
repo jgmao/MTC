@@ -71,7 +71,7 @@ namespace tensor{
   {
     this->gridSize = (Size3_<double>(ensemble.size())/Size3_<double>(blockSize)).Ceil();
     grid = Grid(gridSize.depth,vector<vector<QTree<T,cn>>>(gridSize.height));
-    rst = Tensor<T,cn>(ensemble.size());
+    rst = Tensor<T,cn>(ensemble.size(),128);
     L1_train_len = 0;
     lenH0=0;
     lenH1=0;

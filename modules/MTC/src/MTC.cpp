@@ -76,6 +76,7 @@ namespace mtc  {
   {
     this->acount=0;
     this->cFileName = imageName;
+    cout<<"init reading: "<<imageName<<endl;
     ensemble.Load(cFileName);
     //ensemble = ensemble.Log();//20130708
     if (codemode == CodingMode::CODING_MODE_JPEG || codemode == CodingMode::CODING_MODE_MTC)
@@ -268,7 +269,7 @@ namespace mtc  {
 
     //save rsts to a video
     cv::VideoWriter writer;
-    cv::VideoCapture cap("./everything/rst_%04d.bmp");
+    cv::VideoCapture cap(ROOT_PATH+"./everything/rst_%04d.bmp");
 #if CV_MINOR_VERSION < 6
     writer.open("rst.avi",CV_FOURCC('Y','U','V','9'),1,Size(rst.size().width,rst.size().height),true);
 #else
@@ -2150,7 +2151,7 @@ bool MTC::TexturePrediction(QTree<T,cn>& qNode, int qLevel)
     {
       tempAccept = false;
     }
-  else if (qNode.size().height <= 8 && qNode.size().width <= 8)//force to set min blk size
+  else if (qNode.size().height <= 16 && qNode.size().width <= 16)//force to set min blk size // Coding Size Control
     {
       tempAccept =false;
     }
@@ -2539,7 +2540,7 @@ bool MTC::TexturePrediction(QTree<T,cn>& qNode, int qLevel)
 
 		}
 #ifdef RECORD_EVERYTHING
-              string extra_path = "./everything/";
+              string extra_path = ROOT_PATH+"./everything/";
               char idxstr[20];
               sprintf(idxstr,"rst_%04d",acount);
               acount++;
@@ -2582,7 +2583,12 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
   ofstream everything;
   //double lightPSNR=0;
   double lightPSNRThrd = 10*log10(255*255/30); //db
-  everything.open("./everything/everything.txt",ios::app);
+  everything.open(ROOT_PATH+"./everything/everything.txt",ios::app);
+  string orgname;
+  vector<string> candname;
+  string localviewname;
+  Point3i localPos;
+  Tensor<T,cn> localview;
 #endif
   int tempx = qNode.offset().x;
   int tempy = qNode.offset().y;
@@ -2626,14 +2632,43 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
       //org.Display();
       //org = QNode<T,cn>(ensemble,qNode.size(),qNode.offset(),qNode.overlap());
 #ifdef RECORD_EVERYTHING
-      string extra_path = "./everything/";
+      string extra_path = ROOT_PATH+"./everything/";
       //_mkdir(extra_path.c_str());
       char posstr[20];
       sprintf(posstr,"_%d_(%d_%d)",qNode.size().height,qNode.offset().x,qNode.offset().y);
       //org.Print();
-      org.GetExtendTensor(1,1,0,0)./*Crop(Point3i(org.size()/4),org.size()+org.size()/4).*/SaveBlock(extra_path+"org"+string(posstr)+".png");
+      orgname = extra_path+"org"+string(posstr)+".png" ;
+      org.GetExtendTensor(1,1,0,0)./*Crop(Point3i(org.size()/4),org.size()+org.size()/4).*/SaveBlock(orgname);
       everything<<"org size "<<qNode.size().height<<" with LU:("<<org.offset().x<<","<<org.offset().y<<") matches:"<<endl;
       // org.GetExtendTensor(1,1,0,0).Crop(Point3i(org.size()/4),org.size()+org.size()/4).Display();
+      //20140504 save default local view
+      localviewname = extra_path+"local"+string(posstr)+".png";
+      Cube localcube(org.offset().x-256,org.offset().y-256,0,512,512,1);
+      localPos = Point3i(256,256,0);
+      if (localcube.x<0)
+      {
+          localcube.height-=(-localcube.x);
+          localPos.x-=(-localcube.x);
+          localcube.x=0;
+      }
+      if (localcube.y<0)
+      {
+          localcube.width-=(-localcube.y);
+          localPos.y-=(-localcube.y);
+          localcube.y=0;
+      }
+      if (localcube.x+localcube.height>rst.size().height)
+      {
+          localcube.height-=(localcube.x+localcube.height-rst.size().height);
+      }
+      if (localcube.y+localcube.width>rst.size().width)
+      {
+          localcube.width-=(localcube.y+localcube.width-rst.size().width);
+      }
+      localview = rst.Crop(localcube.offset(),localcube.size());
+      localview.SaveBlock(localviewname);
+      localview.SetBlock(localPos, org);
+      localview.SaveBlock(extra_path+"localorg"+string(posstr)+".png");
 #endif
       if(debugsignal)
         {
@@ -2650,7 +2685,7 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
 
 #else
 #ifdef RECORD_EVERYTHING
-      string extra_path = "./everything/";
+      string extra_path = ROOT_PATH+"./everything/";
       mkdir(extra_path.c_str(),0755);
       char posstr[20];
       sprintf(posstr,"_%d_(%d_%d)",qNode.size().height,qNode.offset().x,qNode.offset().y);
@@ -2659,17 +2694,19 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
         {
           //if (criteria == COMPARE_CRITERIA_SSIM || criteria == COMPARE_CRITERIA_MAHALANOBIS||criteria==COMPARE_CRITERIA_LRI)
           orgtemp = QNode<T,cn>(ensemble,qNode.size(),qNode.offset(), qNode.size()/2);
+          orgname =extra_path+"org"+string(posstr)+".png" ;
           //org = ensemble.Crop(qNode.offset() - (qNode.size()/2).Point3(),qNode.size()*Size3(2,2,1));
-          orgtemp.GetExtendTensor(1,1,0,0).Crop(Point3i(qNode.size()/4),qNode.size()+qNode.size()/4).SaveBlock(extra_path+"org"+string(posstr)+".png");
+          orgtemp.GetExtendTensor(1,1,0,0).Crop(Point3i(qNode.size()/4),qNode.size()+qNode.size()/4).SaveBlock(orgname);
         }
       else
         {
           //org = ensemble.Crop(qNode.offset(),qNode.size());
           orgtemp = QNode<T,cn>(ensemble,qNode.size(),qNode.offset(),qNode.overlap());
+          orgname = extra_path+"org"+string(posstr)+".png";
           if (lightCorrectionType == LightingCorrectionType::PREDEF_LIGHTING)
-            (orgtemp.GetExtendTensor(1,1,0,0).Crop(Point3i(0,0,0),qNode.size()+qNode.size()/4)+128).SaveBlock(extra_path+"org"+string(posstr)+".png");
+            (orgtemp.GetExtendTensor(1,1,0,0).Crop(Point3i(0,0,0),qNode.size()+qNode.size()/4)+128).SaveBlock(orgname);
           else
-            orgtemp.GetExtendTensor(1,1,0,0).Crop(Point3i(0,0,0),qNode.size()+qNode.size()/4).SaveBlock(extra_path+"org"+string(posstr)+".png");
+            orgtemp.GetExtendTensor(1,1,0,0).Crop(Point3i(0,0,0),qNode.size()+qNode.size()/4).SaveBlock(orgname);
         }
       everything<<"org size "<<qNode.size().height<<" with LU:("<<orgtemp.offset().x<<","<<orgtemp.offset().y<<") matches:"<<endl;
 #endif
@@ -2904,8 +2941,12 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
 	lightPSNR = lightPSNRBeforePLC;*/
 	#ifdef RECORD_EVERYTHING
 	//save candidate after PLC
+	candname.push_back(extra_path+"cand_plc"+string(posstr)+string(idxstr)+"_("+to_string(level+1)+").png");
 	candid.GetExtendTensor(1,1,0,0)/*20130605.Crop(Point3i(org.size()/4),org.size()+org.size()/4)*/.SaveBlock(extra_path+"cand_plc"+string(posstr)+string(idxstr)+"_("+to_string(level+1)+").png");
 	//candid.GetExtendTensor(1,1,1,1).SaveBlock(extra_path+"cand_full_plc"+string(posstr)+string(idxstr)+".png");
+	//20140504 save local (no blending)
+	localview.SetBlock(localPos,candid);
+	localview.SaveBlock(extra_path+"localview"+string(posstr)+string(idxstr)+"_("+to_string(level+1)+").png");
 	#endif
 	if (footEntry==FootTable.end()&&level>=0)
 	  UpdateFoots(org, candid);
@@ -3072,12 +3113,8 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
           }
           else if (criteria==CompareCriteria::COMPARE_CRITERIA_SUBJECTIVE)
           {
-              //signalling python
-              cout<<"Waiting subject selection:"<<endl;
-              string temp;
-              cin>>temp;
-              accepted = std::stoi(temp);
-              break;//out the candidate loop
+              //continue
+              continue;//out the candidate loop
           }
           else
             temp = metric::Compare(org, candid,criteria);
@@ -3148,8 +3185,21 @@ int MTC::IsAcceptPredict(const vector<Point3i>& matchCandid, const vector<double
             }
         }
 #endif
-
-      if (criteria == CompareCriteria::COMPARE_CRITERIA_MAHALANOBIS)
+      if (criteria == CompareCriteria::COMPARE_CRITERIA_SUBJECTIVE)
+      {
+          //signalling python
+          cout<<"Subject Select:"<<endl;
+          cout<<orgname<<endl;
+          cout<<localviewname<<endl;
+          for (string c : candname)
+            cout<<c<<endl;
+          cout<<"End of Candidate."<<endl;
+          string temp;
+          cin>>temp;
+          accepted = std::stoi(temp);
+          cout<<"The accepted is "<<accepted<<endl;
+      }
+      else if (criteria == CompareCriteria::COMPARE_CRITERIA_MAHALANOBIS)
         {
 
           if(qNode.size().height >16 && -distance <= this->qualityThrd) //good
@@ -4825,11 +4875,12 @@ string MTC::ComputeJpegHuff(const Vec<T,cn>& val, UINT8 runlength, std::map<int,
 void MTC::InitHuffCoeff(void)
 {
   ifstream fh;
-  fh.open("DC_hufftalbe.txt");
+  fh.open("/home/guoxin/Projects/MTC/DC_hufftalbe.txt");
   std::cout<<"done 4\n";
   int val;
   char value[100];
   string vs;
+  int count=0;
   while(!fh.eof())
     {
       fh.getline(value,100,' '); //read value
@@ -4841,11 +4892,11 @@ void MTC::InitHuffCoeff(void)
       vs.erase(remove_if(vs.begin(), vs.end(), ::isspace), vs.end());
       MTC::Huffman_DC_Tree.Insert(vs,val);
       Huffman_DC_Map[val]=vs;
-      std::cout<<"done 4.25\n";
+      std::cout<<"done 4.25 "<<to_string(count)<<"\n";
     }
   fh.close();
   std::cout<<"done 4.5\n";
-  fh.open("AC_hufftable.txt");
+  fh.open("/home/guoxin/Projects/MTC/AC_hufftable.txt");
   while(!fh.eof())
     {
       fh.getline(value,100,' '); //read value
@@ -5238,11 +5289,11 @@ void MTC::UpdateParameters(void)
   matchingfile<<"starting recording matching .....\n";
   matchingfile.close();
 #ifdef RECORD_EVERYTHING
-  system("rm -rf ./everything");
+  system(("rm -rf "+ROOT_PATH+"./everything").c_str());
   //std::remove("./everything");
-  mkdir("./everything",0755);
+  mkdir((ROOT_PATH+"./everything").c_str(),0755);
   ofstream everything;
-  everything.open("./everything/everything.txt",ios::out);
+  everything.open(ROOT_PATH+"./everything/everything.txt",ios::out);
   everything.close();
 #endif
   if (metricModifier == MetricModifier::STSIM3_LSE)

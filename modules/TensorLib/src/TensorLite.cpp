@@ -6,7 +6,7 @@
 namespace tensor{
 //20130815 template<class T, size_t cn> Mat Tensor<T,cn>::stsim2_lse_weight = Mat(); 
 /////////////2.1 constructor, copy  assignment and type conversion ////////////////////////
-BufferGPU gbuf;
+//BufferGPU gbuf;
 template<class T, size_t cn> Tensor<T,cn>::Tensor(void):Mat()
 {
 	this->tsOffset = Point3i();
@@ -884,22 +884,22 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::Square(void) const
   return rst;
 }
 
-template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::SquareGPU(BufferGPU& gbuf) const
-{
+//template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::SquareGPU(BufferGPU& gbuf) const
+//{
 
-  Tensor<T,cn> rst(this->size());
-  gbuf.gI1.upload(*this);
-  if (cn == 2) // if data type is not float/double this will throw type exception
-  {
-     gpu::mulSpectrums(gbuf.gI1,gbuf.gI1,gbuf.gs,DFT_ROWS,true,gbuf.stream);
-  }
-  else
-  {
-     gpu::multiply(gbuf.gI1,gbuf.gI1,gbuf.gs,1,-1,gbuf.stream);
-  }
-  gbuf.gs.download(rst,gbuf.stream);
-  return rst;
-}
+//  Tensor<T,cn> rst(this->size());
+//  gbuf.gI1.upload(*this);
+//  if (cn == 2) // if data type is not float/double this will throw type exception
+//  {
+//     gpu::mulSpectrums(gbuf.gI1,gbuf.gI1,gbuf.gs,DFT_ROWS,true,gbuf.stream);
+//  }
+//  else
+//  {
+//     gpu::multiply(gbuf.gI1,gbuf.gI1,gbuf.gs,1,-1,gbuf.stream);
+//  }
+//  gbuf.gs.download(rst,gbuf.stream);
+//  return rst;
+//}
 
 
 template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::AbsDiff(c_ref_type s) const
@@ -1255,33 +1255,33 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::LocalMean(const Mat& ker
   //cout<<(rst2-rst).Abs().Sum()[0]<<endl;//verify
   return rst;
 }
-template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::LocalMeanGPU(const Mat& ker,BufferGPU& gbuf,const Size3& subWinStep) const
-{
-//! 20130910 implement sliding window with steps
-  Size3 sz(this->tsSize.height / subWinStep.height, this->tsSize.width/subWinStep.width, this->tsSize.depth/subWinStep.depth);
-  Tensor<T,cn> rst(sz);
-  gbuf.gI1.upload(*this);
-  gbuf.gI2.upload(ker);
-  gpu::Stream stream;
-  gpu::split(gbuf.gI1,gbuf.v,stream);
-  //Cube roi(0,0,0,subWinStep.height, subWinStep.width, subWinStep.depth);
-  Rect roi(0,0,ker.size().width,ker.size().height);
-  for (unsigned  int k=0; k<cn; k++)
-    {
-      for (unsigned int i=0;roi.y+roi.height<=this->tsSize.height;  ++i, roi.y+=subWinStep.height)
-        {
-          for (unsigned int j=0; roi.x+roi.width<=this->tsSize.width; ++j, roi.x+=subWinStep.width)
-            {
-              gpu::multiply(gbuf.v[k](roi),gbuf.gI2,gbuf.gs,1,-1,stream);
-              Scalar temp = gpu::sum(gbuf.gs);
-              rst(i,j,0)[k] = (T)temp[0];//since split channels, all data are 1 channel.
-            }
-          roi.x=0;//reset to left
-        }
-      roi.y=0;
-    }
-  return rst;
-}
+//template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::LocalMeanGPU(const Mat& ker,BufferGPU& gbuf,const Size3& subWinStep) const
+//{
+////! 20130910 implement sliding window with steps
+//  Size3 sz(this->tsSize.height / subWinStep.height, this->tsSize.width/subWinStep.width, this->tsSize.depth/subWinStep.depth);
+//  Tensor<T,cn> rst(sz);
+//  gbuf.gI1.upload(*this);
+//  gbuf.gI2.upload(ker);
+//  gpu::Stream stream;
+//  gpu::split(gbuf.gI1,gbuf.v,stream);
+//  //Cube roi(0,0,0,subWinStep.height, subWinStep.width, subWinStep.depth);
+//  Rect roi(0,0,ker.size().width,ker.size().height);
+//  for (unsigned  int k=0; k<cn; k++)
+//    {
+//      for (unsigned int i=0;roi.y+roi.height<=this->tsSize.height;  ++i, roi.y+=subWinStep.height)
+//        {
+//          for (unsigned int j=0; roi.x+roi.width<=this->tsSize.width; ++j, roi.x+=subWinStep.width)
+//            {
+//              gpu::multiply(gbuf.v[k](roi),gbuf.gI2,gbuf.gs,1,-1,stream);
+//              Scalar temp = gpu::sum(gbuf.gs);
+//              rst(i,j,0)[k] = (T)temp[0];//since split channels, all data are 1 channel.
+//            }
+//          roi.x=0;//reset to left
+//        }
+//      roi.y=0;
+//    }
+//  return rst;
+//}
 template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::LocalMean(const Size3& subWinSize,const Size3& subWinStep) const
 {
 	//tsSize.operator-(subWinSize);
@@ -1333,31 +1333,31 @@ template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::LocalVariance( const Ten
    //cout<<(temp-temp2).Abs().Sum()[0]<<endl;//verify
   return temp.Abs();
 }
-template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::LocalVarianceGPU( const Tensor<T,cn>& mu, const Mat& ker, BufferGPU& gbuf, const Size3& subWinStep) const
-{
-    //! 20130911 implement sliding window with steps
-    Size3 sz(this->tsSize.height / subWinStep.height, this->tsSize.width/subWinStep.width, this->tsSize.depth/subWinStep.depth);
-    Tensor<T,cn> rst(sz);
+//template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::LocalVarianceGPU( const Tensor<T,cn>& mu, const Mat& ker, BufferGPU& gbuf, const Size3& subWinStep) const
+//{
+//    //! 20130911 implement sliding window with steps
+//    Size3 sz(this->tsSize.height / subWinStep.height, this->tsSize.width/subWinStep.width, this->tsSize.depth/subWinStep.depth);
+//    Tensor<T,cn> rst(sz);
 
-    this->SquareGPU(gbuf);
-    gpu::Stream stream;
-    gpu::split(gbuf.gs,gbuf.v,stream);
-    gbuf.gI1.upload(ker);
-    Rect roi(0,0,ker.size().width,ker.size().height);
-    for (unsigned int i=0;roi.y+roi.height<=this->tsSize.height;  ++i, roi.y+=subWinStep.height)
-    {
-      for (unsigned int j=0; roi.x+roi.width<=this->tsSize.width; ++j, roi.x+=subWinStep.width)
-      {
-          gpu::multiply(gbuf.v[0](roi),gbuf.gI1,gbuf.gs,1,-1,stream);
-          Scalar temp = gpu::sum(gbuf.gs,gbuf.t1);
-          rst(i,j,0)[0]=(T)temp[0];
-          //rst(i,j,0)[1]=0;
-      }
-      roi.x=0;//reset to left
-    }
-  rst = rst - mu.SquareGPU(gbuf);
-  return rst.Abs();
-}
+//    this->SquareGPU(gbuf);
+//    gpu::Stream stream;
+//    gpu::split(gbuf.gs,gbuf.v,stream);
+//    gbuf.gI1.upload(ker);
+//    Rect roi(0,0,ker.size().width,ker.size().height);
+//    for (unsigned int i=0;roi.y+roi.height<=this->tsSize.height;  ++i, roi.y+=subWinStep.height)
+//    {
+//      for (unsigned int j=0; roi.x+roi.width<=this->tsSize.width; ++j, roi.x+=subWinStep.width)
+//      {
+//          gpu::multiply(gbuf.v[0](roi),gbuf.gI1,gbuf.gs,1,-1,stream);
+//          Scalar temp = gpu::sum(gbuf.gs,gbuf.t1);
+//          rst(i,j,0)[0]=(T)temp[0];
+//          //rst(i,j,0)[1]=0;
+//      }
+//      roi.x=0;//reset to left
+//    }
+//  rst = rst - mu.SquareGPU(gbuf);
+//  return rst.Abs();
+//}
 
 template<class T, size_t cn> Tensor<T,cn> Tensor<T,cn>::LocalVariance( const Tensor<T,cn>& mu, const Size3& subWinSize, const Size3& subWinStep) const
 {
