@@ -603,16 +603,16 @@ namespace mtc  {
     //copy matching and ssim_terms to folder
     string topath = path+count_exp+"_"+PID+"_matching.txt";
     //wstring wstemp(topath.begin(),topath.end());
-    boost::filesystem::copy_file("./temp/matching.txt", topath);
-    //CopyFile(L"matching.txt",wstemp.c_str(),0);
-    ifstream my_file("./temp/ssim_terms.txt");
-    if (my_file.good())
-      {
-        topath = path+count_exp+"_"+PID+"_ssim_terms.txt";
-        //wstemp = wstring(topath.begin(),topath.end());
-        boost::filesystem::copy_file("./temp/ssim_terms.txt",topath);
-        //CopyFile(L"ssim_terms.txt",wstemp.c_str(),0);
-      }
+//    boost::filesystem::copy_file("./temp/matching.txt", topath);
+//    //CopyFile(L"matching.txt",wstemp.c_str(),0);
+//    ifstream my_file("./temp/ssim_terms.txt");
+//    if (my_file.good())
+//      {
+//        topath = path+count_exp+"_"+PID+"_ssim_terms.txt";
+//        //wstemp = wstring(topath.begin(),topath.end());
+//        boost::filesystem::copy_file("./temp/ssim_terms.txt",topath);
+//        //CopyFile(L"ssim_terms.txt",wstemp.c_str(),0);
+//      }
   }
   Tensor<MTC::T,MTC::cn>& MTC::LoadPreDefLighting(void)
   {
