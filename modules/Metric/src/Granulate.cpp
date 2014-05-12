@@ -71,7 +71,7 @@ namespace metric {
 
   bool Granulate::generateGrid()
   {
-    string outdir = "/home/guoxin/Projects/MTC/data/totest/gran";
+    string outdir = "/media/sda5/Projects/MTC/data/totest/gran";
     mkdir(outdir.c_str(),0755);
     for (string& f : this->filenames)
     {

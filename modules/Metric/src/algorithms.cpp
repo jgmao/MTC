@@ -328,7 +328,7 @@ namespace metric
       {
         //    string PID = boost::lexical_cast<string>(_getpid());
 
-        debugfile.open("/home/guoxin/Projects/MTC/temp/ssim_terms.txt",ios::app);
+        debugfile.open("/media/sda5/Projects/MTC/temp/ssim_terms.txt",ios::app);
         debugfile.precision(3);
         //debugfile.width(10);
         debugfile<<"=========inter-band========="<<endl;
@@ -417,7 +417,7 @@ namespace metric
       {
         //    string PID = boost::lexical_cast<string>(_getpid());
 
-        debugfile.open("/home/guoxin/Projects/MTC/temp/ssim_terms.txt",ios::app|ios::out);
+        debugfile.open("/media/sda5/Projects/MTC/temp/ssim_terms.txt",ios::app|ios::out);
         debugfile.precision(3);
         //debugfile.width(10);
         debugfile<<"=========inter-band========="<<endl;
@@ -975,7 +975,7 @@ namespace metric
       {
         //    string PID = boost::lexical_cast<string>(_getpid());
 
-        debugfile.open("/home/guoxin/Projects/MTC/temp/ssim_terms.txt",ios::app|ios::out);
+        debugfile.open("/media/sda5/Projects/MTC/temp/ssim_terms.txt",ios::app|ios::out);
         debugfile.precision(3);
         //debugfile.width(10);
         debugfile<<"=========inter-band========="<<endl;
@@ -1550,7 +1550,7 @@ namespace metric
       {
         //    string PID = boost::lexical_cast<string>(_getpid());
 
-        debugfile.open("/home/guoxin/Projects/MTC/temp/ssim_terms.txt",ios::app|ios::out);
+        debugfile.open("/media/sda5/Projects/MTC/temp/ssim_terms.txt",ios::app|ios::out);
         debugfile.precision(3);
         //debugfile.width(10);
         debugfile<<"=========inter-band========="<<endl;
@@ -2055,237 +2055,17 @@ namespace metric
     vector<Tensor<double, 2> >  statB = metric::ComputeStatistics(tsB,subWinSize,subWinStep,false,false,nLevel,nDir,boundary_cut);
     Mat fA = Mat((4*(nDir*nLevel+2)),1,CV_64F);
     Mat fB = Mat((4*(nDir*nLevel+2)),1,CV_64F);
-    for (int i=0; i< statA.size(); i++)
+    for (unsigned int i=0; i< statA.size(); i++)
     {
         fA.at<double>(i,0) = statA[i].Abs().Real().at<double>(0,0);
         fB.at<double>(i,0) = statB[i].Abs().Real().at<double>(0,0);
     }
     return cv::Mahalanobis(fA,fB,iMcovar);
-    /*
-    Steerable spA, spB;
-    int crossbandNum = nDir*(nLevel-1) + nLevel* (mylib::combination(nDir,2));
-    Tensor<double,2> A,B;
-    if (tsA.channels()==1)
-      {
-        A = Tensor<double,1>(tsA).ToComplex();
-        B = Tensor<double,1>(tsB).ToComplex();
-      }
-    else
-      {
-        CV_Assert(tsA.channels()==2);
-        A = Tensor<double,2>(tsA);
-        B = Tensor<double,2>(tsB);
-      }
-    if (boundary_cut == FilterBoundary::FILTER_BOUND_EXTEND)
-    {
-        Mat tempA, tempB;
-        cv::copyMakeBorder(A,tempA,A.size().height/2,A.size().height/2,A.size().width/2,A.size().width/2,cv::BORDER_REFLECT);
-        cv::copyMakeBorder(B,tempB,B.size().height/2,B.size().height/2,B.size().width/2,B.size().width/2,cv::BORDER_REFLECT);
-
-        //the extended block size is at least 64;
-        if (tempA.size().height<64||tempA.size().width<64)
-        {
-          int lr = 64 - tempA.size().width;
-          int ud = 64 - tempB.size().height;
-          cv::copyMakeBorder(tempA,tempA,ud/2,ud/2,lr/2,lr/2,cv::BORDER_CONSTANT,0);
-          cv::copyMakeBorder(tempB,tempB,ud/2,ud/2,lr/2,lr/2,cv::BORDER_CONSTANT,0);
-        }
-        A = Tensor<double,2>(tempA);
-        B  = Tensor<double,2>(tempB);
-    }
-    spA.buildSCFpyr(A.ToComplex(),nLevel,nDir,1,false);
-    spB.buildSCFpyr(B.ToComplex(),nLevel,nDir,1,false);
-    vector<Tensor<double,2>>& pyrA = spA.getSpaceDomainPyr();
-    vector<Tensor<double,2>>& pyrB = spB.getSpaceDomainPyr();
-    //int boundary_cut = FILTER_BOUND_HALF;
-
-    if ( boundary_cut == FilterBoundary::FILTER_BOUND_HALF|| boundary_cut == FilterBoundary::FILTER_BOUND_EXTEND)//modify Dec 27 2011, not cut half but cut half + boundary
-      {
-        for (unsigned int i = 0; i< pyrA.size(); i++)
-          {
-            //pyrA[i].Print();
-            //dec 27 2011, extend the block by size of block size + bounday (below and right)
-            //int hh = subWinSize.height*(int)ceil(float(pyrA[i].size().height)/2.0/float(subWinSize.height));
-            //int ww = subWinSize.width*(int)ceil(float(pyrA[i].size().width)/2.0/float(subWinSize.width));
-            //int dd = subWinSize.depth*(int)ceil(float(pyrA[i].size().depth)/2.0/float(subWinSize.depth));
-            //just half, dec 28 2012
-            int hh = pyrA[i].size().height/2;
-            int ww = pyrA[i].size().width/2;
-            int dd = pyrA[i].size().depth;
-            if (tsA.size().height==16)
-            {
-                hh/=2;
-                ww/=2;
-            }
-
-            Cube roi((pyrA[i].size().height-hh)/2, (pyrA[i].size().width-ww)/2, 0, hh,ww,dd);
-
-            //Cube roi(pyrA[i].size().height/4, pyrA[i].size().width/4, 0, pyrA[i].size().height/2, pyrA[i].size().width/2, pyrA[i].size().depth);
-            pyrA[i] = pyrA[i](roi);//no size changed
-            //pyrA[i].Print();
-            pyrB[i] = pyrB[i](roi);
-            //pyrB[i].Print();
-          }
-      }
-    else if ( boundary_cut == FilterBoundary::FILTER_BOUND_VALID)
-      {
-        for (unsigned int i = 0; i< pyrA.size(); i++)
-          {
-            int hh = pyrA[i].size().height/2 + pyrA[i].size().height/4;
-            int ww = pyrA[i].size().width/2  + pyrA[i].size().width/4;
-            int dd = pyrA[i].size().depth/2  + pyrA[i].size().depth/4;
-            if (dd<1)
-              dd=1;
-            //just half, dec 28 2012
-            //int hh = pyrA[i].size().height/2;
-            //int ww = pyrA[i].size().width/2;
-            //int dd = pyrA[i].size().depth;
-            Cube roi(pyrA[i].size().height/8, pyrA[i].size().width/8, 0, hh,ww,dd); // temporaly use this /8
-            //Cube roi(pyrA[i].size().height/4, pyrA[i].size().width/4, 0, pyrA[i].size().height/2, pyrA[i].size().width/2, pyrA[i].size().depth);
-            pyrA[i] = pyrA[i](roi);//no size changed
-            //pyrA[i].Print();
-            pyrB[i] = pyrB[i](roi);
-            //pyrB[i].Print();
-          }
-      }
-
-    Size3 sz = pyrA[0].size();
-
-    //Tensor<double,1> rstMat(pyrA[0].size()/subWinStep - subWinSize+Size3(1,1,1));
-    Tensor<double,1> rstMat(Size3(Size3_<double>(pyrA[0].size()-subWinSize)/Size3_<double>(subWinStep)) + Size3(1,1,1));
-    //rstMat.Print();
-    vector<Tensor<double,2>> mu_A(pyrA.size());
-    vector<Tensor<double,2>> mu_B(pyrB.size());
-    Tensor<double,2> mu11,mu12,mu21,mu22;
-    vector<Tensor<double,2>> sigma2_A(pyrA.size());
-    vector<Tensor<double,2>> sigma2_B(pyrA.size());
-    vector<Tensor<double,2>> rho01_A(pyrA.size());
-    vector<Tensor<double,2>> rho01_B(pyrA.size());
-    vector<Tensor<double,2>> rho10_A(pyrA.size());
-    vector<Tensor<double,2>> rho10_B(pyrA.size());
-    Mat featureA(pyrA.size()*4,1,CV_64F);
-    Mat featureB(pyrA.size()*4,1,CV_64F);
-    Tensor<double,2> sigma1_cross,sigma2_cross;
-    Tensor<double,2> sigma11,sigma12,sigma21,sigma22;
-
-    vector<Tensor<double,1>> C00 (crossbandNum);
-    int index = 0;
-
-    double weight = sz.height*sz.width;
-    cv::Mat flatKel=cv::Mat(sz,pyrA[index][0].type()-((pyrA[index][0].channels()-1)<<CV_CN_SHIFT),Scalar(1/weight));
-    cv::Mat gaussKernel = mylib::GenGaussKer(subWinSize.height,double(subWinSize.height)/6.0,CV_64F);
-    cv::Mat temp;
-    for (index = 0; index < (int)pyrA.size(); index++)
-      {
-        mu_A[index] = pyrA[index].LocalMean(gaussKernel,subWinStep);
-        mu_B[index] = pyrB[index].LocalMean(gaussKernel,subWinStep);
-        sigma2_A[index] = pyrA[index].LocalVariance(mu_A[index],gaussKernel,subWinStep);
-        sigma2_B[index] = pyrB[index].LocalVariance(mu_B[index],gaussKernel,subWinStep);
-        Tensor<double,2> im11 = pyrA[index](Cube(0,0,0,sz.height,sz.width-1,sz.depth));
-        Tensor<double,2> im12 = pyrA[index](Cube(0,1,0,sz.height,sz.width-1,sz.depth));
-        Tensor<double,2> im21 = pyrB[index](Cube(0,0,0,sz.height,sz.width-1,sz.depth));
-        Tensor<double,2> im22 = pyrB[index](Cube(0,1,0,sz.height,sz.width-1,sz.depth)),
-            flatKel = Mat(Size(subWinSize.width-1,subWinSize.height),CV_64F,Scalar(1/double((subWinSize.width-1)*subWinSize.height)));
-        mu11 = im11.LocalMean(subWinSize,subWinStep);         //mu11.Print();
-        mu12 = im12.LocalMean(subWinSize,subWinStep);
-        mu21 = im21.LocalMean(subWinSize,subWinStep);
-        mu22 = im22.LocalMean(subWinSize,subWinStep);
-        sigma11 = im11.LocalVariance(mu11,subWinSize,subWinStep); //sigma11.Print();
-        sigma12 = im12.LocalVariance(mu12,subWinSize,subWinStep);
-        sigma21 = im21.LocalVariance(mu21,subWinSize,subWinStep);
-        sigma22 = im22.LocalVariance(mu22,subWinSize,subWinStep);
-        sigma1_cross = ((im11 * im12.Conjugate()).LocalMean(subWinSize,subWinStep) - mu11 * mu12.Conjugate()); //sigma1_cross.Print();
-        sigma2_cross = ((im21 * im22.Conjugate()).LocalMean(subWinSize,subWinStep) - mu21 * mu22.Conjugate());// sigma2_cross.Print();
-        rho01_A[index] = (sigma1_cross + Vec2d(C,0))/((sigma11*sigma12).Sqrt()+Vec2d(C,0));// rho1.Print();
-        rho01_B[index] = (sigma2_cross + Vec2d(C,0))/((sigma21*sigma22).Sqrt()+Vec2d(C,0));// rho2.Print();
-        im11 = pyrA[index](Cube(0,0,0,sz.height-1,sz.width,sz.depth));
-        im12 = pyrA[index](Cube(1,0,0,sz.height-1,sz.width,sz.depth));
-        im21 = pyrB[index](Cube(0,0,0,sz.height-1,sz.width,sz.depth));
-        im22 = pyrB[index](Cube(1,0,0,sz.height-1,sz.width,sz.depth));
-        flatKel = Mat(Size(subWinSize.width,subWinSize.height-1),CV_64F,Scalar(1/double(subWinSize.width*(subWinSize.height-1))));
-        mu11 = im11.LocalMean(subWinSize,subWinStep);         //mu11.Print();
-        mu12 = im12.LocalMean(subWinSize,subWinStep);
-        mu21 = im21.LocalMean(subWinSize,subWinStep);
-        mu22 = im22.LocalMean(subWinSize,subWinStep);
-        sigma11 = im11.LocalVariance(mu11,subWinSize,subWinStep); //sigma11.Print();
-        sigma12 = im12.LocalVariance(mu12,subWinSize,subWinStep);
-        sigma21 = im21.LocalVariance(mu21,subWinSize,subWinStep);
-        sigma22 = im22.LocalVariance(mu22,subWinSize,subWinStep);
-        //    sigma11.Print("sigma11");
-        //   sigma12.Print("sigma12");
-        //   sigma1_cross.Print("sigma1_cross");
-        sigma1_cross = ((im11 * im12.Conjugate()).LocalMean(subWinSize,subWinStep) - mu11 * mu12.Conjugate()); //sigma1_cross.Print();
-        sigma2_cross = ((im21 * im22.Conjugate()).LocalMean(subWinSize,subWinStep) - mu21 * mu22.Conjugate());// sigma2_cross.Print();
-        rho10_A[index] = (sigma1_cross + Vec2d(C,0))/((sigma11*sigma12).Sqrt()+Vec2d(C,0));// rho1.Print();
-        rho10_B[index] = (sigma2_cross + Vec2d(C,0))/((sigma21*sigma22).Sqrt()+Vec2d(C,0));// rho2.Print();
-
-        // rho10_A[index].Print();
-        // rho10_A[index].Abs().Real().Print();
-        // cout<<rho10_A[index].Abs().Real()(0,0,0)[0]<<endl;;
-        featureA.at<double>(index*4,0) = mu_A[index].Abs().Real()(0,0,0)[0];
-        featureA.at<double>(index*4+1,0) = sqrt(sigma2_A[index].Abs().Real()(0,0,0)[0]);
-        featureA.at<double>(index*4+2,0) = rho01_A[index].Abs().Real()(0,0,0)[0];
-        featureA.at<double>(index*4+3,0) = rho10_A[index].Abs().Real()(0,0,0)[0];
-        featureB.at<double>(index*4,0) = mu_B[index].Abs().Real()(0,0,0)[0];
-        featureB.at<double>(index*4+1,0) = sqrt(sigma2_B[index].Abs().Real()(0,0,0)[0]);
-        featureB.at<double>(index*4+2,0) = rho01_B[index].Abs().Real()(0,0,0)[0];
-        featureB.at<double>(index*4+3,0) = rho10_B[index].Abs().Real()(0,0,0)[0];
-      }
-    //return rst/(crossbandNum+pyrA.size())/sz.depth;
-    // mylib::DisplayMat(featureA,"fa");
-    // mylib::DisplayMat(featureB,"fb");
-    // mylib::DisplayMat((featureA-featureB).t());
-    // mylib::DisplayMat(iMcovar,"imcovar");
-    */
-    /*  Mat temp2(1,iMcovar.size().width,CV_64F,Scalar(0));
- // mylib::DisplayMat(temp2,"temp2");
-  cv::gemm(featureA-featureB,iMcovar,1,featureA.t(),0,temp2,GEMM_1_T);
-  Mat F = (featureA - featureB);
-  mylib::DisplayMat(F,"F");
-  rst = 0;
-  for (int jj=0; jj<iMcovar.size().width; jj++)
-  {
-    temp2.at<double>(0,jj)=0;
-    for (int ii=0; ii<iMcovar.size().height; ii++)
-    {
-      temp2.at<double>(0,jj) += F.at<double>(ii,0)*iMcovar.at<double>(ii,jj);
-      cout<<"+"<<F.at<double>(ii,0)<<" x "<<iMcovar.at<double>(ii,jj)<<" = "<< temp2.at<double>(0,jj)<<endl;
-
-    }
-  }
-  mylib::DisplayMat(temp2,"temp2");
-  mylib::DisplayMat((featureA-featureB).t()*iMcovar);
-  temp2 = (featureA - featureB).t()*iMcovar*(featureA-featureB);
-  rst = temp2.at<double>(0,0);*/
-    //return cv::Mahalanobis(featureA,featureB,iMcovar);
   }
 
   //! this is the metric parser
   double Compare(const Mat& tsA, const Mat& tsB, CompareCriteria criteria, const Size3& subWinSize,const Size3& subWinStep, Printable_t param1, Printable_t param2, Printable_t param3, Printable_t param4, Printable_t param5, Printable_t param6, bool debug)
   {
-    /*va_list ap;
-  va_start(ap,criteria);
-  vector<string> argname;
-  vector<Printable_t> argdata;
-  Printable_t printable;
-  int count=0;
-  for (count=0;count<paramNum;count++)
-  {
-    char* s = va_arg(ap,char*);
-    printable.s = s;// va_arg(ap,char*);
-    argname.push_back(printable.s);
-      //cout<<Printable.s<<endl;;
-    if (criteria==COMPARE_CRITERIA_SSIM) //(!strcmp(printable.s,"nDir")||!strcmp(printable.s,"nLevel")||!strcmp(printable.s,"pool_type")||!strcmp(printable.s,"boundary_cut"))
-        printable.i = va_arg(ap,int);
-    else if (criteria==COMPARE_CRITERIA_MAHALANOBIS)
-        printable.m = va_arg(ap,cv::Mat*);
-    else
-        printable.d = va_arg(ap,double);
-    argdata.push_back(printable);
-      //cout<<Printable.i<<endl;
-  }
-  va_end(ap);
-  */
     CV_Assert(tsA.size()==tsB.size());
     CV_Assert(tsA.channels()==tsB.channels());
     CV_Assert(tsA.channels()==1);

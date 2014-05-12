@@ -567,8 +567,8 @@ int Metric::computeFeatures(void)
       f.at<double>(i,2*k+1) = t[1];
     }
   //return computeFeatures(stats);
-  ofstream fs("/home/guoxin/Projects/MTC/data.txt",ios::out);
-  ofstream ls("/home/guoxin/Projects/MTC/label.txt",ios::out);
+  ofstream fs("/media/sda5/Projects/MTC/data.txt",ios::out);
+  ofstream ls("/media/sda5/Projects/MTC/label.txt",ios::out);
   //fs<<"D_32"<<f;
   for (int i =0; i< f.size().height;i++)
   {

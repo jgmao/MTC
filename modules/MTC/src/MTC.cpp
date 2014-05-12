@@ -4875,7 +4875,7 @@ string MTC::ComputeJpegHuff(const Vec<T,cn>& val, UINT8 runlength, std::map<int,
 void MTC::InitHuffCoeff(void)
 {
   ifstream fh;
-  fh.open("/home/guoxin/Projects/MTC/DC_hufftalbe.txt");
+  fh.open("/media/sda5/Projects/MTC/DC_hufftalbe.txt");
   std::cout<<"done 4\n";
   int val;
   char value[100];
@@ -4896,7 +4896,7 @@ void MTC::InitHuffCoeff(void)
     }
   fh.close();
   std::cout<<"done 4.5\n";
-  fh.open("/home/guoxin/Projects/MTC/AC_hufftable.txt");
+  fh.open("/media/sda5/Projects/MTC/AC_hufftable.txt");
   while(!fh.eof())
     {
       fh.getline(value,100,' '); //read value

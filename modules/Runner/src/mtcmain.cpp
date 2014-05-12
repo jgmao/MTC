@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
 	//test.TestTensor();
 	//test.TestFilter2D();
 	//test.TestAlgorithms();
-	//test.TestSSIM("/home/guoxin/Projects/MTC/data/texture1.png","/home/guoxin/Projects/MTC/data/texture2.png");
+	//test.TestSSIM("/media/sda5/Projects/MTC/data/texture1.png","/media/sda5/Projects/MTC/data/texture2.png");
 	//test.TestGranulateGen();
   //test.TestGranulateTrain();
         //test.TestMetric();

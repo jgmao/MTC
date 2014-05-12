@@ -22,10 +22,10 @@ Tester::~Tester(void)
 }
 void Tester::Testfftwpp(void)
 {
-  Tensor<double,1> im1("/home/guoxin/Projects/Steerable/SteerableR/impulse.tif");
+  Tensor<double,1> im1("/media/sda5/Projects/Steerable/SteerableR/impulse.tif");
   //int rr = im.size().height/2;
   Tensor<double,1> pad1 = im1.ExtendBoundary(im1.size()/2,0);
-  Tensor<double,1> im2("/home/guoxin/Projects/Steerable/SteerableR/texture1.png");
+  Tensor<double,1> im2("/media/sda5/Projects/Steerable/SteerableR/texture1.png");
   Tensor<double,1> pad2 = im2.ExtendBoundary(im2.size()/2,0);
 
   metric::Steerable2 *steer = new metric::Steerable2(pad2);
@@ -52,12 +52,12 @@ void Tester::Testfftwpp(void)
 }
 void Tester::TestLRI()
 {
-  Tensor<double,1> a("/home/guoxin/Projects/MTC/data/a.tif");
-  Tensor<double,1> b("/home/guoxin/Projects/MTC/data/b.tif");
- Tensor<double,1> c("/home/guoxin/Projects/MTC/data/c.tif");
- Tensor<double,1> d("/home/guoxin/Projects/MTC/data/d.tif");
- Tensor<double,1> e("/home/guoxin/Projects/MTC/data/e.tif");
- Tensor<double,1> f("/home/guoxin/Projects/MTC/data/f.tif");
+  Tensor<double,1> a("/media/sda5/Projects/MTC/data/a.tif");
+  Tensor<double,1> b("/media/sda5/Projects/MTC/data/b.tif");
+ Tensor<double,1> c("/media/sda5/Projects/MTC/data/c.tif");
+ Tensor<double,1> d("/media/sda5/Projects/MTC/data/d.tif");
+ Tensor<double,1> e("/media/sda5/Projects/MTC/data/e.tif");
+ Tensor<double,1> f("/media/sda5/Projects/MTC/data/f.tif");
  double test1 = metric::ComputeLRI(a,b);
  double test2 = metric::ComputeLRI(c,d);
  double test3 = metric::ComputeLRI(a,c);
@@ -446,7 +446,7 @@ void Tester::TestSSIM(string file1, string file2)
 void Tester::TestFilter2D(void)
 {
 	typedef double T;
-	Tensor<T,1> im("/home/guoxin/Projects/MTC/data/baboon.pgm");
+    Tensor<T,1> im("/media/sda5/Projects/MTC/data/baboon.pgm");
 	im.Display();
 	Tensor<T,1> part = im.Crop(Point3i(32,32,0),Size3(32,32,1));
 	Steerable sp;
@@ -886,7 +886,7 @@ void Tester::TestPoisson(void)
 void Tester::TestTensor(void)
 {
 
-  Tensor<double,1> ts("/home/guoxin/Projects/MTC/data/texture1.png");
+  Tensor<double,1> ts("/media/sda5/Projects/MTC/data/texture1.png");
         cout<<ts.size()<<endl;
   ts.Display();
         ts.Print();
@@ -913,7 +913,7 @@ void Tester::TestTensor(void)
   vector<Tensor<double,2> >& pyr = sp.getSpaceDomainPyr();
   cv::split(pyr[12],tv);
   Tensor<double,1>(tv[0]).Display();
-   Tensor<double,1> ts2("/home/guoxin/Projects/MTC/data/texture2.png");
+   Tensor<double,1> ts2("/media/sda5/Projects/MTC/data/texture2.png");
         ts2.Print();
    cout<<ComputeMSE(ts,ts2)<<endl;
 
@@ -921,8 +921,8 @@ void Tester::TestTensor(void)
 
 void Tester::TestAlgorithms(void)
 {
-  Tensor<double,1> ts1("/home/guoxin/Projects/MTC/data/texture1.png");
-  Tensor<double,1> ts2("/home/guoxin/Projects/MTC/data/texture2.png");
+  Tensor<double,1> ts1("/media/sda5/Projects/MTC/data/texture1.png");
+  Tensor<double,1> ts2("/media/sda5/Projects/MTC/data/texture2.png");
         ts1.Print();
   cout<<"MSE:"<<ComputeMSE(ts1,ts2)<<endl;
   cout<<"Compare two:\n";
@@ -940,7 +940,7 @@ void Tester::TestAlgorithms(void)
 void Tester::TestGranulateGen()
 {
   Granulate g;
-  g.readFiles("/home/guoxin/Projects/MTC/data/totest/","tiff");
+  g.readFiles("/media/sda5/Projects/MTC/data/totest/","tiff");
   g.generateGrid();
 }
 
@@ -1006,7 +1006,7 @@ void Tester::debugBlock(int x, int y, int sz)
 }
 void Tester::TestSpeed(void)
 {
-  Tensor<double,1> im("/home/guoxin/Projects/MTC/data/woman_g.tiff");
+  Tensor<double,1> im("/media/sda5/Projects/MTC/data/woman_g.tiff");
   int K = 10000000; // do 1000 trails
   Tensor<double,1> blk = im.GetBlock(Cube(13,13,0,16,16,1));
   Tensor<double,1> can = im.GetBlock(Cube(255,255,0,16,16,1));
