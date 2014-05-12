@@ -40,7 +40,7 @@ public:
     Mat var;
     cv::meanStdDev(history1D,mu,var);
     Mat ret;
-    cv::reduce(cv::abs(history1D-mu.at<double>(0,0)),ret,0,cv::REDUCE_SUM);
+    cv::reduce(cv::abs(history1D-mu.at<double>(0,0)),ret,0,CV_REDUCE_SUM);
     //cout<<ret<<endl;
     lambda = ret.at<double>(0,0)/history1D.size().height;
   }

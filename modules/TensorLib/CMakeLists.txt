@@ -1,5 +1,5 @@
 #set(MTC_TENSOR_DIR ${MTC_MODULES_DIR}/TensorLib)
-include_directories(${MTC_TENSORLIB_DIR}/include ${MTC_UTILITY_DIR}/include ${MTC_LIGHTING_DIR}/include ${MTC_METRIC_DIR}/include)
+include_directories(${MTC_TENSORLIB_DIR}/include ${MTC_UTILITY_DIR}/include ${MTC_LIGHTING_DIR}/include ${MTC_METRIC_DIR}/include ${EIGEN3_INCLUDE_DIR})
 #link_directories(${MTC_TENSOR_DIR}/src)
 set(PROGRAMS Size3 Cube TensorLite TensorHelper)
 set(Other CubePlus QNode QTree QGrid)

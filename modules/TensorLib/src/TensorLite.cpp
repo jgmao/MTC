@@ -20,7 +20,7 @@ template<class T, size_t cn> Tensor<T,cn>::Tensor(void):Mat()
 
 template<class T, size_t cn> Tensor<T,cn>::Tensor(int height, int width, int depth, typename Tensor<T,cn>::c_ref_type val): Mat()
 {
-    *this = Mat(height,width,CV_MAKETYPE(DataType<T>::depth,cn),val);
+    *this = Mat(height,width,CV_MAKETYPE(DataType<T>::depth,cn));
 	this->tsSize = Size3(height,width,depth);
 	this->cFileName = "unknown";
 	this->tsOffset = Point3i();
@@ -30,7 +30,7 @@ template<class T, size_t cn> Tensor<T,cn>::Tensor(int height, int width, int dep
 
 template<class T, size_t cn> Tensor<T,cn>::Tensor(const Size3& size, const Vec<T,cn>& val): Mat()
 {
-	*this = Mat(size, CV_MAKETYPE(DataType<T>::depth,cn),val);
+    *this = Mat(size, CV_MAKETYPE(DataType<T>::depth,cn));
 	this->tsSize = size;
 	this->cFileName = "unknown";
 	this->tsOffset = Point3i();

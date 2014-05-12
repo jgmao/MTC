@@ -4,7 +4,7 @@
 #set(MTC_METRIC_DIR ${MTC_MODULES_DIR}/Metric)
 
 message("tensor dir is: ${MTC_TENSOR_DIR}")
-include_directories(${MTC_RUNNER_DIR}/include ${MTC_TENSORLIB_DIR}/include ${MTC_UTILITY_DIR}/include ${MTC_METRIC_DIR}/include ${MTC_MTC_DIR}/include ${MTC_LIGHTING_DIR}/include)
+include_directories(${MTC_RUNNER_DIR}/include ${MTC_TENSORLIB_DIR}/include ${MTC_UTILITY_DIR}/include ${MTC_METRIC_DIR}/include ${MTC_MTC_DIR}/include ${MTC_LIGHTING_DIR}/include ${EIGEN3_INCLUDE_DIR})
 set(com_link ${MTC_RUNNER_DIR}/src ${MTC_METRIC_DIR} ${MTC_MTC_DIR})
 
 
@@ -28,10 +28,6 @@ target_link_libraries(Tester ${OpenCV_LIBS} TensorLib TensorExtend util MTC Ligh
 foreach(program ${PROGRAMS})
   add_executable(${program} src/${program}.cpp)
   target_link_libraries(${program} ${OpenCV_LIBS} Tester TensorLib TensorExtend util MTC LightingLib jpeg MetricLib ${Boost_LIBRARIES})
- # install(TARGETS ${PROGRAMSTe}
-#	RUNTIME DESTINATION ${MTC_SOURCE_DIR}/bin
-#	LIBRARY DESTINATION ${MTC_SOURCE_DIR}/lib
-#  )
 endforeach(program)
 
 
