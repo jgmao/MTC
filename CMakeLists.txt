@@ -19,7 +19,12 @@ set(OpenCV_DIR "/usr/local/share/OpenCV")
 else()
 set(OpenCV_DIR "/opt/local/lib/cmake")
 endif()
+
 message (GCC_MAJOR)
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "/usr/share/cmake-2.8/Modules")
+message("${CMAKE_MODULE_PATH}")
+
 find_package(OpenCV COMPONENTS core)
 if(${OpenCV_VERSION_MINOR} LESS 9)
 find_package(OpenCV REQUIRED core highgui imgproc ml)# gpufilters gpuarithm gpuimgproc ml)
@@ -36,13 +41,9 @@ if(Boost_FOUND)
 message("${Boost_LIBRARIES}")
 endif()
 
-
 find_package(Eigen3 REQUIRED)
 message("find eigen3" )
 message("${EIGEN3_INCLUDE_DIR}" )
-
-
-#include("/usr/local/include")
 
 if("${OS}" MATCHES "MacOSX")
 set(CMAKE_CXX_COMPILER "/opt/local/bin/g++")

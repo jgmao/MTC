@@ -196,24 +196,14 @@ namespace mtc  {
     {
         //read mahalanobis.txt to get the variances
         metric::readMahalanobis2(this->MahaCovars,"mahalanobis2.txt");
-//        for (Mat& tmat:this->MahaCovars)
-//        {
-//                mylib::DisplayMat(tmat);
-//        }
     }
     this->SAT = rst.ExtendHalfBoundary();
 #if OUTPUT_THRDFILE
     ofstream thrdfile("thrdfile.txt",ios::out);
     thrdfile.close();
 #endif
-    //SAT.Display();
-    //SAT.Display();
-    //rst = ensemble;
-    //this->UpdateRstSqr(Cube(ensemble.offset(),ensemble.size()));
-    //this->rstSqr(Cube(0,0,0,16,16,1)).Print();
     acount=0;
-    //this->SAT = rstSqr.ComputeSAT();
-    //SAT(Cube(0,0,0,16,16,1)).Print();
+
     int tempTotalBits=0, tempPQIBits=0, tempTreeBits=0, tempModeBits=0;
     vector<int> tempJPEGBits(2), tempMTCBits(int(log(blockSize.height/8)/log(2))+1);
     cout<<stat.plcBitLength<<endl;

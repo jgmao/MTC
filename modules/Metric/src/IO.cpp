@@ -92,7 +92,7 @@ namespace metric {
             covars[i].at<double>(j,k) = temp[j][k];
           }
         temp.clear();
-        for (int i=0; i<covars.size(); i++)
+        for (unsigned int i=0; i<covars.size(); i++)
           cout<<covars[i]<<endl;
         return true;
   }
