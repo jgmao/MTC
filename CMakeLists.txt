@@ -13,6 +13,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "WINDOWS")
 endif()
 message("${OS}")
 
+cmake_policy(SET CMP0017 OLD)
 
 if ("${OS}" MATCHES "Linux")
 set(OpenCV_DIR "/usr/local/share/OpenCV")
@@ -31,6 +32,9 @@ find_package(OpenCV REQUIRED core highgui imgproc ml)# gpufilters gpuarithm gpui
 else()
 find_package(OpenCV REQUIRED core highgui imgproc ml features2d nonfree)
 endif()
+
+message("${OpenCV_VERSION}")
+
 add_definitions(-DBOOST_ALL_NO_LIB)
 add_definitions( -DBOOST_ALL_DYN_LINK )
 set(Boost_USE_STATIC_LIBS OFF)
